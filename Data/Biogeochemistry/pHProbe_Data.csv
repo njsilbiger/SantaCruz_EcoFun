@@ -1,7 +1,7 @@
 Site,UniqueID,Benthos,ID_number,Day_Night,Sampling_Date,Sampling_Time,Processing_DateTime,TempInLab,mV,Salinity,TempInSitu,TA,TrisCalDate,Salinity_Calibration_Date,Notes
-Long Beach,RW1_Day,Rock Weed,1,Day,7/31/2023,10:00,7/31/2023 16:00,11.775,-78.7,32.3,,,20230727,7/31/2023,
-Long Beach,RW3_Day,Rock Weed,3,Day,7/31/2023,10:00,7/31/2023 16:00,15.703,-76.5,33.05,,,20230727,7/31/2023,
-Long Beach,RW5_Day,Rock Weed,5,Day,7/31/2023,10:00,7/31/2023 16:00,12.019,-77.5,32.44,,,20230727,7/31/2023,
+Long Beach,RW1_Day,Rockweed,1,Day,7/31/2023,10:00,7/31/2023 16:00,11.775,-78.7,32.3,,,20230727,7/31/2023,
+Long Beach,RW3_Day,Rockweed,3,Day,7/31/2023,10:00,7/31/2023 16:00,15.703,-76.5,33.05,,,20230727,7/31/2023,
+Long Beach,RW5_Day,Rockweed,5,Day,7/31/2023,10:00,7/31/2023 16:00,12.019,-77.5,32.44,,,20230727,7/31/2023,
 Long Beach,OO_Day1,Open Ocean,1,Day,7/31/2023,10:00,8/1/2023 9:00,21.073,-74.2,32.52,,,20230727,7/31/2023,
 Long Beach,B1_Day,Barnacle,1,Day,7/31/2023,10:00,8/1/2023 9:00,21.33,-76.8,32.84,,,20230727,7/31/2023,
 Long Beach,B3_Day,Barnacle,3,Day,7/31/2023,10:00,8/1/2023 9:00,21.23,-77.8,32.92,,,20230727,7/31/2023,

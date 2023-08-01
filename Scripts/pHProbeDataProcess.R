@@ -9,23 +9,22 @@ library(here)
 library(lubridate)
 
 ## bring in pH calibration files and raw data files
-pHcalib<-read_csv(here("Data","March2022","CarbonateChemistry","TrisCalibrationLog.csv")) %>%
-  mutate(TrisCalDate = mdy(TrisCalDate))
-# pHData<-read_csv(here("Data","August2021","CarbonateChemistry","pHProbe_Data.csv"))
-pHData<-read_csv(here("Data","March2022","CarbonateChemistry","pHProbe_Data.csv"))%>%
-  mutate(TrisCalDate = mdy(TrisCalDate),
-         Date = mdy(Date))
-# pHData<-read_csv(here("Data","August2021","CarbonateChemistry","pHProbe_SEEP_2022_02_10.csv"))%>%
-#   mutate(TrisCalDate = mdy(TrisCalDate))
+pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
+  mutate(TrisCalDate = ymd(TrisCalDate))
+
+pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
+  mutate(TrisCalDate = ymd(TrisCalDate),
+         Sampling_Date = mdy(Sampling_Date))
 
 # Needed for phosphate data
-NutData<-read_csv(here("Data","March2022","Nutrients","Nutrients_watersampling_Mar22.csv")) %>%
-  select(CowTagID, SeepCode, Day_Night, Tide, Date, Phosphate_umolL, NN_umolL=Nitrite_umolL, Ammonia_umolL, Silicate_umolL) %>%
-  mutate(Date = mdy(Date))
+# NutData<-read_csv(here("Data","March2022","Nutrients","Nutrients_watersampling_Mar22.csv")) %>%
+#   select(CowTagID, SeepCode, Day_Night, Tide, Date, Phosphate_umolL, NN_umolL=Nitrite_umolL, Ammonia_umolL, Silicate_umolL) %>%
+#   mutate(Date = mdy(Date))
+# 
+# pHData<-left_join(pHData,NutData) 
 
-pHData<-left_join(pHData,NutData) 
-
-
+## dummy variable until I get in situ data
+pHData$TempInSitu = 16
 
 ## take the mV calibration files by each date and use them to calculate pH
 pHSlope<-pHcalib %>%
@@ -37,9 +36,10 @@ pHSlope<-pHcalib %>%
   pivot_wider(names_from = term, values_from = estimate) %>%# put slope and intercept in their own column
   right_join(.,pHData) %>% # join with the pH sample data
   mutate(mVTris = TempInLab*TTris + `(Intercept)`) %>% # calculate the mV of the tris at temperature in which the pH of samples were measured
-  mutate(pH = pH(Ex=mV,Etris=mVTris,S=Salinity,T=TempInLab)) %>% # calculate pH of the samples using the pH seacarb function
   drop_na(TempInSitu)%>%
-  drop_na(mV)
+  drop_na(mV) %>%
+   mutate(pH = pH(Ex=mV,Etris=mVTris,S=Salinity,T=TempInLab))  # calculate pH of the samples using the pH seacarb function
+
 
 # The TA data is missing from some bottles because of lack of water, but it really doesnt affect the pH calc.
 # I am replacing the missing values with 2300 for the pH calculation then converting it back to NA
@@ -58,15 +58,17 @@ pHSlope$Salinity<-ifelse(is.na(pHSlope$Salinity), pHSlope$Salinity_In_Lab, pHSlo
 #Now calculate pH
 pHSlope <-pHSlope%>%
   mutate(pH_insitu = pHinsi(pH = pH, ALK = TA, Tinsi = TempInSitu, Tlab = TempInLab, 
-                            S = Salinity,Pt = Phosphate_umolL, k1k2 = "m10", kf = "dg")) %>%
+                            S = Salinity,Pt = 0.1, k1k2 = "m10", kf = "dg")) %>%
+  # mutate(pH_insitu = pHinsi(pH = pH, ALK = TA, Tinsi = TempInSitu, Tlab = TempInLab, 
+  #                           S = Salinity,Pt = Phosphate_umolL, k1k2 = "m10", kf = "dg")) %>%
   select(!pH) %>% # I only need the in situ pH calculation so remove this
   rename(pH = pH_insitu) %>% # rename it 
   ungroup() %>%
-  select(Date, CowTagID,SeepCode, Tide, Day_Night, SamplingTime,Salinity=Salinity, pH, TempInSitu, TA, NN_umolL, Silicate_umolL, Ammonia_umolL, Phosphate_umolL, Notes) # keep what I want
+  select(Sampling_Date, Sampling_Time, Day_Night,Benthos, UniqueID, Day_Night, Salinity, pH, TempInSitu, TA,Processing_DateTime, Notes) # keep what I want
 
 pHSlope$TA[NoTA]<-NA # make TA na again for the missing values
 
   #select(Date, CowTagID,Tide, Day_Night, SamplingTime,Salinity,pH, pH_insitu, TempInSitu) ## need to calculate pH insi then it is done
 
 ## write the data
-write_csv(x = pHSlope, file = here("Data","March2022","CarbonateChemistry","pHProbe_Data_calculated_POcorrect.csv"))
+write_csv(x = pHSlope, file = here("Data","Biogeochemistry","pHProbe_Data_calculated.csv"))
