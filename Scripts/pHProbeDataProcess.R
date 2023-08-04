@@ -64,7 +64,7 @@ pHSlope <-pHSlope%>%
   select(!pH) %>% # I only need the in situ pH calculation so remove this
   rename(pH = pH_insitu) %>% # rename it 
   ungroup() %>%
-  select(Sampling_Date, Sampling_Time, Day_Night,Benthos, UniqueID, Day_Night, Salinity, pH, TempInSitu, TA,Processing_DateTime, Notes) # keep what I want
+  select(Sampling_Date, Sampling_Time, Day_Night,Benthos, Quad_ID, UniqueID, Day_Night, Salinity, pH, TempInSitu, TA,Processing_DateTime, Notes) # keep what I want
 
 pHSlope$TA[NoTA]<-NA # make TA na again for the missing values
 
@@ -72,3 +72,23 @@ pHSlope$TA[NoTA]<-NA # make TA na again for the missing values
 
 ## write the data
 write_csv(x = pHSlope, file = here("Data","Biogeochemistry","pHProbe_Data_calculated.csv"))
+
+
+
+summ<-pHSlope %>% 
+  group_by(Benthos,Quad_ID) %>%
+  summarise(deltapH = abs(pH[Day_Night == "Day"] - pH[Day_Night == "Night"])) 
+
+
+summ %>%  
+ggplot(aes(x = Benthos, y = deltapH, color = Benthos))+
+  geom_boxplot()+
+  geom_jitter(width = 0.1)
+
+anova(lm(deltapH~Benthos, data = summ))
+
+
+pHSlope %>%
+  ggplot(aes(x = Benthos, y = pH, color = Day_Night, shape = factor(Sampling_Date)))+
+  geom_boxplot(width = .1)+
+  facet_grid(~factor(Sampling_Date))
