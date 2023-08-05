@@ -92,3 +92,10 @@ pHSlope %>%
   ggplot(aes(x = Benthos, y = pH, color = Day_Night, shape = factor(Sampling_Date)))+
   geom_boxplot(width = .1)+
   facet_grid(~factor(Sampling_Date))
+
+pHSlope %>%
+  ggplot(aes(x = Sampling_Time, y = pH, color = Benthos, group = Benthos))+
+  geom_point()
+#  geom_smooth()
+
+
