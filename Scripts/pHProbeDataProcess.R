@@ -98,6 +98,7 @@ pHSlope %>%
 
 
 pHSlope %>%
-  ggplot(aes(x = Benthos, y = pH, color = Day_Night))+
-  geom_boxplot()
+  ggplot(aes(x = pH, fill = Benthos))+
+  geom_density(alpha = 0.5)+
+  facet_wrap(~Day_Night)
 #  geom_smooth()
