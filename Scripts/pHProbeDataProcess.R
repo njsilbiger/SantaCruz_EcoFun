@@ -23,8 +23,6 @@ pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
 # 
 # pHData<-left_join(pHData,NutData) 
 
-## dummy variable until I get in situ data
-pHData$TempInSitu = 20
 
 ## take the mV calibration files by each date and use them to calculate pH
 pHSlope<-pHcalib %>%
@@ -99,3 +97,7 @@ pHSlope %>%
 #  geom_smooth()
 
 
+pHSlope %>%
+  ggplot(aes(x = Benthos, y = pH, color = Day_Night))+
+  geom_boxplot()
+#  geom_smooth()
