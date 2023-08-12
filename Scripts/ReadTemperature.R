@@ -7,7 +7,9 @@
 library(tidyverse)
 library(here)
 library(janitor)
-
+library(lubridate)
+library(calecopal)
+library(patchwork)
 
 
 ## read in the data ####
@@ -26,7 +28,10 @@ read_fun<-function(name){
            Lux = ch_2_light_lux,
            DateTime = date_time_pdt) %>%
     select(DateTime,Temperature,Lux) %>%
-    mutate(DateTime = mdy_hms(DateTime))
+    mutate(DateTime = case_when(
+      grepl("^0", DateTime) ~ mdy_hms(DateTime),
+      .default = mdy_hm(DateTime))) %>% # some files are hm and others are hms
+    slice(100:n()) # delete the first 100 points
 }
 
 # read in all the files into one dataframe
@@ -38,19 +43,45 @@ data<-files %>%
   mutate(Benthos = case_when(grepl("B", BenthicID) ~ "Barnacles",
                            grepl("M", BenthicID) ~"Mussels",
                            grepl("P", BenthicID) ~"Surfgrass",
-                           grepl("R", BenthicID) ~"Rockweed"))
+                           grepl("R", BenthicID) ~"Rockweed",
+                           grepl("O", BenthicID) ~"Open Ocean"))
          
 
 
 
 
-data %>%
-  drop_na(Benthos)%>%
+p1<-data %>%
+  filter(Benthos != "Open Ocean") %>%
   ggplot(aes(x = DateTime, y = Temperature, group = BenthicID, color = Benthos))+
-  geom_line()
+  geom_line()+
+  scale_color_manual(values = cal_palette("tidepool"))+
+  theme_bw()+
+  facet_grid(~Benthos)+
+  labs(x = "",
+       y = expression("Temperature ("*degree*"C)"))+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
 
-data %>%
-  drop_na(Benthos)%>%
-  ggplot(aes(x = Benthos, y = Temperature, color = Benthos))+
-  geom_boxplot()
-
+p2<-data %>%
+  filter(Benthos != "Open Ocean",
+         BenthicID != "P4") %>%
+  group_by(Benthos, BenthicID)%>%
+  summarise(Temp_max = max(Temperature, na.rm = TRUE))%>%
+  ungroup()%>%
+  group_by(Benthos) %>%
+  summarise(Max_mean = mean(Temp_max, na.rm = TRUE),
+            Max_se =  sd(Temp_max, na.rm = TRUE)/sqrt(n())) %>%
+ggplot(aes(x = Benthos, y = Max_mean, color = Benthos))+
+  geom_point(size = 4)+
+  geom_errorbar(aes(ymin = Max_mean - Max_se, ymax = Max_mean+Max_se, x = Benthos), width =.1)+
+  scale_color_manual(values = cal_palette("tidepool"))+
+  labs(y=expression("Average max temperature ("*degree*"C)"),
+       x = "")+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+  
+p1/p2
+ggsave(here("Output","Temperaturefig.png"), width = 12, height = 8)
