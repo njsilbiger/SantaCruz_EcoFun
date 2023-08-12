@@ -61,7 +61,8 @@ p1<-data %>%
        y = expression("Temperature ("*degree*"C)"))+
   theme(legend.position = "none",
         axis.title = element_text(size = 16),
-        axis.text = element_text(size = 14))
+        axis.text = element_text(size = 14),
+        strip.text = element_text(size = 16))
 
 p2<-data %>%
   filter(Benthos != "Open Ocean",
