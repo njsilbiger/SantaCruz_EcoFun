@@ -7,6 +7,7 @@ library(seacarb)
 library(broom)
 library(here)
 library(lubridate)
+library(calecopal)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -23,6 +24,9 @@ pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
 # 
 # pHData<-left_join(pHData,NutData) 
 
+NoTemp<-which(is.na(pHData$TempInSitu))
+
+pHData$TempInSitu[NoTemp]<-19
 
 ## take the mV calibration files by each date and use them to calculate pH
 pHSlope<-pHcalib %>%
@@ -92,8 +96,9 @@ pHSlope %>%
   facet_grid(~factor(Sampling_Date))
 
 pHSlope %>%
-  ggplot(aes(x = Sampling_Time, y = pH, color = Benthos, group = Benthos))+
-  geom_point()
+  ggplot(aes(x = Sampling_Time, y = pH))+
+  geom_point()+
+  facet_wrap(~Benthos)
 #  geom_smooth()
 
 
@@ -102,3 +107,29 @@ pHSlope %>%
   geom_density(alpha = 0.5)+
   facet_wrap(~Day_Night)
 #  geom_smooth()
+
+pHSlope<-pHSlope %>% 
+  mutate(Sampling_DateTime = ymd_hms(paste(Sampling_Date, Sampling_Time))) %>%
+  group_by(Sampling_DateTime) %>%
+  mutate(deltapH = pH - pH[Benthos == "Open Ocean"]) %>%
+  ungroup() 
+
+pHSlope%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = Benthos, y = deltapH, fill = Day_Night))+
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_boxplot()+
+  geom_jitter(position = position_dodge(width = .8))+
+  
+  labs(y = "pH (Difference from Open Ocean Sample)",
+       x = "",
+       fill = "Day/Night")+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+
+ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
+
+anova(lm(deltapH~Benthos*Day_Night, data = pHSlope))
