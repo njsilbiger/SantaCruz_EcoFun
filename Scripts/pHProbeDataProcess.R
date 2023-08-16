@@ -8,6 +8,7 @@ library(broom)
 library(here)
 library(lubridate)
 library(calecopal)
+library(ggridges)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -133,3 +134,19 @@ pHSlope%>%
 ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 
 anova(lm(deltapH~Benthos*Day_Night, data = pHSlope))
+
+
+pHSlope%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = deltapH, y = Benthos, fill = Benthos))+
+  geom_vline(xintercept = 0)+
+  geom_density_ridges(alpha = 0.5)+
+  scale_fill_manual(values = cal_palette("tidepool"))+
+ # scale_fill_manual(values = cal_palette("chaparral1"))+
+  labs(x = "pH (Difference from Open Ocean Sample)",
+       y = "")+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+  
