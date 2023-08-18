@@ -133,7 +133,27 @@ pHSlope%>%
 
 ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 
-anova(lm(deltapH~Benthos*Day_Night, data = pHSlope))
+## sample plot but means and errorbars instead
+pHSlope%>%
+  filter(Benthos != "Open Ocean")%>%
+  group_by(Benthos, Day_Night)%>%
+  summarise(mean_pHdiff = mean(deltapH, na.rm = TRUE),
+            se_pHdiff = sd(deltapH, na.rm = TRUE)/sqrt(n()))%>%
+  ggplot(aes(x = Benthos, y = mean_pHdiff, color = Day_Night))+
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_point(size = 4)+
+  geom_jitter(data = pHSlope%>%
+                filter(Benthos != "Open Ocean"), aes(x = Benthos, y = deltapH),alpha = 0.3, width = 0.1)+
+  geom_errorbar(aes(x = Benthos, ymin = mean_pHdiff-se_pHdiff, ymax =mean_pHdiff+se_pHdiff), width = 0.01, size = 1.2)+
+  labs(y = "pH (Difference from Open Ocean Sample)",
+       x = "",
+       color = "Day/Night")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+ggsave(here("Output","pHdifference_means.png"), width = 8, height = 6)
 
 
 pHSlope%>%
@@ -149,4 +169,5 @@ pHSlope%>%
   theme(legend.position = "none",
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 14))
+
   
