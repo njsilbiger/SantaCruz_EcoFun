@@ -27,7 +27,7 @@ pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
 
 NoTemp<-which(is.na(pHData$TempInSitu))
 
-pHData$TempInSitu[NoTemp]<-19
+pHData$TempInSitu[NoTemp]<-18
 
 ## take the mV calibration files by each date and use them to calculate pH
 pHSlope<-pHcalib %>%
@@ -53,9 +53,6 @@ pHSlope$TA[NoTA]<-2300
 
 NoPO<-which(is.na(pHSlope$Phosphate_umolL))
 pHSlope$Phosphate_umolL[NoPO]<-0
-
-# If the salinity is missing from the TA measurements take the salinity from the field
-pHSlope$Salinity<-ifelse(is.na(pHSlope$Salinity), pHSlope$Salinity_In_Lab, pHSlope$Salinity)
 
 
 #Now calculate pH
