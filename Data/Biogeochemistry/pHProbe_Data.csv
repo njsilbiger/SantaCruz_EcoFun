@@ -1,84 +1,84 @@
 Site,UniqueID,Benthos,Quad_ID,ID_number,Day_Night,Sampling_Date,Sampling_Time,Processing_DateTime,TempInLab,mV,Salinity,TempInSitu,TA,TrisCalDate,Salinity_Calibration_Date,Notes
-Long Beach,B1_Day,Barnacle,B1,1,Day,7/31/23,10:00,8/1/23 9:00,21.33,-76.8,32.84,21.23,,20230727,7/31/23,
-Long Beach,B3_Day,Barnacle,B3,3,Day,7/31/23,10:00,8/1/23 9:00,21.23,-77.8,32.92,20.98,,20230727,7/31/23,
-Long Beach,B5_Day,Barnacle,B5,5,Day,7/31/23,10:00,8/1/23 9:00,21.03,-76.6,32.5,20.63,,20230727,7/31/23,
-Long Beach,M5_Day,Mussel,M5,5,Day,7/31/23,10:00,8/1/23 9:00,NA,NA,32.95,21.02,,20230727,7/31/23,NO pH or TA sample
-Long Beach,OO_Day1,Open Ocean,OO1,1,Day,7/31/23,10:00,8/1/23 9:00,21.073,-74.2,32.52,20.68,,20230727,7/31/23,
-Long Beach,RW1_Day,Rockweed,RW1,1,Day,7/31/23,10:00,7/31/23 16:00,11.775,-78.7,32.3,20.72,,20230727,7/31/23,
-Long Beach,RW3_Day,Rockweed,RW3,3,Day,7/31/23,10:00,7/31/23 16:00,15.703,-76.5,33.05,20.72,,20230727,7/31/23,
-Long Beach,RW5_Day,Rockweed,RW5,5,Day,7/31/23,10:00,7/31/23 16:00,12.019,-77.5,32.44,20.72,,20230727,7/31/23,
-Long Beach,P1_Day,Surfgrass,P1,1,Day,7/31/23,10:00,8/1/23 9:00,20.825,-72.3,32.51,20.68,,20230727,7/31/23,
-Long Beach,P5_Day,Surfgrass,P5,5,Day,7/31/23,10:00,8/1/23 9:00,20.95,-70,32.54,20.37,,20230727,7/31/23,Bag ripped. No TA. This pH might be contaminated too
-Long Beach,B1_Night,Barnacle,B1,1,Night,8/1/23,21:30,8/2/23 9:00,20.55,-77.4,32.45,23.46,,20230727,8/2/23,
-Long Beach,B3_Night,Barnacle,B3,3,Night,8/1/23,21:30,8/2/23 9:00,NA,NA,32.47,19.65,,20230727,8/2/23,No TA/pH
-Long Beach,B5_Night,Barnacle,B5,5,Night,8/1/23,21:30,8/2/23 9:00,20.45,-75.4,32.75,21.58,,20230727,8/2/23,
-Long Beach,M1_Night,Mussel,M1,1,Night,8/1/23,21:30,8/2/23 9:00,20.514,-75.6,33.01,20.2,,20230727,8/2/23,
-Long Beach,OO_Night1,Open Ocean,OO1,1,Night,8/1/23,21:30,8/2/23 9:00,20.474,-77.9,33.21,20.85,,20230727,8/2/23,No Nutrients
-Long Beach,RW1_Night,Rockweed,RW1,1,Night,8/1/23,21:30,8/2/23 9:00,20.381,-78.5,32.52,21.02,,20230727,8/2/23,
-Long Beach,RW3_Night,Rockweed,RW3,3,Night,8/1/23,21:30,8/2/23 9:00,20.54,-78.2,32.75,21.02,,20230727,8/2/23,
-Long Beach,RW5_Night,Rockweed,RW5,5,Night,8/1/23,21:30,8/2/23 9:00,20.54,-78.9,32.84,21.45,,20230727,8/2/23,
-Long Beach,P1_Night,Surfgrass,P1,1,Night,8/1/23,21:30,8/2/23 9:00,20.78,-78,32.6,21.7,,20230727,8/2/23,
-Long Beach,P3_Night,Surfgrass,P3,3,Night,8/1/23,21:30,8/2/23 9:00,20.77,-78.6,33.2,21.06,,20230727,8/2/23,
-Long Beach,B2_Day,Barnacle,B2,2,Day,8/2/23,11:10,8/2/23 19:00,21.998,-70.5,32.45,19.26,,20230727,8/2/23,Barely any TA/pH water
-Long Beach,B4_Day,Barnacle,B4,4,Day,8/2/23,11:10,8/2/23 19:00,NA,NA,32.45,19.13,,20230727,8/2/23,No TA water
-Long Beach,B6_Day,Barnacle,B6,6,Day,8/2/23,11:10,8/2/23 19:00,21.38,-71.3,33.45,19.26,,20230727,8/2/23,
-Long Beach,M2_Day,Mussel,M2,2,Day,8/2/23,11:10,8/3/23 10:00,20.425,-72.6,32.87,19,,20230727,8/2/23,No Nutrients
-Long Beach,M4_Day,Mussel,M4,4,Day,8/2/23,11:10,8/3/23 10:00,NA,NA,32.53,18.96,,20230727,8/2/23,No TA
-Long Beach,M6_Day,Mussel,M6,6,Day,8/2/23,11:10,8/3/23 10:00,20.682,-71.5,32.96,19.35,,20230727,8/2/23,Barely any TA/pH water
-Long Beach,OO_Day2,Open Ocean,OO2,2,Day,8/2/23,11:10,8/2/23 19:00,21.31,-71,32.92,19.17,,20230727,8/2/23,No Nutrients/ TA bag ripped
-Long Beach,RW2_Day,Rockweed,RW2,2,Day,8/2/23,11:10,8/2/23 19:00,22.047,-70.3,33.08,19.26,,20230727,8/2/23,
-Long Beach,RW4_Day,Rockweed,RW4,4,Day,8/2/23,11:10,8/2/23 19:00,22.3,-69.4,33.18,19.13,,20230727,8/2/23,
-Long Beach,RW6_Day,Rockweed,RW6,6,Day,8/2/23,11:10,8/2/23 19:00,21.95,-69.4,33.04,19.35,,20230727,8/2/23,
-Long Beach,P2_Day,Surfgrass,P2,2,Day,8/2/23,11:10,8/3/23 10:00,20.53,-70.1,33.07,19.26,,20230727,8/2/23,
-Long Beach,P4_Day,Surfgrass,P4,3,Day,8/2/23,11:10,8/3/23 10:00,20.312,-76.2,32.89,19,,20230727,8/2/23,No Nutrients
-Long Beach,P6_Day,Surfgrass,P6,6,Day,8/2/23,11:10,8/3/23 10:00,20.217,-77.5,32.82,18.4,,20230727,8/2/23,
-Long Beach,B4_Night,Barnacle,B4,4,Night,8/3/23,23:10,8/4/23 10:00,20.71,-74,32.86,18.4,,20230727,8/2/23,
-Long Beach,B6_Night,Barnacle,B6,6,Night,8/3/23,23:10,8/4/23 10:00,20.714,-76.5,32.9,18.57,,20230727,8/2/23,No Nutrients
-Long Beach,M6_Night,Mussel,M6,6,Night,8/3/23,23:10,8/4/23 10:00,NA,NA,32.8,18.4,,20230727,8/2/23,No TA
-Long Beach,OO_Night2,Open Ocean,OO2,2,Night,8/3/23,23:10,8/4/23 10:00,20.63,-77.7,33.1,19.09,,20230727,8/2/23,
-Long Beach,RW2_Night,Rockweed,RW2,2,Night,8/3/23,23:10,8/4/23 10:00,20.92,-74.4,32.88,19.17,,20230727,8/2/23,
-Long Beach,RW4_Night,Rockweed,RW4,4,Night,8/3/23,23:10,8/4/23 10:00,NA,NA,32.8,19.22,,20230727,8/2/23,No TA
-Long Beach,RW6_Night,Rockweed,RW6,6,Night,8/3/23,23:10,8/4/23 10:00,NA,NA,32.9,19.13,,20230727,8/2/23,No TA
-Long Beach,P2_Night,Surfgrass,P2,2,Night,8/3/23,23:10,8/4/23 10:00,20.7,-78.5,32.9,19.26,,20230727,8/2/23,
-Long Beach,P4_Night,Surfgrass,P4,4,Night,8/3/23,23:10,8/4/23 10:00,20.54,-73.8,32.9,19.26,,20230727,8/2/23,No Nutrients
-Long Beach,B2_Day,Barnacle,B2,2,Day,8/4/23,12:00,8/4/23 20:00,NA,NA,32.09,19.39,,20230727,8/2/23,No TA
-Long Beach,B4_Day,Barnacle,B4,4,Day,8/4/23,12:00,8/4/23 20:00,21.38,-78.1,33.15,19.6,,20230727,8/2/23,
-Long Beach,OO_Day3,Open Ocean,OO,3,Day,8/4/23,12:00,8/4/23 20:00,20.67,-79.9,33.38,18.74,,20230727,8/2/23,
-Long Beach,OO_Day3b,Open Ocean,OO,3,Day,8/4/23,12:00,8/4/23 20:00,21.298,-78.9,33.18,18.74,,20230727,8/2/23,No Nutrients
-Long Beach,P3_Day,Surfgrass,P3,3,Day,8/4/23,12:00,8/5/23 10:00,19.96,-80.2,32.95,18.96,,20230727,8/2/23,
-Long Beach,P5_Day,Surfgrass,P5,5,Day,8/4/23,12:00,8/5/23 10:00,NA,NA,32.95,18.7,,20230727,8/2/23,No TA
-Long Beach,B2_Night,Barnacle,B2,2,Night,8/5/23,0:00,8/5/23 10:00,19.97,-76.6,32.8,19.05,,20230727,8/2/23,
-Long Beach,B3_Night,Barnacle,B3,3,Night,8/5/23,0:00,8/5/23 10:00,19.94,-75.3,32.8,18.83,,20230727,8/2/23,
-Long Beach,M1_Nightb,Mussel,M1,1,Night,8/5/23,0:00,8/5/23 10:00,20.045,-74.9,32.82,18.44,,20230727,8/2/23,No Nutrients
-Long Beach,M5_Night,Mussel,M5,5,Night,8/5/23,0:00,8/5/23 10:00,20.73,-73.1,32.8,18.49,,20230727,8/2/23,Barely any TA/pH water
-Long Beach,OO_Night3,Open Ocean,OO3,3,Night,8/5/23,0:00,8/5/23 10:00,19.96,-79,32.89,19.65,,20230727,8/2/23,
-Long Beach,RW4_Nightb,Rockweed,RW4,4,Night,8/5/23,0:00,8/5/23 10:00,19.78,-78.8,32.95,19.73,,20230727,8/2/23,
-Long Beach,RW6_Nightb,Rockweed,RW6,6,Night,8/5/23,0:00,8/5/23 10:00,19.88,-79.2,32.83,19.86,,20230727,8/2/23,
-Long Beach,B6_Nightb,Barnacle,B6,6,Night,8/6/23,0:30,8/6/23 12:30,20.717,-76.5,32.92,19.39,,20230727,8/2/23,
-Long Beach,OO_Night4,Open Ocean,OO4,4,Night,8/6/23,0:30,8/6/23 12:30,20.918,-77.6,33.41,19.09,,20230727,8/2/23,
-Long Beach,M2_Dayb,Mussel,M2,2,Day,8/12/23,9:20,8/13/23 6:00,21.768,-77.1,32.98,19.47,,20230810,8/12/23,
-Long Beach,OO_Day4,Open Ocean,OO,4,Day,8/12/23,9:20,8/13/23 6:00,20.317,-69,32.49,,,20230810,8/12/23,
-Long Beach,P3_Dayb,Surfgrass,P3,3,Day,8/12/23,9:20,8/13/23 6:00,20.073,-67.7,32.48,19.35,,20230810,8/12/23,
-Long Beach,M2_Night,Mussel,M2,2,Night,8/13/23,20:40,8/14/23 15:00,21.042,-82.2,33.51,20.07,,20230810,8/12/23,
-Long Beach,OO_Night4b,Open Ocean,OO,4,Night,8/13/23,20:40,8/14/23 15:00,21.087,-85.3,33.07,,,20230810,8/12/23,
-Long Beach,P4_Nightb,Surfgrass,P4,4,Night,8/13/23,20:40,8/14/23 15:00,21.25,-81.2,33.72,,,20230810,8/12/23,Not enough water to triple rinse nutrients and fDOM
-Long Beach,P5_Night,Surfgrass,P5,5,Night,8/13/23,20:40,8/14/23 15:00,NA,NA,32.16,20.37,,20230810,8/12/23,No TA sample
-Long Beach,B2_Dayb,Barnacle,B2,2,Day,8/14/23,10:00,8/15/23 10:00,20.81,-73.2,33.06,19,,20230810,8/12/23,
-Long Beach,M1_Day,Mussel,M1,1,Day,8/14/23,10:00,8/15/23 10:00,20.82,-73.4,33.89,18.74,,20230810,8/12/23,
-Long Beach,M5_Dayb,Mussel,M5,5,Day,8/14/23,10:00,8/15/23 10:00,21.25,-72.2,33.75,19.05,,20230810,8/12/23,
-Long Beach,OO_Day5,Open Ocean,OO,5,Day,8/14/23,10:00,8/15/23 10:00,20.75,-73.2,33.14,,,20230810,8/12/23,
-Long Beach,P4_Dayb,Surfgrass,P4,4,Day,8/14/23,10:00,8/15/23 10:00,20.7,-74.2,33.1,,,20230810,8/12/23,
-Long Beach,M3_Night,Mussel,M3,3,Night,8/15/23,21:20,8/16/23 12:00,20.76,-84,33.03,18.44,,20230810,8/12/23,
-Long Beach,M5_Night,Mussel,M5,5,Night,8/15/23,21:20,8/16/23 12:00,NA,NA,33.03,18.57,,20230810,8/12/23,No TA
-Long Beach,OO_Night5,Open Ocean,OO,5,Night,8/15/23,21:20,8/16/23 12:00,20.887,-85.8,33.15,,,20230810,8/12/23,
-Long Beach,P6-Night,Surfgrass,P6,6,Night,8/15/23,21:20,8/16/23 12:00,NA,NA,33.12,18.02,,20230810,8/12/23,
-Long Beach,P4_Night,Surfgrass,P4,4,Night,8/15/23,21:20,8/16/23 12:00,20.831,-82.8,33.12,,,20230810,8/12/23,
-Long Beach,M4_Night,Mussel,M4,4,Night,8/16/23,21:50,8/17/23 10:00,20.037,-77.3,32.99,16.17,,20230810,8/16/23,No Nutrients
-Long Beach,M6_Nightb,Mussel,M6,6,Night,8/16/23,21:50,8/17/23 10:00,19.87,-75.8,32.78,16.47,,20230810,8/16/23,
-Long Beach,OO_Night6,Open Ocean,OO6,6,Night,8/16/23,21:50,8/17/23 10:00,20.033,-81.1,32.49,,,20230810,8/16/23,
-Long Beach,OO_Night7,Open Ocean,OO7,7,Night,8/17/23,22:20,8/18/23 12:00,NA,NA,32.26,,,20230810,8/16/23,"Barely nutrients, no fDOM, No TA/pH"
-Long Beach,P6_Night,Surfgrass,P6,6,Night,8/17/23,22:20,8/18/23 12:00,NA,NA,32.31,17.2,,20230810,8/16/23,No TA pH
-Long Beach,M2_Day,Mussel,M2,2,Day,8/17/23,11:10,8/18/23 12:00,NA,NA,32.07,17.37,,20230810,8/16/23,No TA pH
-Long Beach,M3_Day,Mussel,M3,3,Day,8/17/23,11:10,8/18/23 12:00,NA,NA,32.26,17.97,,20230810,8/16/23,No TA pH
-Long Beach,M6_Day,Mussel,M6,6,Day,8/17/23,11:10,8/18/23 12:00,20.074,-77.2,33.74,17.11,,20230810,8/16/23,
-Long Beach,OO_Day7,Open Ocean,OO7,7,Day,8/17/23,11:10,8/18/23 12:00,20.027,-78.8,33.18,,,20230810,8/16/23,
+Long Beach,B1_Day,Barnacle,B1,1,Day,7/31/2023,10:00,8/1/2023 9:00,21.33,-76.8,32.84,21.23,,20230727,7/31/2023,
+Long Beach,B3_Day,Barnacle,B3,3,Day,7/31/2023,10:00,8/1/2023 9:00,21.23,-77.8,32.92,20.98,,20230727,7/31/2023,
+Long Beach,B5_Day,Barnacle,B5,5,Day,7/31/2023,10:00,8/1/2023 9:00,21.03,-76.6,32.5,20.63,,20230727,7/31/2023,
+Long Beach,M5_Day,Mussel,M5,5,Day,7/31/2023,10:00,8/1/2023 9:00,NA,NA,32.95,21.02,,20230727,7/31/2023,NO pH or TA sample
+Long Beach,OO_Day1,Open Ocean,OO1,1,Day,7/31/2023,10:00,8/1/2023 9:00,21.073,-74.2,32.52,20.68,,20230727,7/31/2023,
+Long Beach,RW1_Day,Rockweed,RW1,1,Day,7/31/2023,10:00,7/31/2023 16:00,11.775,-78.7,32.3,20.72,,20230727,7/31/2023,
+Long Beach,RW3_Day,Rockweed,RW3,3,Day,7/31/2023,10:00,7/31/2023 16:00,15.703,-76.5,33.05,20.72,,20230727,7/31/2023,
+Long Beach,RW5_Day,Rockweed,RW5,5,Day,7/31/2023,10:00,7/31/2023 16:00,12.019,-77.5,32.44,20.72,,20230727,7/31/2023,
+Long Beach,P1_Day,Surfgrass,P1,1,Day,7/31/2023,10:00,8/1/2023 9:00,20.825,-72.3,32.51,20.68,,20230727,7/31/2023,
+Long Beach,P5_Day,Surfgrass,P5,5,Day,7/31/2023,10:00,8/1/2023 9:00,20.95,-70,32.54,20.37,,20230727,7/31/2023,Bag ripped. No TA. This pH might be contaminated too
+Long Beach,B1_Night,Barnacle,B1,1,Night,8/1/2023,21:30,8/2/2023 9:00,20.55,-77.4,32.45,23.46,,20230727,8/2/2023,
+Long Beach,B3_Night,Barnacle,B3,3,Night,8/1/2023,21:30,8/2/2023 9:00,NA,NA,32.47,19.65,,20230727,8/2/2023,No TA/pH
+Long Beach,B5_Night,Barnacle,B5,5,Night,8/1/2023,21:30,8/2/2023 9:00,20.45,-75.4,32.75,21.58,,20230727,8/2/2023,
+Long Beach,M1_Night,Mussel,M1,1,Night,8/1/2023,21:30,8/2/2023 9:00,20.514,-75.6,33.01,20.2,,20230727,8/2/2023,
+Long Beach,OO_Night1,Open Ocean,OO1,1,Night,8/1/2023,21:30,8/2/2023 9:00,20.474,-77.9,33.21,20.85,,20230727,8/2/2023,No Nutrients
+Long Beach,RW1_Night,Rockweed,RW1,1,Night,8/1/2023,21:30,8/2/2023 9:00,20.381,-78.5,32.52,21.02,,20230727,8/2/2023,
+Long Beach,RW3_Night,Rockweed,RW3,3,Night,8/1/2023,21:30,8/2/2023 9:00,20.54,-78.2,32.75,21.02,,20230727,8/2/2023,
+Long Beach,RW5_Night,Rockweed,RW5,5,Night,8/1/2023,21:30,8/2/2023 9:00,20.54,-78.9,32.84,21.45,,20230727,8/2/2023,
+Long Beach,P1_Night,Surfgrass,P1,1,Night,8/1/2023,21:30,8/2/2023 9:00,20.78,-78,32.6,21.7,,20230727,8/2/2023,
+Long Beach,P3_Night,Surfgrass,P3,3,Night,8/1/2023,21:30,8/2/2023 9:00,20.77,-78.6,33.2,21.06,,20230727,8/2/2023,
+Long Beach,B2_Day,Barnacle,B2,2,Day,8/2/2023,11:10,8/2/2023 19:00,21.998,-70.5,32.45,19.26,,20230727,8/2/2023,Barely any TA/pH water
+Long Beach,B4_Day,Barnacle,B4,4,Day,8/2/2023,11:10,8/2/2023 19:00,NA,NA,32.45,19.13,,20230727,8/2/2023,No TA water
+Long Beach,B6_Day,Barnacle,B6,6,Day,8/2/2023,11:10,8/2/2023 19:00,21.38,-71.3,33.45,19.26,,20230727,8/2/2023,
+Long Beach,M2_Day,Mussel,M2,2,Day,8/2/2023,11:10,8/3/2023 10:00,20.425,-72.6,32.87,19,,20230727,8/2/2023,No Nutrients
+Long Beach,M4_Day,Mussel,M4,4,Day,8/2/2023,11:10,8/3/2023 10:00,NA,NA,32.53,18.96,,20230727,8/2/2023,No TA
+Long Beach,M6_Day,Mussel,M6,6,Day,8/2/2023,11:10,8/3/2023 10:00,20.682,-71.5,32.96,19.35,,20230727,8/2/2023,Barely any TA/pH water
+Long Beach,OO_Day2,Open Ocean,OO2,2,Day,8/2/2023,11:10,8/2/2023 19:00,21.31,-71,32.92,19.17,,20230727,8/2/2023,No Nutrients/ TA bag ripped
+Long Beach,RW2_Day,Rockweed,RW2,2,Day,8/2/2023,11:10,8/2/2023 19:00,22.047,-70.3,33.08,19.26,,20230727,8/2/2023,
+Long Beach,RW4_Day,Rockweed,RW4,4,Day,8/2/2023,11:10,8/2/2023 19:00,22.3,-69.4,33.18,19.13,,20230727,8/2/2023,
+Long Beach,RW6_Day,Rockweed,RW6,6,Day,8/2/2023,11:10,8/2/2023 19:00,21.95,-69.4,33.04,19.35,,20230727,8/2/2023,
+Long Beach,P2_Day,Surfgrass,P2,2,Day,8/2/2023,11:10,8/3/2023 10:00,20.53,-70.1,33.07,19.26,,20230727,8/2/2023,
+Long Beach,P4_Day,Surfgrass,P4,3,Day,8/2/2023,11:10,8/3/2023 10:00,20.312,-76.2,32.89,19,,20230727,8/2/2023,No Nutrients
+Long Beach,P6_Day,Surfgrass,P6,6,Day,8/2/2023,11:10,8/3/2023 10:00,20.217,-77.5,32.82,18.4,,20230727,8/2/2023,
+Long Beach,B4_Night,Barnacle,B4,4,Night,8/3/2023,23:10,8/4/2023 10:00,20.71,-74,32.86,18.4,,20230727,8/2/2023,
+Long Beach,B6_Night,Barnacle,B6,6,Night,8/3/2023,23:10,8/4/2023 10:00,20.714,-76.5,32.9,18.57,,20230727,8/2/2023,No Nutrients
+Long Beach,M6_Night,Mussel,M6,6,Night,8/3/2023,23:10,8/4/2023 10:00,NA,NA,32.8,18.4,,20230727,8/2/2023,No TA
+Long Beach,OO_Night2,Open Ocean,OO2,2,Night,8/3/2023,23:10,8/4/2023 10:00,20.63,-77.7,33.1,19.09,,20230727,8/2/2023,
+Long Beach,RW2_Night,Rockweed,RW2,2,Night,8/3/2023,23:10,8/4/2023 10:00,20.92,-74.4,32.88,19.17,,20230727,8/2/2023,
+Long Beach,RW4_Night,Rockweed,RW4,4,Night,8/3/2023,23:10,8/4/2023 10:00,NA,NA,32.8,19.22,,20230727,8/2/2023,No TA
+Long Beach,RW6_Night,Rockweed,RW6,6,Night,8/3/2023,23:10,8/4/2023 10:00,NA,NA,32.9,19.13,,20230727,8/2/2023,No TA
+Long Beach,P2_Night,Surfgrass,P2,2,Night,8/3/2023,23:10,8/4/2023 10:00,20.7,-78.5,32.9,19.26,,20230727,8/2/2023,
+Long Beach,P4_Night,Surfgrass,P4,4,Night,8/3/2023,23:10,8/4/2023 10:00,20.54,-73.8,32.9,19.26,,20230727,8/2/2023,No Nutrients
+Long Beach,B2_Day,Barnacle,B2,2,Day,8/4/2023,12:00,8/4/2023 20:00,NA,NA,32.09,19.39,,20230727,8/2/2023,No TA
+Long Beach,B4_Day,Barnacle,B4,4,Day,8/4/2023,12:00,8/4/2023 20:00,21.38,-78.1,33.15,19.6,,20230727,8/2/2023,
+Long Beach,OO_Day3,Open Ocean,OO,3,Day,8/4/2023,12:00,8/4/2023 20:00,20.67,-79.9,33.38,18.74,,20230727,8/2/2023,
+Long Beach,OO_Day3b,Open Ocean,OO,3,Day,8/4/2023,12:00,8/4/2023 20:00,21.298,-78.9,33.18,18.74,,20230727,8/2/2023,No Nutrients
+Long Beach,P3_Day,Surfgrass,P3,3,Day,8/4/2023,12:00,8/5/2023 10:00,19.96,-80.2,32.95,18.96,,20230727,8/2/2023,
+Long Beach,P5_Day,Surfgrass,P5,5,Day,8/4/2023,12:00,8/5/2023 10:00,NA,NA,32.95,18.7,,20230727,8/2/2023,No TA
+Long Beach,B2_Night,Barnacle,B2,2,Night,8/5/2023,0:00,8/5/2023 10:00,19.97,-76.6,32.8,19.05,,20230727,8/2/2023,
+Long Beach,B3_Night,Barnacle,B3,3,Night,8/5/2023,0:00,8/5/2023 10:00,19.94,-75.3,32.8,18.83,,20230727,8/2/2023,
+Long Beach,M1_Nightb,Mussel,M1,1,Night,8/5/2023,0:00,8/5/2023 10:00,20.045,-74.9,32.82,18.44,,20230727,8/2/2023,No Nutrients
+Long Beach,M5_Night,Mussel,M5,5,Night,8/5/2023,0:00,8/5/2023 10:00,20.73,-73.1,32.8,18.49,,20230727,8/2/2023,Barely any TA/pH water
+Long Beach,OO_Night3,Open Ocean,OO3,3,Night,8/5/2023,0:00,8/5/2023 10:00,19.96,-79,32.89,19.65,,20230727,8/2/2023,
+Long Beach,RW4_Nightb,Rockweed,RW4,4,Night,8/5/2023,0:00,8/5/2023 10:00,19.78,-78.8,32.95,19.73,,20230727,8/2/2023,
+Long Beach,RW6_Nightb,Rockweed,RW6,6,Night,8/5/2023,0:00,8/5/2023 10:00,19.88,-79.2,32.83,19.86,,20230727,8/2/2023,
+Long Beach,B6_Nightb,Barnacle,B6,6,Night,8/6/2023,0:30,8/6/2023 12:30,20.717,-76.5,32.92,19.39,,20230727,8/2/2023,
+Long Beach,OO_Night4,Open Ocean,OO4,4,Night,8/6/2023,0:30,8/6/2023 12:30,20.918,-77.6,33.41,19.09,,20230727,8/2/2023,
+Long Beach,M2_Dayb,Mussel,M2,2,Day,8/12/2023,9:20,8/13/2023 6:00,21.768,-77.1,32.98,19.47,,20230810,8/12/2023,
+Long Beach,OO_Day4,Open Ocean,OO,4,Day,8/12/2023,9:20,8/13/2023 6:00,20.317,-69,32.49,19.47,,20230810,8/12/2023,
+Long Beach,P3_Dayb,Surfgrass,P3,3,Day,8/12/2023,9:20,8/13/2023 6:00,20.073,-67.7,32.48,19.35,,20230810,8/12/2023,
+Long Beach,M2_Night,Mussel,M2,2,Night,8/13/2023,20:40,8/14/2023 15:00,21.042,-82.2,33.51,20.07,,20230810,8/12/2023,
+Long Beach,OO_Night4b,Open Ocean,OO,4,Night,8/13/2023,20:40,8/14/2023 15:00,21.087,-85.3,33.07,20.07,,20230810,8/12/2023,
+Long Beach,P4_Nightb,Surfgrass,P4,4,Night,8/13/2023,20:40,8/14/2023 15:00,21.25,-81.2,33.72,20.07,,20230810,8/12/2023,Not enough water to triple rinse nutrients and fDOM
+Long Beach,P5_Night,Surfgrass,P5,5,Night,8/13/2023,20:40,8/14/2023 15:00,NA,NA,32.16,20.37,,20230810,8/12/2023,No TA sample
+Long Beach,B2_Dayb,Barnacle,B2,2,Day,8/14/2023,10:00,8/15/2023 10:00,20.81,-73.2,33.06,19,,20230810,8/12/2023,
+Long Beach,M1_Day,Mussel,M1,1,Day,8/14/2023,10:00,8/15/2023 10:00,20.82,-73.4,33.89,18.74,,20230810,8/12/2023,
+Long Beach,M5_Dayb,Mussel,M5,5,Day,8/14/2023,10:00,8/15/2023 10:00,21.25,-72.2,33.75,19.05,,20230810,8/12/2023,
+Long Beach,OO_Day5,Open Ocean,OO,5,Day,8/14/2023,10:00,8/15/2023 10:00,20.75,-73.2,33.14,18.44,,20230810,8/12/2023,
+Long Beach,P4_Dayb,Surfgrass,P4,4,Day,8/14/2023,10:00,8/15/2023 10:00,20.7,-74.2,33.1,18.44,,20230810,8/12/2023,
+Long Beach,M3_Night,Mussel,M3,3,Night,8/15/2023,21:20,8/16/2023 12:00,20.76,-84,33.03,18.44,,20230810,8/12/2023,
+Long Beach,M5_Night,Mussel,M5,5,Night,8/15/2023,21:20,8/16/2023 12:00,NA,NA,33.03,18.57,,20230810,8/12/2023,No TA
+Long Beach,OO_Night5,Open Ocean,OO,5,Night,8/15/2023,21:20,8/16/2023 12:00,20.887,-85.8,33.15,18.57,,20230810,8/12/2023,
+Long Beach,P6-Night,Surfgrass,P6,6,Night,8/15/2023,21:20,8/16/2023 12:00,NA,NA,33.12,18.02,,20230810,8/12/2023,
+Long Beach,P4_Night,Surfgrass,P4,4,Night,8/15/2023,21:20,8/16/2023 12:00,20.831,-82.8,33.12,18.02,,20230810,8/12/2023,
+Long Beach,M4_Night,Mussel,M4,4,Night,8/16/2023,21:50,8/17/2023 10:00,20.037,-77.3,32.99,16.17,,20230810,8/16/2023,No Nutrients
+Long Beach,M6_Nightb,Mussel,M6,6,Night,8/16/2023,21:50,8/17/2023 10:00,19.87,-75.8,32.78,16.47,,20230810,8/16/2023,
+Long Beach,OO_Night6,Open Ocean,OO6,6,Night,8/16/2023,21:50,8/17/2023 10:00,20.033,-81.1,32.49,16.47,,20230810,8/16/2023,
+Long Beach,OO_Night7,Open Ocean,OO7,7,Night,8/17/2023,22:20,8/18/2023 12:00,NA,NA,32.26,17.2,,20230810,8/16/2023,"Barely nutrients, no fDOM, No TA/pH"
+Long Beach,P6_Night,Surfgrass,P6,6,Night,8/17/2023,22:20,8/18/2023 12:00,NA,NA,32.31,17.2,,20230810,8/16/2023,No TA pH
+Long Beach,M2_Day,Mussel,M2,2,Day,8/17/2023,11:10,8/18/2023 12:00,NA,NA,32.07,17.37,,20230810,8/16/2023,No TA pH
+Long Beach,M3_Day,Mussel,M3,3,Day,8/17/2023,11:10,8/18/2023 12:00,NA,NA,32.26,17.97,,20230810,8/16/2023,No TA pH
+Long Beach,M6_Day,Mussel,M6,6,Day,8/17/2023,11:10,8/18/2023 12:00,20.074,-77.2,33.74,17.11,,20230810,8/16/2023,
+Long Beach,OO_Day7,Open Ocean,OO7,7,Day,8/17/2023,11:10,8/18/2023 12:00,20.027,-78.8,33.18,17.11,,20230810,8/16/2023,
