@@ -9,6 +9,9 @@ library(here)
 library(lubridate)
 library(calecopal)
 library(ggridges)
+library(jtools)
+library(interactions)
+library(sandwich)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -25,9 +28,6 @@ pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
 # 
 # pHData<-left_join(pHData,NutData) 
 
-NoTemp<-which(is.na(pHData$TempInSitu))
-
-pHData$TempInSitu[NoTemp]<-18
 
 ## take the mV calibration files by each date and use them to calculate pH
 pHSlope<-pHcalib %>%
@@ -50,9 +50,6 @@ pHSlope<-pHcalib %>%
 NoTA<-which(is.na(pHSlope$TA))
 
 pHSlope$TA[NoTA]<-2300
-
-NoPO<-which(is.na(pHSlope$Phosphate_umolL))
-pHSlope$Phosphate_umolL[NoPO]<-0
 
 
 #Now calculate pH
@@ -167,4 +164,56 @@ pHSlope%>%
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 14))
 
-  
+### Calculate DIC from seacarb ####
+AllCO2<-carb(8, pHSlope$pH, pHSlope$TA/1000000, S=pHSlope$Salinity, T=pHSlope$TempInSitu, Patm=1, P=0, Pt=0, Sit=0,
+             k1k2="x", kf="x", ks="d", pHscale="T", b="u74", gas="potential", 
+             warn="y", eos="eos80")
+
+AllCO2 <- AllCO2 %>%
+  mutate(ALK = ALK*1000000,
+         CO2 = CO2*1000000,
+         CO3 = CO3*1000000,
+         DIC = DIC*1000000,
+         HCO3 = HCO3*1000000) %>% # convert everything back to umol %>%
+select(DIC, pCO2 = pCO2insitu, CO2, CO3, HCO3, OmegaCalcite, OmegaAragonite) 
+
+AllCO2 <- pHSlope %>%
+  bind_cols(AllCO2) %>% # bring together with the original data
+  mutate(TA_norm = TA*Salinity/33,
+         DIC_norm = DIC*Salinity/33,# salinity normalize
+         TA_DIC = TA/DIC) # TA divided by DIC
+
+AllCO2 %>%
+#  filter(Benthos !="Open Ocean") %>%
+ggplot(aes(x = DIC, y = TA, color = Benthos))+
+  geom_point()+
+  geom_smooth(method = "lm",se = FALSE)
+  #facet_wrap(~Benthos)
+
+# run an ancova to see if the slopes are different
+TADICmod<-lm(TA_norm~DIC_norm*Benthos, data = AllCO2)
+anova(TADICmod)
+summary(TADICmod)
+
+ss <- sim_slopes(TADICmod, pred = DIC_norm, modx = Benthos, johnson_neyman = FALSE)
+plot(ss)
+
+# Type 2 linear regression
+
+# plot 1 by 1 and extract the confidence intervals
+type2<- lmodel2(DIC ~ TA, data=AllCO2 %>% filter(Benthos == "Rockweed"), nperm = 999)
+plot(type2, "MA")
+type2
+
+
+##### Plot average aragonit and calc sat state #####
+
+AllCO2 %>%
+  ggplot(aes(x = Benthos, y = TA/DIC))+
+  geom_point()
+
+TADICmod<-lm(TA_DIC~Benthos*Day_Night, data = AllCO2)
+anova(TADICmod)
+summary(TADICmod)
+
+
