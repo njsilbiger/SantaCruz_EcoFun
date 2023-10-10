@@ -22,11 +22,6 @@ pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
          Sampling_Date = mdy(Sampling_Date))
 
 # Needed for phosphate data
-# NutData<-read_csv(here("Data","March2022","Nutrients","Nutrients_watersampling_Mar22.csv")) %>%
-#   select(CowTagID, SeepCode, Day_Night, Tide, Date, Phosphate_umolL, NN_umolL=Nitrite_umolL, Ammonia_umolL, Silicate_umolL) %>%
-#   mutate(Date = mdy(Date))
-# 
-# pHData<-left_join(pHData,NutData) 
 
 
 ## take the mV calibration files by each date and use them to calculate pH
@@ -48,22 +43,25 @@ pHSlope<-pHcalib %>%
 # I am replacing the missing values with 2300 for the pH calculation then converting it back to NA
 
 NoTA<-which(is.na(pHSlope$TA))
-
 pHSlope$TA[NoTA]<-2300
+
+NoPO<-which(is.na(pHSlope$PO4))
+pHSlope$PO4[NoPO]<-0
 
 
 #Now calculate pH
 pHSlope <-pHSlope%>%
   mutate(pH_insitu = pHinsi(pH = pH, ALK = TA, Tinsi = TempInSitu, Tlab = TempInLab, 
-                            S = Salinity,Pt = 0.1, k1k2 = "m10", kf = "dg")) %>%
+                            S = Salinity,Pt = PO4, k1k2 = "m10", kf = "dg")) %>%
   # mutate(pH_insitu = pHinsi(pH = pH, ALK = TA, Tinsi = TempInSitu, Tlab = TempInLab, 
   #                           S = Salinity,Pt = Phosphate_umolL, k1k2 = "m10", kf = "dg")) %>%
   select(!pH) %>% # I only need the in situ pH calculation so remove this
   rename(pH = pH_insitu) %>% # rename it 
   ungroup() %>%
-  select(Sampling_Date, Sampling_Time, Day_Night,Benthos, Quad_ID, UniqueID, Day_Night, Salinity, pH, TempInSitu, TA,Processing_DateTime, Notes) # keep what I want
+  select(Sampling_Date, Sampling_Time, Day_Night,Benthos, Quad_ID, UniqueID, Day_Night, Salinity, pH, TempInSitu, TA,Processing_DateTime,NO3, PO4, SIL, NO2, NH4, Notes) # keep what I want
 
 pHSlope$TA[NoTA]<-NA # make TA na again for the missing values
+pHSlope$PO4[NoPO]<-NA # make PO na again for the missing values
 
   #select(Date, CowTagID,Tide, Day_Night, SamplingTime,Salinity,pH, pH_insitu, TempInSitu) ## need to calculate pH insi then it is done
 
@@ -179,6 +177,7 @@ select(DIC, pCO2 = pCO2insitu, CO2, CO3, HCO3, OmegaCalcite, OmegaAragonite)
 
 AllCO2 <- pHSlope %>%
   bind_cols(AllCO2) %>% # bring together with the original data
+  filter(deltapH < 0.14) %>% # There is a huge mussel outlier in the pH data
   mutate(TA_norm = TA*Salinity/33,
          DIC_norm = DIC*Salinity/33,# salinity normalize
          TA_DIC = TA/DIC) # TA divided by DIC
@@ -216,4 +215,30 @@ TADICmod<-lm(TA_DIC~Benthos*Day_Night, data = AllCO2)
 anova(TADICmod)
 summary(TADICmod)
 
+AllCO2<-AllCO2  %>%
+  mutate(TA_DIC = TA/DIC) %>%
+  group_by(Sampling_DateTime) %>%
+  mutate(deltaTADIC = TA_DIC - TA_DIC[Benthos == "Open Ocean"],
+         deltaNO2 = NO2 - NO2[Benthos == "Open Ocean"],
+         deltaNO3 = NO3 - NO3[Benthos == "Open Ocean"],
+         deltaPO4 = PO4 - PO4[Benthos == "Open Ocean"],
+         deltaNH4 = NH4 - NH4[Benthos == "Open Ocean"]
+        # deltaSIL = SIL - SIL[Benthos == "Open Ocean"]
+         ) %>% # difference from open ocean
+  ungroup() 
 
+
+AllCO2 %>% 
+  filter(Benthos != "Open Ocean") %>%
+  ggplot(aes(x = Benthos, y = deltaTADIC))+
+  geom_boxplot()
+
+modTADICdelta<-lm(deltaTADIC~Benthos, data = AllCO2 %>% 
+                    filter(Benthos != "Open Ocean") )
+anova(modTADICdelta)
+summary(modTADICdelta)
+
+AllCO2 %>% 
+  filter(Benthos != "Open Ocean") %>%
+  ggplot(aes(x = Benthos, y = deltaPO4))+
+  geom_boxplot()
