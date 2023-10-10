@@ -233,7 +233,7 @@ AllCO2 %>%
   ggplot(aes(x = Benthos, y = deltaTADIC))+
   geom_boxplot()
 
-modTADICdelta<-lm(deltaTADIC~Benthos, data = AllCO2 %>% 
+modTADICdelta<-lm(deltaTA_DIC~Benthos, data = AllCO2 %>% 
                     filter(Benthos != "Open Ocean") )
 anova(modTADICdelta)
 summary(modTADICdelta)
@@ -241,4 +241,9 @@ summary(modTADICdelta)
 AllCO2 %>% 
   filter(Benthos != "Open Ocean") %>%
   ggplot(aes(x = Benthos, y = deltaPO4))+
+  geom_boxplot()
+
+AllCO2 %>% 
+ # filter(Benthos != "Open Ocean") %>%
+  ggplot(aes(x = Benthos, y = PO4))+
   geom_boxplot()
