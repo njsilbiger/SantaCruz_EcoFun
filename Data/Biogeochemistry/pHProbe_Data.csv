@@ -106,16 +106,21 @@ Long Beach,M_Dusk,Mussel,M4,4,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.089,-80.
 Long Beach,B_Dusk,Barnacle,B1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.92,-81.7,33.41,,,20231024,10/24/2023,,,,,,
 Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,NA,,,20231024,10/24/2023,,,,,,No TA
 Long Beach,P_Dusk,Surfgrass,P1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,NA,,,20231024,10/24/2023,,,,,,No TA
-Long Beach,OO_Dusk2,Open Ocean,OO2,2,Dusk,10/25/2023,18:02,10/26/23 21:00,21.636,-84.7,33.4,,,20231024,10/26/2023,,,,,,Nutrient and TA bag might have been switched
-Long Beach,OO_Dusk2b,Open Ocean,OO2b,2,Dusk,10/25/2023,18:02,10/26/23 21:00,15.372,-78.6,32.78,,,20231024,10/26/2023,,,,,,"From Nutrient bag, dirty water"
-Long Beach,M_Dusk,Mussel,M4,4,Dusk,10/25/2023,18:02,10/26/23 21:00,21.888,-82.5,33.64,,,20231024,10/26/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/25/2023,18:02,10/26/23 21:00,21.477,-83,33.31,,,20231024,10/26/2023,,,,,,Not enough TA
-Long Beach,M_Dusk,Mussel,M6,6,Dusk,10/25/2023,18:02,10/26/23 21:00,21.21,-83.7,33.58,,,20231024,10/26/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,M_Dusk,Mussel,M1,1,Dusk,10/25/2023,18:02,10/26/23 21:00,21.198,-82.3,33.65,,,20231024,10/26/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B2,2,Dusk,10/25/2023,18:02,10/26/23 21:00,NA,NA,NA,,,20231024,10/26/2023,,,,,,No TA
+Long Beach,OO_Dusk2,Open Ocean,OO2,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.636,-84.7,33.4,,,20231024,10/26/2023,,,,,,Nutrient and TA bag might have been switched
+Long Beach,OO_Dusk2b,Open Ocean,OO2b,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,15.372,-78.6,32.78,,,20231024,10/26/2023,,,,,,"From Nutrient bag, dirty water"
+Long Beach,M_Dusk,Mussel,M4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.888,-82.5,33.64,,,20231024,10/26/2023,,,,,,
+Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.477,-83,33.31,,,20231024,10/26/2023,,,,,,Not enough TA
+Long Beach,M_Dusk,Mussel,M6,6,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.21,-83.7,33.58,,,20231024,10/26/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,M_Dusk,Mussel,M1,1,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.198,-82.3,33.65,,,20231024,10/26/2023,,,,,,
+Long Beach,B_Dusk,Barnacle,B2,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,NA,NA,NA,,,20231024,10/26/2023,,,,,,No TA
 Long Beach,M_Dusk,Mussel,M2,2,Dusk,10/26/2023,18:01,10/27/2023 21:00,20.984,-81.8,33.56,,,20231027,10/27/2023,,,,,,
 Long Beach,M_Dusk,Mussel,M6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.046,-85.5,33.46,,,20231027,10/27/2023,,,,,,
 Long Beach,P_Dusk,Surfgrass,P2,2,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.136,-87.4,33.65,,,20231027,10/27/2023,NA,NA,NA,NA,NA,No Nutrients
 Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.241,-84.7,33.51,,,20231027,10/27/2023,,,,,,"Used pH/sal water for TA, not enough"
 Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,20.961,-84.3,33.71,,,20231027,10/27/2023,NA,NA,NA,NA,NA,"Left for 2 days without processing, no Nutrients"
 Long Beach,OO_Dusk3,Open Ocean,OO3,3,Dusk,10/26/2023,18:01,10/27/2023 21:00,NA,NA,NA,,,20231027,10/27/2023,,,,,,No TA
+Long Beach,M_Dusk,Mussel,M3,3,Dusk,10/27/2023,19:04,10/28/2023 21:00,20.405,-86.7,33.08,,,20231027,10/28/2023,,,,,,"No fDOM, not 3x rinsed for nutrients"
+Long Beach,P_Dusk,Surfgrass,P3,3,Dusk,10/27/2023,19:04,10/28/2023 21:00,19.843,-85.6,33.14,,,20231027,10/28/2023,,,,,,
+Long Beach,OO_Dusk4,Open Ocean,OO4,4,Dusk,10/27/2023,19:04,10/28/2023 21:00,20.146,-87.1,33.06,,,20231027,10/28/2023,,,,,,
+Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/27/2023,19:04,10/28/2023 21:00,19.511,-87.9,33.02,,,20231027,10/28/2023,,,,,,
+Long Beach,P_Dusk,Surfgrass,P2,2,Dusk,10/27/2023,19:04,10/28/2023 21:00,NA,NA,NA,,,20231027,10/28/2023,,,,,,No TA
