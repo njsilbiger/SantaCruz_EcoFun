@@ -48,6 +48,8 @@ pHSlope$TA[NoTA]<-2300
 NoPO<-which(is.na(pHSlope$PO4))
 pHSlope$PO4[NoPO]<-0
 
+NoTemp<-which(is.na(pHSlope$TempInSitu))
+pHSlope$TempInSitu[NoTemp]<-15
 
 #Now calculate pH
 pHSlope <-pHSlope%>%
@@ -94,27 +96,83 @@ pHSlope %>%
   facet_wrap(~Benthos)
 #  geom_smooth()
 
+pHSlope %>% 
+  mutate(Sampling_Time = as.character(Sampling_Time)) %>%
+  arrange(row_number() < match('06:00:00', Sampling_Time)) %>%
+  mutate(Sampling_Time = factor(Sampling_Time, unique(Sampling_Time))) %>%
+  ggplot(aes(x = Sampling_Time, y = pH))+
+  geom_point()+
+ # geom_smooth()+
+  facet_wrap(~Benthos)+
+  theme(axis.text.x = element_text(hjust = 1, angle=90,
+                                   face="bold", size=12), 
+        axis.text.y = element_text( face="bold", size=12),
+        strip.text = element_text(size=12, face="bold"))
+
+p1_pH<-pHSlope %>% 
+  filter(Benthos != "Open Ocean")%>%
+  mutate(Sampling_Time_Fake = ymd_hms(paste("2023-10-10",as.character(Sampling_Time)))) %>%
+  mutate(Sampling_Time_Fake  = if_else(hour(Sampling_Time_Fake) > 6, Sampling_Time_Fake - days(1), Sampling_Time_Fake)) %>% # so that we can reorder the plot to start with 6am
+  ggplot(aes(x = Sampling_Time_Fake, y = pH, color = Benthos))+
+  geom_point()+
+  geom_smooth(method = "lm", formula = "y~poly(x,2)")+
+  scale_x_datetime(date_labels = "%H:%M",
+                   limits = c(ymd_hms("2023-10-09 05:00:00", ymd_hms("2023-10-10 04:00:00"))) )+
+  scale_color_manual(values = cal_palette("chaparral1"))+  facet_wrap(~Benthos, nrow=1)+
+  labs(x = "",
+       y = "pH")+
+  theme_bw() +
+  theme(legend.position = "none",
+                   axis.title = element_text(size = 16),
+                   axis.text = element_text(size = 14),
+                   strip.background = element_blank(),
+                   strip.text = element_text(size = 16),
+        axis.text.x = element_blank()
+  )
+
+
+ggsave(here("Output","pHcontinuous.png"), width = 8, height = 4)
+# 
 
 pHSlope %>%
   ggplot(aes(x = pH, fill = Benthos))+
-  geom_density(alpha = 0.5)+
-  facet_wrap(~Day_Night)
+  geom_density(alpha = 0.5)
 #  geom_smooth()
+
+## pull out open ocean data and average it by date
+ocean<-pHSlope%>% 
+  filter(Benthos == "Open Ocean") %>%
+  mutate(Sampling_DateTime = ymd_hms(paste(Sampling_Date, Sampling_Time))) %>%
+  group_by(Sampling_DateTime) %>%
+  summarise(OceanpH = mean(pH))
 
 pHSlope<-pHSlope %>% 
   mutate(Sampling_DateTime = ymd_hms(paste(Sampling_Date, Sampling_Time))) %>%
-  group_by(Sampling_DateTime) %>%
-  mutate(deltapH = pH - pH[Benthos == "Open Ocean"]) %>%
-  ungroup() 
+  left_join(ocean)%>%
+ # group_by(Sampling_DateTime) %>%
+  mutate(deltapH = pH - OceanpH) # subtract from average ocean sample
+
+### add a new column for time groupings
+pHSlope<-pHSlope %>%
+  mutate( Samplinghour = as.numeric(hour(Sampling_Time)),
+    group_time = 
+           case_when(Samplinghour >=6 & Samplinghour < 12 ~ "Morning",
+                     Samplinghour >=12 &Samplinghour< 18 ~ "Afternoon",
+                     Samplinghour >=18 & Samplinghour < 24 ~ "Evening",
+                     Samplinghour >= 0 & Samplinghour< 6 ~ "Night"
+                     )) %>%
+  mutate(group_time = factor(group_time, levels = c("Morning","Afternoon","Evening","Night")))
+#   mutate(deltapH = pH - pH[Benthos == "Open Ocean"]) %>%
+#   ungroup() 
 
 pHSlope%>%
   filter(Benthos != "Open Ocean")%>%
-  ggplot(aes(x = Benthos, y = deltapH, fill = Day_Night))+
+  ggplot(aes(x = Benthos, y = deltapH, fill = group_time))+
   geom_hline(yintercept = 0, lty = 2)+
   geom_boxplot()+
   geom_jitter(position = position_dodge(width = .8))+
   
-  labs(y = "pH (Difference from Open Ocean Sample)",
+  labs(y = "pH (Difference from Ocean Sample)",
        x = "",
        fill = "Day/Night")+
   scale_fill_manual(values = cal_palette("chaparral1"))+
@@ -146,6 +204,34 @@ pHSlope%>%
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14))
 ggsave(here("Output","pHdifference_means.png"), width = 8, height = 6)
+
+### do it continunous
+p2_pH<-pHSlope %>% 
+  mutate(Sampling_Time_Fake = ymd_hms(paste("2023-10-10",as.character(Sampling_Time)))) %>%
+  mutate(Sampling_Time_Fake  = if_else(hour(Sampling_Time_Fake) >= 5, Sampling_Time_Fake - days(1), Sampling_Time_Fake)) %>% # so that we can reorder the plot to start with 6am
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = Sampling_Time_Fake, y = deltapH, color = Benthos))+
+  geom_hline(yintercept = 0)+
+  geom_point()+
+  geom_smooth(method = "lm", formula = "y~poly(x,2)")+
+  scale_x_datetime(date_labels = "%H:%M",
+                   limits = c(ymd_hms("2023-10-09 05:00:00", ymd_hms("2023-10-10 04:00:00"))) )+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  facet_wrap(~Benthos, nrow=1)+
+  labs(x = "",
+       y = expression(paste(Delta,"pH from Ocean")))+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+        strip.background = element_blank(),
+        strip.text = element_blank()
+        #strip.text = element_text(size = 16)
+        )
+
+p1_pH/p2_pH
+
+ggsave(here("Output","pHcomposite.png"), width = 10, height = 6)
 
 
 pHSlope%>%

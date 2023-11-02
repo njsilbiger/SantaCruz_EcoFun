@@ -154,35 +154,35 @@ Long Beach,M6_Dawnc,Mussel,M6,6,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.297,-71
 Long Beach,P5_Dawnb,Surfgrass,P5,5,Dawn,11/1/2023,7:25,11/1/2023 21:00,21.5,-68.2,33.46,,,20231101,11/1/2023,,,,,,
 Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,11/1/2023,7:25,11/1/2023 21:00,21.5,-78.7,33.48,,,20231101,11/1/2023,,,,,,
 Long Beach,M5_Dawn,Mussel,M5,5,Dawn,11/1/2023,7:25,11/1/2023 21:00,21.6,-70.1,33.53,,,20231101,11/1/2023,,,,,,
-Long Beach,OO_Dusk1a,Open Ocean,OO1,1,Dusk,10/21/2023,17:35,10/21/2023 18:00,18.633,-78.5,33.14,,,20231019,10/21/2023,,,,,,"Hand collected ""mid"""
-Long Beach,OO_Dusk1b,Open Ocean,OO1,1,Dusk,10/21/2023,17:35,10/21/2023 18:00,18.469,-79,33.22,,,20231019,10/21/2023,,,,,,"Hand collected ""west"""
-Long Beach,OO_Dusk1c,Open Ocean,OO1,1,Dusk,10/21/2023,17:35,10/21/2023 18:00,18.27,-79.8,33.28,,,20231019,10/21/2023,,,,,,"Hand collected ""east"""
-Long Beach,OO_Dusk2a,Open Ocean,OO2,2,Dusk,10/22/2023,18:20,10/22/2023 18:45,19.587,-81.9,33.41,,,20231019,10/21/2023,,,,,,"Hand collected ""west"""
-Long Beach,OO_Dusk2b,Open Ocean,OO2,2,Dusk,10/22/2023,18:20,10/22/2023 18:45,19.469,-82.8,33.34,,,20231019,10/21/2023,,,,,,"Hand collected ""east"""
-Long Beach,OO_Dusk3a,Open Ocean,OO3,3,Dusk,10/23/2023,18:20,10/23/2023 18:50,18.14,-82,32.87,,,20231023,10/21/2023,,,,,,"Hand collected ""west"", TA is in east bottle"
-Long Beach,OO_Dusk3b,Open Ocean,OO3,3,Dusk,10/23/2023,18:20,10/23/2023 18:50,18.084,-83.3,33.03,,,20231023,10/21/2023,,,,,,"Hand collected ""mid"""
-Long Beach,OO_Dusk3c,Open Ocean,OO3,3,Dusk,10/23/2023,18:20,10/23/2023 18:50,18.574,-84,33.15,,,20231023,10/21/2023,,,,,,"Hand collected ""east"", TA is in west bottle"
-Long Beach,OO_Dusk4a,Open Ocean,OO4,4,Dusk,10/24/2023,18:30,10/24/2023 19:00,19.3,-82.9,33.18,,,20231023,10/24/2023,,,,,,"Hand collected ""mid"" , Nutrients may be contaminated"
-Long Beach,OO_Dusk4b,Open Ocean,OO4,4,Dusk,10/24/2023,18:30,10/24/2023 19:00,19.128,-85.4,33.32,,,20231023,10/24/2023,,,,,,"Hand collected ""west"""
-Long Beach,OO_Dusk4c,Open Ocean,OO4,4,Dusk,10/24/2023,18:30,10/24/2023 19:00,19.17,-84.9,33.35,,,20231023,10/24/2023,,,,,,"Hand collected ""east"""
-Long Beach,OO_Dusk5a,Open Ocean,OO5,5,Dusk,10/25/2023,18:30,10/25/2023 19:00,19.158,-86.8,34.03,,,20231023,10/24/2023,,,,,,Hand collected
-Long Beach,OO_Dusk5b,Open Ocean,OO5,5,Dusk,10/25/2023,18:30,10/25/2023 19:00,18.921,-86.4,33.58,,,20231023,10/24/2023,,,,,,Hand collected
-Long Beach,OO_Dusk5c,Open Ocean,OO5,5,Dusk,10/25/2023,18:30,10/25/2023 19:00,18.799,-86.9,33.66,,,20231023,10/24/2023,,,,,,Hand collected
-Long Beach,OO_Dusk6c,Open Ocean,OO6,6,Dusk,10/26/2023,18:30,10/26/2023 19:00,18.536,-86.4,33.68,,,20231023,10/26/2023,,,,,,Hand collected
-Long Beach,OO_Dusk6b,Open Ocean,OO6,6,Dusk,10/26/2023,18:30,10/26/2023 19:00,18.329,-85.2,33.54,,,20231023,10/26/2023,,,,,,Hand collected
-Long Beach,OO_Dusk6a,Open Ocean,OO6,6,Dusk,10/26/2023,18:30,10/26/2023 19:00,18.331,-84.8,33.62,,,20231023,10/26/2023,,,,,,Hand collected
-Long Beach,OO_Dusk7a,Open Ocean,OO7,7,Dusk,10/27/2023,18:50,10/27/2023 19:10,17.78,-88.4,33.35,,,20231027,10/27/2023,,,,,,Hand collected
-Long Beach,OO_Dusk7b,Open Ocean,OO7,7,Dusk,10/27/2023,18:50,10/27/2023 19:10,17.885,-87.8,33.48,,,20231027,10/27/2023,,,,,,Hand collected
-Long Beach,OO_Dusk7c,Open Ocean,OO7,7,Dusk,10/27/2023,18:50,10/27/2023 19:10,17.929,-88.5,33.75,,,20231027,10/27/2023,,,,,,Hand collected
-Long Beach,OO_Dawn8a,Open Ocean,OO8,8,Dawn,10/29/2023,7:30,10/29/2023 8:00,16.529,-70,33.21,,,20231027,10/28/2023,,,,,,Hand collected
-Long Beach,OO_Dawn8b,Open Ocean,OO8,8,Dawn,10/29/2023,7:30,10/29/2023 8:00,16.593,-69.3,33.28,,,20231027,10/28/2023,,,,,,Hand collected
-Long Beach,OO_Dawn8c,Open Ocean,OO8,8,Dawn,10/29/2023,7:30,10/29/2023 8:00,16.644,-73.5,33.11,,,20231027,10/28/2023,,,,,,Hand collected
-Long Beach,OO_Dawn9a,Open Ocean,OO9,9,Dawn,10/30/2023,7:30,10/30/2023 8:00,15.349,-71.9,33.14,,,20231029,10/29/2023,,,,,,Hand collected
-Long Beach,OO_Dawn9b,Open Ocean,OO9,9,Dawn,10/30/2023,7:30,10/30/2023 8:00,15.621,-72.7,33.19,,,20231029,10/29/2023,,,,,,Hand collected
-Long Beach,OO_Dawn9c,Open Ocean,OO9,9,Dawn,10/30/2023,7:30,10/30/2023 8:00,15.953,-74,33.21,,,20231029,10/29/2023,,,,,,Hand collected
-Long Beach,OO_Dawn10a,Open Ocean,OO10,10,Dawn,10/31/2023,7:25,10/31/2023 8:00,16.37,-71.4,33.51,,,20231029,10/30/2023,,,,,,"Hand collected, falcon tube brown spots"
-Long Beach,OO_Dawn10b,Open Ocean,OO10,10,Dawn,10/31/2023,7:25,10/31/2023 8:00,15.811,-72.7,33.57,,,20231029,10/30/2023,,,,,,Hand collected
-Long Beach,OO_Dawn10c,Open Ocean,OO10,10,Dawn,10/31/2023,7:25,10/31/2023 8:00,15.952,-72.9,33.68,,,20231029,10/30/2023,,,,,,Hand collected
-Long Beach,OO_Dawn11a,Open Ocean,OO11,11,Dawn,11/1/2023,7:50,11/1/2023 8:10,17.867,-72.6,33.94,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out, fDOM may not be cold enough"
-Long Beach,OO_Dawn11b,Open Ocean,OO11,11,Dawn,11/1/2023,7:50,11/1/2023 8:10,17.954,-73.4,33.61,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out"
-Long Beach,OO_Dawn11c,Open Ocean,OO11,11,Dawn,11/1/2023,7:50,11/1/2023 8:10,17.886,-73.2,33.58,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out, no falcon tube"
+Long Beach,OO_Dusk1a,Open Ocean,OO1,1,Dusk,10/21/2023,17:00,10/21/2023 18:00,18.633,-78.5,33.14,,,20231019,10/21/2023,,,,,,"Hand collected ""mid"""
+Long Beach,OO_Dusk1b,Open Ocean,OO1,1,Dusk,10/21/2023,17:00,10/21/2023 18:00,18.469,-79,33.22,,,20231019,10/21/2023,,,,,,"Hand collected ""west"""
+Long Beach,OO_Dusk1c,Open Ocean,OO1,1,Dusk,10/21/2023,17:00,10/21/2023 18:00,18.27,-79.8,33.28,,,20231019,10/21/2023,,,,,,"Hand collected ""east"""
+Long Beach,OO_Dusk2a,Open Ocean,OO2,2,Dusk,10/22/2023,18:05,10/22/2023 18:45,19.587,-81.9,33.41,,,20231019,10/21/2023,,,,,,"Hand collected ""west"""
+Long Beach,OO_Dusk2b,Open Ocean,OO2,2,Dusk,10/22/2023,18:05,10/22/2023 18:45,19.469,-82.8,33.34,,,20231019,10/21/2023,,,,,,"Hand collected ""east"""
+Long Beach,OO_Dusk3a,Open Ocean,OO3,3,Dusk,10/23/2023,18:04,10/23/2023 18:50,18.14,-82,32.87,,,20231023,10/21/2023,,,,,,"Hand collected ""west"", TA is in east bottle"
+Long Beach,OO_Dusk3b,Open Ocean,OO3,3,Dusk,10/23/2023,18:04,10/23/2023 18:50,18.084,-83.3,33.03,,,20231023,10/21/2023,,,,,,"Hand collected ""mid"""
+Long Beach,OO_Dusk3c,Open Ocean,OO3,3,Dusk,10/23/2023,18:04,10/23/2023 18:50,18.574,-84,33.15,,,20231023,10/21/2023,,,,,,"Hand collected ""east"", TA is in west bottle"
+Long Beach,OO_Dusk4a,Open Ocean,OO4,4,Dusk,10/24/2023,18:03,10/24/2023 19:00,19.3,-82.9,33.18,,,20231023,10/24/2023,,,,,,"Hand collected ""mid"" , Nutrients may be contaminated"
+Long Beach,OO_Dusk4b,Open Ocean,OO4,4,Dusk,10/24/2023,18:03,10/24/2023 19:00,19.128,-85.4,33.32,,,20231023,10/24/2023,,,,,,"Hand collected ""west"""
+Long Beach,OO_Dusk4c,Open Ocean,OO4,4,Dusk,10/24/2023,18:03,10/24/2023 19:00,19.17,-84.9,33.35,,,20231023,10/24/2023,,,,,,"Hand collected ""east"""
+Long Beach,OO_Dusk5a,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/25/2023 19:00,19.158,-86.8,34.03,,,20231023,10/24/2023,,,,,,Hand collected
+Long Beach,OO_Dusk5b,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/25/2023 19:00,18.921,-86.4,33.58,,,20231023,10/24/2023,,,,,,Hand collected
+Long Beach,OO_Dusk5c,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/25/2023 19:00,18.799,-86.9,33.66,,,20231023,10/24/2023,,,,,,Hand collected
+Long Beach,OO_Dusk6c,Open Ocean,OO6,6,Dusk,10/26/2023,18:01,10/26/2023 19:00,18.536,-86.4,33.68,,,20231023,10/26/2023,,,,,,Hand collected
+Long Beach,OO_Dusk6b,Open Ocean,OO6,6,Dusk,10/26/2023,18:01,10/26/2023 19:00,18.329,-85.2,33.54,,,20231023,10/26/2023,,,,,,Hand collected
+Long Beach,OO_Dusk6a,Open Ocean,OO6,6,Dusk,10/26/2023,18:01,10/26/2023 19:00,18.331,-84.8,33.62,,,20231023,10/26/2023,,,,,,Hand collected
+Long Beach,OO_Dusk7a,Open Ocean,OO7,7,Dusk,10/27/2023,19:04,10/27/2023 19:10,17.78,-88.4,33.35,,,20231027,10/27/2023,,,,,,Hand collected
+Long Beach,OO_Dusk7b,Open Ocean,OO7,7,Dusk,10/27/2023,19:04,10/27/2023 19:10,17.885,-87.8,33.48,,,20231027,10/27/2023,,,,,,Hand collected
+Long Beach,OO_Dusk7c,Open Ocean,OO7,7,Dusk,10/27/2023,19:04,10/27/2023 19:10,17.929,-88.5,33.75,,,20231027,10/27/2023,,,,,,Hand collected
+Long Beach,OO_Dawn8a,Open Ocean,OO8,8,Dawn,10/29/2023,7:04,10/29/2023 8:00,16.529,-70,33.21,,,20231027,10/28/2023,,,,,,Hand collected
+Long Beach,OO_Dawn8b,Open Ocean,OO8,8,Dawn,10/29/2023,7:04,10/29/2023 8:00,16.593,-69.3,33.28,,,20231027,10/28/2023,,,,,,Hand collected
+Long Beach,OO_Dawn8c,Open Ocean,OO8,8,Dawn,10/29/2023,7:04,10/29/2023 8:00,16.644,-73.5,33.11,,,20231027,10/28/2023,,,,,,Hand collected
+Long Beach,OO_Dawn9a,Open Ocean,OO9,9,Dawn,10/30/2023,7:05,10/30/2023 8:00,15.349,-71.9,33.14,,,20231029,10/29/2023,,,,,,Hand collected
+Long Beach,OO_Dawn9b,Open Ocean,OO9,9,Dawn,10/30/2023,7:05,10/30/2023 8:00,15.621,-72.7,33.19,,,20231029,10/29/2023,,,,,,Hand collected
+Long Beach,OO_Dawn9c,Open Ocean,OO9,9,Dawn,10/30/2023,7:05,10/30/2023 8:00,15.953,-74,33.21,,,20231029,10/29/2023,,,,,,Hand collected
+Long Beach,OO_Dawn10a,Open Ocean,OO10,10,Dawn,10/31/2023,7:06,10/31/2023 8:00,16.37,-71.4,33.51,,,20231029,10/30/2023,,,,,,"Hand collected, falcon tube brown spots"
+Long Beach,OO_Dawn10b,Open Ocean,OO10,10,Dawn,10/31/2023,7:06,10/31/2023 8:00,15.811,-72.7,33.57,,,20231029,10/30/2023,,,,,,Hand collected
+Long Beach,OO_Dawn10c,Open Ocean,OO10,10,Dawn,10/31/2023,7:06,10/31/2023 8:00,15.952,-72.9,33.68,,,20231029,10/30/2023,,,,,,Hand collected
+Long Beach,OO_Dawn11a,Open Ocean,OO11,11,Dawn,11/1/2023,7:25,11/1/2023 8:10,17.867,-72.6,33.94,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out, fDOM may not be cold enough"
+Long Beach,OO_Dawn11b,Open Ocean,OO11,11,Dawn,11/1/2023,7:25,11/1/2023 8:10,17.954,-73.4,33.61,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out"
+Long Beach,OO_Dawn11c,Open Ocean,OO11,11,Dawn,11/1/2023,7:25,11/1/2023 8:10,17.886,-73.2,33.58,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out, no falcon tube"
