@@ -269,6 +269,7 @@ AllCO2 <- pHSlope %>%
          DIC_norm = DIC*Salinity/33,# salinity normalize
          TA_DIC = TA/DIC) # TA divided by DIC
 
+# make the TA vs DIC plots
 p_slopes<-AllCO2 %>%
   filter(Benthos !="Open Ocean") %>%
 ggplot(aes(x = DIC, y = TA, color = Benthos))+
@@ -290,12 +291,15 @@ TADICmod<-lm(TA~DIC*Benthos, data = AllCO2 %>%filter(Benthos !="Open Ocean"))
 anova(TADICmod)
 summary(TADICmod)
 
+# calculate marginal effects
 ss <- sim_slopes(TADICmod, pred = DIC, modx = Benthos, johnson_neyman = FALSE)
 plot(ss)
 
+# extract the individual slopes
 slopes<-tibble(ss$slopes)
 colnames(slopes)[1]<-"Benthos"
 
+# make the plot
 P_estimate<-slopes %>%
   ggplot(aes(y = Benthos, x = Est., color = Benthos))+
   geom_point(size = 3)+
@@ -309,7 +313,7 @@ P_estimate<-slopes %>%
         axis.text = element_text(size = 14))
 # Type 2 linear regression
 
-
+# bring the TA DIC plots together
 p_slopes+P_estimate
 
 ggsave(here("Output","TADICComposite.png"), width = 8, height = 4)
