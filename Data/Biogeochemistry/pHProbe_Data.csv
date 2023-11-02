@@ -82,72 +82,107 @@ Long Beach,M2_Day,Mussel,M2,2,Day,8/17/2023,11:10,8/18/2023 12:00,NA,NA,32.07,17
 Long Beach,M3_Day,Mussel,M3,3,Day,8/17/2023,11:10,8/18/2023 12:00,NA,NA,32.26,17.97,NA,20230810,8/16/2023,NA,NA,NA,NA,NA,No TA pH
 Long Beach,M6_Day,Mussel,M6,6,Day,8/17/2023,11:10,8/18/2023 12:00,20.074,-77.2,33.74,17.11,2232.310357,20230810,8/16/2023,1,0.29,3.7,0.07,0.24,
 Long Beach,OO_Day7,Open Ocean,OO7,7,Day,8/17/2023,11:10,8/18/2023 12:00,20.027,-78.8,33.18,17.11,2215.987152,20230810,8/16/2023,0.38,0.39,5.1,0.06,1.42,
-Long Beach,RW_Dusk,Rockweed,RW1,1,Dusk,10/21/2023,17:00,10/22/2023 11:30,22.135,-77.3,33.98,,,20231019,10/21/2023,,,,,,
-Long Beach,RW_Dusk,Rockweed,RW3,3,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.753,-77.7,33.57,,,20231019,10/21/2023,,,,,,
-Long Beach,RW_Dusk,Rockweed,RW5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.604,-80.9,32.03,,,20231019,10/21/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.275,-77.9,33.25,,,20231019,10/21/2023,,,,,,
+Long Beach,RW1_Dusk,Rockweed,RW1,1,Dusk,10/21/2023,17:00,10/22/2023 11:30,22.135,-77.3,33.98,,,20231019,10/21/2023,,,,,,
+Long Beach,RW3_Dusk,Rockweed,RW3,3,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.753,-77.7,33.57,,,20231019,10/21/2023,,,,,,
+Long Beach,RW5_Dusk,Rockweed,RW5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.604,-80.9,32.03,,,20231019,10/21/2023,,,,,,
+Long Beach,P5_Dusk,Surfgrass,P5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.275,-77.9,33.25,,,20231019,10/21/2023,,,,,,
 Long Beach,00_Dusk1,Open Ocean,OO1,1,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.484,-77.9,33.47,,,20231019,10/21/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,B_Dusk,Barnacle,B5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.455,-78,33.49,,,20231019,10/21/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B3,3,Dusk,10/21/2023,17:00,10/22/2023 11:30,NA,NA,NA,,,20231019,10/21/2023,,,,,,No TA
-Long Beach,B_Dusk,Barnacle,B4,4,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.46,-80.3,33.33,,,20231023,10/21/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P6,6,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.533,-81.6,33.38,,,20231023,10/21/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P3,3,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.364,-80.8,33.24,,,20231023,10/21/2023,,,,,,Not enough to 3x rinse for nutrients or fill fDOM
-Long Beach,RW_Dusk,Rockweed,RW2,2,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.415,-81.2,33.25,,,20231023,10/21/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P1,1,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.365,-77.5,33.22,,,20231023,10/21/2023,,,,,,No Nutrients
-Long Beach,B_Dusk,Barnacle,B3,3,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.133,-72.2,33.22,,,20231023,10/21/2023,,,,,,
-Long Beach,RW_Dusk,Rockweed,RW4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.241,-78.8,33.3,,,20231023,10/21/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.207,-74.8,33.31,,,20231023,10/21/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B2,2,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.48,-75.8,33.24,,,20231023,10/21/2023,,,,,,TA not 3x rinsed
-Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,NA,NA,NA,,,20231023,10/21/2023,,,,,,No TA
-Long Beach,RW_Dusk,Rockweed,RW6,6,Dusk,10/24/2023,18:03,10/25/2023 11:30,22.144,-83.7,33.36,,,20231024,10/24/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.131,-85.4,33.54,,,20231024,10/24/2023,,,,,,
-Long Beach,M_Dusk,Mussel,M5,5,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.603,-80.3,33.46,,,20231024,10/24/2023,,,,,,
-Long Beach,M_Dusk,Mussel,M4,4,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.089,-80.3,33.42,,,20231024,10/24/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.92,-81.7,33.41,,,20231024,10/24/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,NA,,,20231024,10/24/2023,,,,,,No TA
-Long Beach,P_Dusk,Surfgrass,P1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,NA,,,20231024,10/24/2023,,,,,,No TA
-Long Beach,OO_Dusk2,Open Ocean,OO2,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.636,-84.7,33.4,,,20231024,10/26/2023,,,,,,Nutrient and TA bag might have been switched
-Long Beach,OO_Dusk2b,Open Ocean,OO2b,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,15.372,-78.6,32.78,,,20231024,10/26/2023,,,,,,"From Nutrient bag, dirty water"
-Long Beach,M_Dusk,Mussel,M4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.888,-82.5,33.64,,,20231024,10/26/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.477,-83,33.31,,,20231024,10/26/2023,,,,,,Not enough TA
-Long Beach,M_Dusk,Mussel,M6,6,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.21,-83.7,33.58,,,20231024,10/26/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,M_Dusk,Mussel,M1,1,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.198,-82.3,33.65,,,20231024,10/26/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B2,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,NA,NA,NA,,,20231024,10/26/2023,,,,,,No TA
-Long Beach,M_Dusk,Mussel,M2,2,Dusk,10/26/2023,18:01,10/27/2023 21:00,20.984,-81.8,33.56,,,20231027,10/27/2023,,,,,,
-Long Beach,M_Dusk,Mussel,M6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.046,-85.5,33.46,,,20231027,10/27/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P2,2,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.136,-87.4,33.65,,,20231027,10/27/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,P_Dusk,Surfgrass,P4,4,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.241,-84.7,33.51,,,20231027,10/27/2023,,,,,,"Used pH/sal water for TA, not enough"
-Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,20.961,-84.3,33.71,,,20231027,10/27/2023,NA,NA,NA,NA,NA,"Left for 2 days without processing, no Nutrients"
-Long Beach,OO_Dusk3,Open Ocean,OO3,3,Dusk,10/26/2023,18:01,10/27/2023 21:00,NA,NA,NA,,,20231027,10/27/2023,,,,,,No TA
-Long Beach,M_Dusk,Mussel,M3,3,Dusk,10/27/2023,19:04,10/28/2023 21:00,20.405,-86.7,33.08,,,20231027,10/28/2023,,,,,,"No fDOM, not 3x rinsed for nutrients"
-Long Beach,P_Dusk,Surfgrass,P3,3,Dusk,10/27/2023,19:04,10/28/2023 21:00,19.843,-85.6,33.14,,,20231027,10/28/2023,,,,,,
-Long Beach,OO_Dusk4,Open Ocean,OO4,4,Dusk,10/27/2023,19:04,10/28/2023 21:00,20.146,-87.1,33.06,,,20231027,10/28/2023,,,,,,
-Long Beach,B_Dusk,Barnacle,B6,6,Dusk,10/27/2023,19:04,10/28/2023 21:00,19.511,-87.9,33.02,,,20231027,10/28/2023,,,,,,
-Long Beach,P_Dusk,Surfgrass,P2,2,Dusk,10/27/2023,19:04,10/28/2023 21:00,NA,NA,NA,,,20231027,10/28/2023,,,,,,No TA
-Long Beach,OO_Dawn1,Open Ocean,OO1,5,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.607,-67.4,33.16,,,20231029,10/29/2023,,,,,,
-Long Beach,P_Dawn,Surfgrass,P3,3,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.52,-66.3,33.2,,,20231029,10/29/2023,,,,,,
-Long Beach,P_Dawn,Surfgrass,P6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.14,-64.9,33.13,,,20231029,10/29/2023,,,,,,
-Long Beach,R_Dawn,Rockweed,R2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.624,-66.6,33.2,,,20231029,10/29/2023,,,,,,
-Long Beach,R_Dawn,Rockweed,R6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.276,-68,33.13,,,20231029,10/29/2023,,,,,,
-Long Beach,B_Dawn,Barnacle,B3,3,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.365,-69.4,33.17,,,20231029,10/29/2023,,,,,,
-Long Beach,B_Dawn,Barnacle,B6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.357,-70.2,33.12,,,20231029,10/29/2023,,,,,,
-Long Beach,M_Dawn,Mussel,M2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.152,-70.4,33.02,,,20231029,10/29/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,R_Dawn,Rockweed,R4,4,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,,,20231029,10/29/2023,,,,,,No TA
-Long Beach,P_Dawn,Surfgrass,P2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,,,20231029,10/29/2023,,,,,,No TA
-Long Beach,M_Dawn,Mussel,M6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,,,20231029,10/29/2023,,,,,,No TA
-Long Beach,OO_Dawn2,Open Ocean,OO2,6,Dawn,10/30/2023,7:05,10/30/2023 21:00,22.367,-68.8,33.91,,,20231029,10/30/2023,,,,,,
-Long Beach,M_Dawn,Mussel,M2,2,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.951,-70.7,33.69,,,20231029,10/30/2023,,,,,,
-Long Beach,M_Dawn,Mussel,M6,6,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.983,-69.1,33.74,,,20231029,10/30/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,RW_Dawn,Rockweed,R1,1,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.774,-67.3,33.46,,,20231029,10/30/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,RW_Dawn,Rockweed,R4,4,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.607,-67.1,33.6,,,20231029,10/30/2023,,,,,,
-Long Beach,RW_Dawn,Rockweed,R5,5,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.69,-66.1,33.4,,,20231029,10/30/2023,,,,,,TA not 3x rinsed
-Long Beach,P_Dawn,Surfgrass,P4,4,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.599,-67.4,33.58,,,20231029,10/30/2023,,,,,,
-Long Beach,P_Dawn,Surfgrass,P5,5,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.37,-65.6,33.49,,,20231029,10/30/2023,NA ,NA,NA,NA,NA,"No Nutrients, TA not 3x rinsed"
-Long Beach,B_Dawn,Barnacle,B2,2,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.539,-67.2,33.53,,,20231029,10/30/2023,,,,,,
-Long Beach,B_Dawn,Barnacle,B4,4,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.463,-70.8,33.59,,,20231029,10/30/2023,NA,NA,NA,NA,NA,No Nutrients
-Long Beach,B_Dawn,Barnacle,B5,5,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.395,-70.8,33.58,,,20231029,10/30/2023,,,,,,
-Long Beach,B_Dawn,Barnacle,B1,1,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.381,-71,33.54,,,20231029,10/31/2023,,,,,,TA Tubing ripped off
-Long Beach,B_Dawn,Barnacle,B4,4,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.648,-70.1,33.54,,,20231029,10/31/2023,,,,,,
-Long Beach,M_Dawn,Mussel,M1,1,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.576,-69.6,33.6,,,20231029,10/31/2023,,,,,,
-Long Beach,P_Dawn,Surfgrass,P2,2,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.405,-80,33.41,,,20231029,10/31/2023,,,,,,Not enough for TA
-Long Beach,M_Dawn,Mussel,M6,6,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.297,-71.1,33.6,,,20231029,10/31/2023,,,,,,
+Long Beach,B5_Dusk,Barnacle,B5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.455,-78,33.49,,,20231019,10/21/2023,,,,,,
+Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,10/21/2023,17:00,10/22/2023 11:30,NA,NA,NA,,,20231019,10/21/2023,,,,,,No TA
+Long Beach,B4_Dusk,Barnacle,B4,4,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.46,-80.3,33.33,,,20231023,10/21/2023,,,,,,
+Long Beach,P6_Dusk,Surfgrass,P6,6,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.533,-81.6,33.38,,,20231023,10/21/2023,,,,,,
+Long Beach,P3_Dusk,Surfgrass,P3,3,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.364,-80.8,33.24,,,20231023,10/21/2023,,,,,,Not enough to 3x rinse for nutrients or fill fDOM
+Long Beach,RW2_Dusk,Rockweed,RW2,2,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.415,-81.2,33.25,,,20231023,10/21/2023,,,,,,
+Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.365,-77.5,33.22,,,20231023,10/21/2023,,,,,,No Nutrients
+Long Beach,B3_Duskb,Barnacle,B3,3,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.133,-72.2,33.22,,,20231023,10/21/2023,,,,,,
+Long Beach,RW4_Dusk,Rockweed,RW4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.241,-78.8,33.3,,,20231023,10/21/2023,,,,,,
+Long Beach,B6_Dusk,Barnacle,B6,6,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.207,-74.8,33.31,,,20231023,10/21/2023,,,,,,
+Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.48,-75.8,33.24,,,20231023,10/21/2023,,,,,,TA not 3x rinsed
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,NA,NA,NA,,,20231023,10/21/2023,,,,,,No TA
+Long Beach,RW6_Dusk,Rockweed,RW6,6,Dusk,10/24/2023,18:03,10/25/2023 11:30,22.144,-83.7,33.36,,,20231024,10/24/2023,,,,,,
+Long Beach,P4_Duskb,Surfgrass,P4,4,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.131,-85.4,33.54,,,20231024,10/24/2023,,,,,,No Nutrients
+Long Beach,M5_Dusk,Mussel,M5,5,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.603,-80.3,33.46,,,20231024,10/24/2023,,,,,,
+Long Beach,M4_Dusk,Mussel,M4,4,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.089,-80.3,33.42,,,20231024,10/24/2023,,,,,,No Nutrients
+Long Beach,B1_Dusk,Barnacle,B1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.92,-81.7,33.41,,,20231024,10/24/2023,,,,,,
+Long Beach,B6_Duskb,Barnacle,B6,6,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,NA,,,20231024,10/24/2023,,,,,,No TA
+Long Beach,P1_Duskb,Surfgrass,P1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,NA,,,20231024,10/24/2023,,,,,,No TA
+Long Beach,OO_Dusk5,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.636,-84.7,33.4,,,20231024,10/26/2023,,,,,,Nutrient and TA bag might have been switched
+Long Beach,OO_Dusk5d,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/26/2023 21:00,15.372,-78.6,32.78,,,20231024,10/26/2023,,,,,,"From Nutrient bag, dirty water"
+Long Beach,M4_Duskb,Mussel,M4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.888,-82.5,33.64,,,20231024,10/26/2023,,,,,,
+Long Beach,P4_Duskc,Surfgrass,P4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.477,-83,33.31,,,20231024,10/26/2023,,,,,,Not enough TA
+Long Beach,M6_Dusk,Mussel,M6,6,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.21,-83.7,33.58,,,20231024,10/26/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,M1_Dusk,Mussel,M1,1,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.198,-82.3,33.65,,,20231024,10/26/2023,,,,,,
+Long Beach,B2_Duskb,Barnacle,B2,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,NA,NA,NA,,,20231024,10/26/2023,,,,,,No TA
+Long Beach,M2_Dusk,Mussel,M2,2,Dusk,10/26/2023,18:01,10/27/2023 21:00,20.984,-81.8,33.56,,,20231027,10/27/2023,,,,,,
+Long Beach,M6_Duskb,Mussel,M6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.046,-85.5,33.46,,,20231027,10/27/2023,,,,,,
+Long Beach,P2_Dusk,Surfgrass,P2,2,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.136,-87.4,33.65,,,20231027,10/27/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,P4_Duskd,Surfgrass,P4,4,Dusk,10/26/2023,18:01,10/27/2023 21:00,21.241,-84.7,33.51,,,20231027,10/27/2023,,,,,,"Used pH/sal water for TA, not enough"
+Long Beach,B6_Duskc,Barnacle,B6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,20.961,-84.3,33.71,,,20231027,10/27/2023,NA,NA,NA,NA,NA,"Left for 2 days without processing, no Nutrients"
+Long Beach,OO_Dusk6,Open Ocean,OO6,6,Dusk,10/26/2023,18:01,10/27/2023 21:00,NA,NA,NA,,,20231027,10/27/2023,,,,,,No TA
+Long Beach,M3_Dusk,Mussel,M3,3,Dusk,10/27/2023,19:04,10/28/2023 21:00,20.405,-86.7,33.08,,,20231027,10/28/2023,,,,,,"No fDOM, not 3x rinsed for nutrients"
+Long Beach,P3_Duskb,Surfgrass,P3,3,Dusk,10/27/2023,19:04,10/28/2023 21:00,19.843,-85.6,33.14,,,20231027,10/28/2023,,,,,,
+Long Beach,OO_Dusk7,Open Ocean,OO7,7,Dusk,10/27/2023,19:04,10/28/2023 21:00,20.146,-87.1,33.06,,,20231027,10/28/2023,,,,,,
+Long Beach,B6_Duskd,Barnacle,B6,6,Dusk,10/27/2023,19:04,10/28/2023 21:00,19.511,-87.9,33.02,,,20231027,10/28/2023,,,,,,
+Long Beach,P2_Duskb,Surfgrass,P2,2,Dusk,10/27/2023,19:04,10/28/2023 21:00,NA,NA,NA,,,20231027,10/28/2023,,,,,,No TA
+Long Beach,OO_Dawn8,Open Ocean,OO8,8,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.607,-67.4,33.16,,,20231029,10/29/2023,,,,,,
+Long Beach,P3_Dawn,Surfgrass,P3,3,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.52,-66.3,33.2,,,20231029,10/29/2023,,,,,,
+Long Beach,P6_Dawn,Surfgrass,P6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.14,-64.9,33.13,,,20231029,10/29/2023,,,,,,
+Long Beach,RW2_Dawn,Rockweed,RW2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.624,-66.6,33.2,,,20231029,10/29/2023,,,,,,
+Long Beach,RW6_Dawn,Rockweed,RW6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.276,-68,33.13,,,20231029,10/29/2023,,,,,,
+Long Beach,B3_Dawn,Barnacle,B3,3,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.365,-69.4,33.17,,,20231029,10/29/2023,,,,,,
+Long Beach,B6_Dawn,Barnacle,B6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.357,-70.2,33.12,,,20231029,10/29/2023,,,,,,
+Long Beach,M2_Dawn,Mussel,M2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.152,-70.4,33.02,,,20231029,10/29/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,RW4_Dawn,Rockweed,RW4,4,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,,,20231029,10/29/2023,,,,,,No TA
+Long Beach,P2_Dawn,Surfgrass,P2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,,,20231029,10/29/2023,,,,,,No TA
+Long Beach,M6_Dawn,Mussel,M6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,,,20231029,10/29/2023,,,,,,No TA
+Long Beach,OO_Dawn9,Open Ocean,OO9,9,Dawn,10/30/2023,7:05,10/30/2023 21:00,22.367,-68.8,33.91,,,20231029,10/30/2023,,,,,,
+Long Beach,M2_Dawnb,Mussel,M2,2,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.951,-70.7,33.69,,,20231029,10/30/2023,,,,,,
+Long Beach,M6_Dawnb,Mussel,M6,6,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.983,-69.1,33.74,,,20231029,10/30/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,RW1_Dawn,Rockweed,RW1,1,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.774,-67.3,33.46,,,20231029,10/30/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,RW4_Dawnb,Rockweed,RW4,4,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.607,-67.1,33.6,,,20231029,10/30/2023,,,,,,
+Long Beach,RW5_Dawn,Rockweed,RW5,5,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.69,-66.1,33.4,,,20231029,10/30/2023,,,,,,TA not 3x rinsed
+Long Beach,P4_Dawn,Surfgrass,P4,4,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.599,-67.4,33.58,,,20231029,10/30/2023,,,,,,
+Long Beach,P5_Dawn,Surfgrass,P5,5,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.37,-65.6,33.49,,,20231029,10/30/2023,NA ,NA,NA,NA,NA,"No Nutrients, TA not 3x rinsed"
+Long Beach,B2_Dawn,Barnacle,B2,2,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.539,-67.2,33.53,,,20231029,10/30/2023,,,,,,
+Long Beach,B4_Dawn,Barnacle,B4,4,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.463,-70.8,33.59,,,20231029,10/30/2023,NA,NA,NA,NA,NA,No Nutrients
+Long Beach,B5_Dawn,Barnacle,B5,5,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.395,-70.8,33.58,,,20231029,10/30/2023,,,,,,
+Long Beach,B1_Dawn,Barnacle,B1,1,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.381,-71,33.54,,,20231029,10/31/2023,,,,,,TA Tubing ripped off
+Long Beach,B4_Dawnb,Barnacle,B4,4,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.648,-70.1,33.54,,,20231029,10/31/2023,,,,,,
+Long Beach,M1_Dawn,Mussel,M1,1,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.576,-69.6,33.6,,,20231029,10/31/2023,,,,,,
+Long Beach,P2_Dawnb,Surfgrass,P2,2,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.405,-80,33.41,,,20231029,10/31/2023,,,,,,Not enough for TA
+Long Beach,M6_Dawnc,Mussel,M6,6,Dawn,10/31/2023,7:06,10/31/2023 20:30,21.297,-71.1,33.6,,,20231029,10/31/2023,,,,,,
+Long Beach,P5_Dawnb,Surfgrass,P5,5,Dawn,11/1/2023,7:25,11/1/2023 21:00,21.5,-68.2,33.46,,,20231101,11/1/2023,,,,,,
+Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,11/1/2023,7:25,11/1/2023 21:00,21.5,-78.7,33.48,,,20231101,11/1/2023,,,,,,
+Long Beach,M5_Dawn,Mussel,M5,5,Dawn,11/1/2023,7:25,11/1/2023 21:00,21.6,-70.1,33.53,,,20231101,11/1/2023,,,,,,
+Long Beach,OO_Dusk1a,Open Ocean,OO1,1,Dusk,10/21/2023,17:35,10/21/2023 18:00,18.633,-78.5,33.14,,,20231019,10/21/2023,,,,,,"Hand collected ""mid"""
+Long Beach,OO_Dusk1b,Open Ocean,OO1,1,Dusk,10/21/2023,17:35,10/21/2023 18:00,18.469,-79,33.22,,,20231019,10/21/2023,,,,,,"Hand collected ""west"""
+Long Beach,OO_Dusk1c,Open Ocean,OO1,1,Dusk,10/21/2023,17:35,10/21/2023 18:00,18.27,-79.8,33.28,,,20231019,10/21/2023,,,,,,"Hand collected ""east"""
+Long Beach,OO_Dusk2a,Open Ocean,OO2,2,Dusk,10/22/2023,18:20,10/22/2023 18:45,19.587,-81.9,33.41,,,20231019,10/21/2023,,,,,,"Hand collected ""west"""
+Long Beach,OO_Dusk2b,Open Ocean,OO2,2,Dusk,10/22/2023,18:20,10/22/2023 18:45,19.469,-82.8,33.34,,,20231019,10/21/2023,,,,,,"Hand collected ""east"""
+Long Beach,OO_Dusk3a,Open Ocean,OO3,3,Dusk,10/23/2023,18:20,10/23/2023 18:50,18.14,-82,32.87,,,20231023,10/21/2023,,,,,,"Hand collected ""west"", TA is in east bottle"
+Long Beach,OO_Dusk3b,Open Ocean,OO3,3,Dusk,10/23/2023,18:20,10/23/2023 18:50,18.084,-83.3,33.03,,,20231023,10/21/2023,,,,,,"Hand collected ""mid"""
+Long Beach,OO_Dusk3c,Open Ocean,OO3,3,Dusk,10/23/2023,18:20,10/23/2023 18:50,18.574,-84,33.15,,,20231023,10/21/2023,,,,,,"Hand collected ""east"", TA is in west bottle"
+Long Beach,OO_Dusk4a,Open Ocean,OO4,4,Dusk,10/24/2023,18:30,10/24/2023 19:00,19.3,-82.9,33.18,,,20231023,10/24/2023,,,,,,"Hand collected ""mid"" , Nutrients may be contaminated"
+Long Beach,OO_Dusk4b,Open Ocean,OO4,4,Dusk,10/24/2023,18:30,10/24/2023 19:00,19.128,-85.4,33.32,,,20231023,10/24/2023,,,,,,"Hand collected ""west"""
+Long Beach,OO_Dusk4c,Open Ocean,OO4,4,Dusk,10/24/2023,18:30,10/24/2023 19:00,19.17,-84.9,33.35,,,20231023,10/24/2023,,,,,,"Hand collected ""east"""
+Long Beach,OO_Dusk5a,Open Ocean,OO5,5,Dusk,10/25/2023,18:30,10/25/2023 19:00,19.158,-86.8,34.03,,,20231023,10/24/2023,,,,,,Hand collected
+Long Beach,OO_Dusk5b,Open Ocean,OO5,5,Dusk,10/25/2023,18:30,10/25/2023 19:00,18.921,-86.4,33.58,,,20231023,10/24/2023,,,,,,Hand collected
+Long Beach,OO_Dusk5c,Open Ocean,OO5,5,Dusk,10/25/2023,18:30,10/25/2023 19:00,18.799,-86.9,33.66,,,20231023,10/24/2023,,,,,,Hand collected
+Long Beach,OO_Dusk6c,Open Ocean,OO6,6,Dusk,10/26/2023,18:30,10/26/2023 19:00,18.536,-86.4,33.68,,,20231023,10/26/2023,,,,,,Hand collected
+Long Beach,OO_Dusk6b,Open Ocean,OO6,6,Dusk,10/26/2023,18:30,10/26/2023 19:00,18.329,-85.2,33.54,,,20231023,10/26/2023,,,,,,Hand collected
+Long Beach,OO_Dusk6a,Open Ocean,OO6,6,Dusk,10/26/2023,18:30,10/26/2023 19:00,18.331,-84.8,33.62,,,20231023,10/26/2023,,,,,,Hand collected
+Long Beach,OO_Dusk7a,Open Ocean,OO7,7,Dusk,10/27/2023,18:50,10/27/2023 19:10,17.78,-88.4,33.35,,,20231027,10/27/2023,,,,,,Hand collected
+Long Beach,OO_Dusk7b,Open Ocean,OO7,7,Dusk,10/27/2023,18:50,10/27/2023 19:10,17.885,-87.8,33.48,,,20231027,10/27/2023,,,,,,Hand collected
+Long Beach,OO_Dusk7c,Open Ocean,OO7,7,Dusk,10/27/2023,18:50,10/27/2023 19:10,17.929,-88.5,33.75,,,20231027,10/27/2023,,,,,,Hand collected
+Long Beach,OO_Dawn8a,Open Ocean,OO8,8,Dawn,10/29/2023,7:30,10/29/2023 8:00,16.529,-70,33.21,,,20231027,10/28/2023,,,,,,Hand collected
+Long Beach,OO_Dawn8b,Open Ocean,OO8,8,Dawn,10/29/2023,7:30,10/29/2023 8:00,16.593,-69.3,33.28,,,20231027,10/28/2023,,,,,,Hand collected
+Long Beach,OO_Dawn8c,Open Ocean,OO8,8,Dawn,10/29/2023,7:30,10/29/2023 8:00,16.644,-73.5,33.11,,,20231027,10/28/2023,,,,,,Hand collected
+Long Beach,OO_Dawn9a,Open Ocean,OO9,9,Dawn,10/30/2023,7:30,10/30/2023 8:00,15.349,-71.9,33.14,,,20231029,10/29/2023,,,,,,Hand collected
+Long Beach,OO_Dawn9b,Open Ocean,OO9,9,Dawn,10/30/2023,7:30,10/30/2023 8:00,15.621,-72.7,33.19,,,20231029,10/29/2023,,,,,,Hand collected
+Long Beach,OO_Dawn9c,Open Ocean,OO9,9,Dawn,10/30/2023,7:30,10/30/2023 8:00,15.953,-74,33.21,,,20231029,10/29/2023,,,,,,Hand collected
+Long Beach,OO_Dawn10a,Open Ocean,OO10,10,Dawn,10/31/2023,7:25,10/31/2023 8:00,16.37,-71.4,33.51,,,20231029,10/30/2023,,,,,,"Hand collected, falcon tube brown spots"
+Long Beach,OO_Dawn10b,Open Ocean,OO10,10,Dawn,10/31/2023,7:25,10/31/2023 8:00,15.811,-72.7,33.57,,,20231029,10/30/2023,,,,,,Hand collected
+Long Beach,OO_Dawn10c,Open Ocean,OO10,10,Dawn,10/31/2023,7:25,10/31/2023 8:00,15.952,-72.9,33.68,,,20231029,10/30/2023,,,,,,Hand collected
+Long Beach,OO_Dawn11a,Open Ocean,OO11,11,Dawn,11/1/2023,7:50,11/1/2023 8:10,17.867,-72.6,33.94,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out, fDOM may not be cold enough"
+Long Beach,OO_Dawn11b,Open Ocean,OO11,11,Dawn,11/1/2023,7:50,11/1/2023 8:10,17.954,-73.4,33.61,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out"
+Long Beach,OO_Dawn11c,Open Ocean,OO11,11,Dawn,11/1/2023,7:50,11/1/2023 8:10,17.886,-73.2,33.58,,,20231029,10/31/2023,,,,,,"Hand collected, pH probe solution spilled out, no falcon tube"
