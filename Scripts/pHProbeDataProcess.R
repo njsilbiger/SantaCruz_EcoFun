@@ -12,6 +12,7 @@ library(ggridges)
 library(jtools)
 library(interactions)
 library(sandwich)
+library(patchwork)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -268,22 +269,50 @@ AllCO2 <- pHSlope %>%
          DIC_norm = DIC*Salinity/33,# salinity normalize
          TA_DIC = TA/DIC) # TA divided by DIC
 
-AllCO2 %>%
-#  filter(Benthos !="Open Ocean") %>%
+p_slopes<-AllCO2 %>%
+  filter(Benthos !="Open Ocean") %>%
 ggplot(aes(x = DIC, y = TA, color = Benthos))+
   geom_point()+
-  geom_smooth(method = "lm",se = FALSE)
+  geom_smooth(method = "lm",se = FALSE)+
+  labs(x = expression(paste("DIC (",mu,"mol kg"^-1,")")),
+       y = expression(paste("TA (",mu,"mol kg"^-1,")")))+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+
+ggsave(here("Output","TADIC.png"), width = 6, height = 4)
   #facet_wrap(~Benthos)
 
 # run an ancova to see if the slopes are different
-TADICmod<-lm(TA_norm~DIC_norm*Benthos, data = AllCO2)
+TADICmod<-lm(TA~DIC*Benthos, data = AllCO2 %>%filter(Benthos !="Open Ocean"))
 anova(TADICmod)
 summary(TADICmod)
 
-ss <- sim_slopes(TADICmod, pred = DIC_norm, modx = Benthos, johnson_neyman = FALSE)
+ss <- sim_slopes(TADICmod, pred = DIC, modx = Benthos, johnson_neyman = FALSE)
 plot(ss)
 
+slopes<-tibble(ss$slopes)
+colnames(slopes)[1]<-"Benthos"
+
+P_estimate<-slopes %>%
+  ggplot(aes(y = Benthos, x = Est., color = Benthos))+
+  geom_point(size = 3)+
+  geom_errorbarh(aes(xmin = Est. - S.E.,xmax = Est. + S.E.  ), height = 0.01)+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  labs(x = "TA/DIC Slopes",
+       y = "")+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
 # Type 2 linear regression
+
+
+p_slopes+P_estimate
+
+ggsave(here("Output","TADICComposite.png"), width = 8, height = 4)
 
 # plot 1 by 1 and extract the confidence intervals
 type2<- lmodel2(DIC ~ TA, data=AllCO2 %>% filter(Benthos == "Rockweed"), nperm = 999)
