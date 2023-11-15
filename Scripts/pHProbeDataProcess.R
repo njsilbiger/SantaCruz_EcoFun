@@ -65,6 +65,7 @@ pHSlope <-pHSlope%>%
 
 pHSlope$TA[NoTA]<-NA # make TA na again for the missing values
 pHSlope$PO4[NoPO]<-NA # make PO na again for the missing values
+pHSlope$TempInSitu[NoTemp]<-NA # make TA na again for the missing values
 
   #select(Date, CowTagID,Tide, Day_Night, SamplingTime,Salinity,pH, pH_insitu, TempInSitu) ## need to calculate pH insi then it is done
 
@@ -249,6 +250,9 @@ pHSlope%>%
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 14))
 
+pHSlope<-pHSlope %>%
+  drop_na(TempInSitu)
+
 ### Calculate DIC from seacarb ####
 AllCO2<-carb(8, pHSlope$pH, pHSlope$TA/1000000, S=pHSlope$Salinity, T=pHSlope$TempInSitu, Patm=1, P=0, Pt=0, Sit=0,
              k1k2="x", kf="x", ks="d", pHscale="T", b="u74", gas="potential", 
@@ -366,3 +370,21 @@ AllCO2 %>%
  # filter(Benthos != "Open Ocean") %>%
   ggplot(aes(x = Benthos, y = PO4))+
   geom_boxplot()
+
+AllCO2 %>%
+  ggplot(aes(x = TempInSitu, y = deltapH, color = Benthos))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_wrap(~Benthos)
+
+## delta pH strongly correlated with temp
+mod_pH_Temp<-lm(deltapH~TempInSitu*Benthos, data = AllCO2 %>% filter(Benthos != "Open Ocean"))
+anova(mod_pH_Temp)
+summary(mod_pH_Temp)
+
+### raw pH NOT correlated with temp, meaning that the temp is causing differences in the CHANGE in pH which is due to metabolism
+AllCO2 %>%
+  ggplot(aes(x = TempInSitu, y = pH, color = Benthos))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_wrap(~Benthos)
