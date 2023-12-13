@@ -253,6 +253,7 @@ pHSlope%>%
 pHSlope<-pHSlope %>%
   drop_na(TempInSitu)
 
+
 ### Calculate DIC from seacarb ####
 AllCO2<-carb(8, pHSlope$pH, pHSlope$TA/1000000, S=pHSlope$Salinity, T=pHSlope$TempInSitu, Patm=1, P=0, Pt=0, Sit=0,
              k1k2="x", kf="x", ks="d", pHscale="T", b="u74", gas="potential", 
@@ -271,24 +272,35 @@ AllCO2 <- pHSlope %>%
   filter(deltapH < 0.14) %>% # There is a huge mussel outlier in the pH data
   mutate(TA_norm = TA*Salinity/33,
          DIC_norm = DIC*Salinity/33,# salinity normalize
-         TA_DIC = TA/DIC) # TA divided by DIC
+         TA_DIC = TA/DIC,
+         Month = month(Sampling_Date)) %>% # TA divided by DIC
+  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+                            Month %in% c(10,11)~ "Fall"))
 
 # make the TA vs DIC plots
 p_slopes<-AllCO2 %>%
-  filter(Benthos !="Open Ocean") %>%
-ggplot(aes(x = DIC, y = TA, color = Benthos))+
+ # filter(Benthos !="Open Ocean") %>%
+  filter(TA <2300) %>%
+ggplot(aes(x = DIC, y = TA, color = Season))+
   geom_point()+
   geom_smooth(method = "lm",se = FALSE)+
   labs(x = expression(paste("DIC (",mu,"mol kg"^-1,")")),
        y = expression(paste("TA (",mu,"mol kg"^-1,")")))+
   scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
-  theme(legend.position = "none",
+  theme(#legend.position = "none",
         axis.title = element_text(size = 16),
-        axis.text = element_text(size = 14))
+        axis.text = element_text(size = 14))+
+  facet_wrap(~Benthos)
 
 ggsave(here("Output","TADIC.png"), width = 6, height = 4)
   #facet_wrap(~Benthos)
+
+AllCO2 %>%
+  # filter(Benthos !="Open Ocean") %>%
+  ggplot(aes(x = DIC, y = TA, color = Season))+
+  geom_point()+
+  geom_smooth(method = "lm",se = FALSE)
 
 # run an ancova to see if the slopes are different
 TADICmod<-lm(TA~DIC*Benthos, data = AllCO2 %>%filter(Benthos !="Open Ocean"))
@@ -334,7 +346,7 @@ AllCO2 %>%
   ggplot(aes(x = Benthos, y = TA/DIC))+
   geom_point()
 
-TADICmod<-lm(TA_DIC~Benthos*Day_Night, data = AllCO2)
+TADICmod<-lm(TA_DIC~Benthos*Season, data = AllCO2)
 anova(TADICmod)
 summary(TADICmod)
 
@@ -388,3 +400,4 @@ AllCO2 %>%
   geom_point()+
   geom_smooth(method = "lm")+
   facet_wrap(~Benthos)
+
