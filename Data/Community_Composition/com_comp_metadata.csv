@@ -1,0 +1,9 @@
+dataset,column,description
+bed_depth,plot,"the community (B=barnacle, M=Mussel) and number of plot (1-6) "
+bed_depth,bed_depth_cm,bed depth measured in cm at 3 random points in the com comp quadrat
+bed_depth,location,the crosshair where the bed depth was measured
+all,date,date collected
+all,season,season+year when data was collected
+mobile,species,"the abundance of that species found in a 0.25m^2 qudrat, unless subsetted (lottia sp/ littorina)"
+sessile,species,the number of quadrat crosshairs where the species is found  (total 16 crosshairs in 0.25m^2 quadrat
+sessile,level,"for RW/P C=Canopy, US =Understory. for B/M B= Base, EB= epibiont.   Canopy is movable/leafy structures under the crosshairs (can be less than 16) and US is what is directly attached to the benthos (adds to 16). Base is sessile individuals or benthos (adds to 16) and EB is sessile organisms living on top of the base ( can be less than 16)"
