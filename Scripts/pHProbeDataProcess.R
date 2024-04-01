@@ -13,6 +13,7 @@ library(jtools)
 library(interactions)
 library(sandwich)
 library(patchwork)
+library(ggtext)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -143,10 +144,16 @@ pHSlope %>%
 #  geom_smooth()
 
 ## pull out open ocean data and average it by date
+# ocean<-pHSlope%>% 
+#   filter(Benthos == "Open Ocean") %>%
+#   mutate(Sampling_DateTime = ymd_hms(paste(Sampling_Date, Sampling_Time))) %>%
+#   group_by(Sampling_DateTime, Day_Night) %>%
+#   summarise(OceanpH = mean(pH))
+
 ocean<-pHSlope%>% 
   filter(Benthos == "Open Ocean") %>%
-  mutate(Sampling_DateTime = ymd_hms(paste(Sampling_Date, Sampling_Time))) %>%
-  group_by(Sampling_DateTime) %>%
+ # mutate(Sampling_DateTime = ymd_hms(paste(Sampling_Date, Sampling_Time))) %>%
+  group_by(Sampling_Date, Day_Night) %>%
   summarise(OceanpH = mean(pH))
 
 pHSlope<-pHSlope %>% 
@@ -164,13 +171,17 @@ pHSlope<-pHSlope %>%
                      Samplinghour >=18 & Samplinghour < 24 ~ "Evening",
                      Samplinghour >= 0 & Samplinghour< 6 ~ "Night"
                      )) %>%
-  mutate(group_time = factor(group_time, levels = c("Morning","Afternoon","Evening","Night")))
+  mutate(group_time = factor(group_time, levels = c("Morning","Afternoon","Evening","Night"))) # TA divided by DIC
+
 #   mutate(deltapH = pH - pH[Benthos == "Open Ocean"]) %>%
 #   ungroup() 
 
 pHSlope%>%
-  filter(Benthos != "Open Ocean")%>%
-  ggplot(aes(x = Benthos, y = deltapH, fill = group_time))+
+  mutate( Month = month(Sampling_Date)) %>% # TA divided by DIC
+  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+                            Month %in% c(10,11)~ "Fall")) %>%
+  filter(Benthos != "Open Ocean", Season == "Fall")%>%
+  ggplot(aes(x = Benthos, y = deltapH, fill = Day_Night))+
   geom_hline(yintercept = 0, lty = 2)+
   geom_boxplot()+
   geom_jitter(position = position_dodge(width = .8))+
@@ -186,13 +197,253 @@ pHSlope%>%
 
 ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 
+
+pHSlope%>%
+  mutate( Month = month(Sampling_Date),
+          Benthos = factor(Benthos, levels = c("Open Ocean","Barnacle","Mussel","Rockweed","Surfgrass"))) %>% # TA divided by DIC
+  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+                            Month %in% c(10,11)~ "Fall")) %>%
+  filter(Season == "Fall",)%>%
+  ggplot(aes(x = Benthos, y = pH, fill = Day_Night))+
+   geom_boxplot()+
+  geom_jitter(position = position_dodge(width = .8))+
+  
+  labs(y = "pH (Difference from Ocean Sample)",
+       x = "",
+       fill = "Day/Night")+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+
+ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
+
+
+meanocean<-pHSlope %>%
+  mutate(Benthos = factor(Benthos, levels = c("Open Ocean","Barnacle","Mussel","Rockweed","Surfgrass")),
+    Month = month(Sampling_Date))%>%
+  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+                            Month %in% c(10,11)~ "Fall")) %>%
+  filter(
+         Season == "Fall",
+         PO4<1,
+         NH4 <4)%>%
+  group_by(Benthos, Day_Night)%>%
+  summarise(pH_mean = mean(pH, na.rm = TRUE),
+            pH_se = sd(pH, na.rm = TRUE)/sqrt(n()),
+            NO3_mean = mean(NO3, na.rm = TRUE),
+            NO3_se = sd(NO3, na.rm = TRUE)/sqrt(n()),
+            PO4_mean = mean(PO4, na.rm = TRUE),
+            PO4_se = sd(PO4, na.rm = TRUE)/sqrt(n()),
+            NH4_mean = mean(NH4, na.rm = TRUE),
+            NH4_se = sd(NH4, na.rm = TRUE)/sqrt(n()),
+            SIL_mean = mean(SIL, na.rm = TRUE),
+            SIL_se = sd(SIL, na.rm = TRUE)/sqrt(n()),
+            TA_mean = mean(TA, na.rm = TRUE),
+            TA_se = sd(TA, na.rm = TRUE)/sqrt(n())
+            
+  )
+
+
+## sample plot but means and errorbars instead - shaded reagoin is mean and error for the ocean sample
+pH_plotmean<-meanocean%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = as.numeric(Benthos), y = pH_mean, color = Day_Night))+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 7.90-0.00829 ,
+                ymax = 7.90+0.00829) ,
+                fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 8.09-0.0109 ,
+                ymax = 8.09+0.0109) ,
+            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
+  geom_hline(yintercept = 7.9, lty = 2)+
+  
+  geom_hline(yintercept = 8.09, lty = 2)+
+  geom_point(size = 4)+
+  geom_errorbar(aes(x = as.numeric(Benthos), ymin = pH_mean-pH_se, ymax =pH_mean+pH_se), width = 0.01, size = 1.2)+
+  labs(y = "pH ",
+       x = "",
+       color = "")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_x_continuous(breaks=c(2,3,4,5),
+                   labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+        )
+
+
+#ggsave(filename = here("Output","pH_plotmean.png"),pH_plotmean, width = 6, height = 4)
+
+
+NO3_plotmean<-meanocean%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = as.numeric(Benthos), y = NO3_mean, color = Day_Night))+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 1.44-0.320  ,
+                ymax = 1.44+0.320 ) ,
+            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 2.18 -0.225  ,
+                ymax = 2.18 +0.225 ) ,
+            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
+  geom_hline(yintercept = 1.44, lty = 2)+
+  
+  geom_hline(yintercept = 2.18, lty = 2)+
+  geom_point(size = 4)+
+  geom_errorbar(aes(x = as.numeric(Benthos), ymin = NO3_mean-NO3_se, ymax =NO3_mean+NO3_se), width = 0.01, size = 1.2)+
+  labs(y = "NO3 ",
+       x = "",
+       color = "")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_x_continuous(breaks=c(2,3,4,5),
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+  )
+
+
+PO4_plotmean<-meanocean%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = as.numeric(Benthos), y = PO4_mean, color = Day_Night))+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 0.375 -0.0184   ,
+                ymax = 0.375 +0.0184  ) ,
+            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 0.438 -0.0261   ,
+                ymax = 0.438 +0.0261  ) ,
+            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
+  geom_hline(yintercept = 0.375, lty = 2)+
+  
+  geom_hline(yintercept = 0.438, lty = 2)+
+  geom_point(size = 4)+
+  geom_errorbar(aes(x = as.numeric(Benthos), ymin = PO4_mean-PO4_se, ymax =PO4_mean+PO4_se), width = 0.01, size = 1.2)+
+  labs(y = "PO4 ",
+       x = "",
+       color = "")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_x_continuous(breaks=c(2,3,4,5),
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+  )
+
+NH4_plotmean<-meanocean%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = as.numeric(Benthos), y = NH4_mean, color = Day_Night))+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 1.21-  0.147   ,
+                ymax = 1.21 + 0.147  ) ,
+            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 1.23 - 0.286   ,
+                ymax = 1.23 + 0.286  ) ,
+            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
+  geom_hline(yintercept = 1.21, lty = 2)+
+  
+  geom_hline(yintercept = 1.23, lty = 2)+
+  geom_point(size = 4)+
+  geom_errorbar(aes(x = as.numeric(Benthos), ymin = NH4_mean-NH4_se, ymax =NH4_mean+NH4_se), width = 0.01, size = 1.2)+
+  labs(y = "NH4 ",
+       x = "",
+       color = "")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_x_continuous(breaks=c(2,3,4,5),
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+  )
+
+SIL_plotmean<-meanocean%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = as.numeric(Benthos), y = SIL_mean, color = Day_Night))+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 4.78 - 0.343   ,
+                ymax = 4.78 + 0.343  ) ,
+            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 5.28 - 0.355   ,
+                ymax = 5.28 + 0.355  ) ,
+            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
+  geom_hline(yintercept = 4.78, lty = 2)+
+  
+  geom_hline(yintercept = 5.28, lty = 2)+
+  geom_point(size = 4)+
+  geom_errorbar(aes(x = as.numeric(Benthos), ymin = SIL_mean-SIL_se, ymax =SIL_mean+SIL_se), width = 0.01, size = 1.2)+
+  labs(y = "Silicate ",
+       x = "",
+       color = "")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_x_continuous(breaks=c(2,3,4,5),
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+  )
+
+TA_plotmean<-meanocean%>%
+  filter(Benthos != "Open Ocean")%>%
+  ggplot(aes(x = as.numeric(Benthos), y = TA_mean, color = Day_Night))+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 2222. - 1.76   ,
+                ymax = 2222.  +1.76  ) ,
+            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
+  geom_rect(aes(xmin = 1.9 , 
+                xmax = 5.1 ,
+                ymin = 2204- 4.61   ,
+                ymax = 2204+  4.61 ) ,
+            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
+  geom_hline(yintercept = 2222., lty = 2)+
+  
+  geom_hline(yintercept = 2204, lty = 2)+
+  geom_point(size = 4)+
+  geom_errorbar(aes(x = as.numeric(Benthos), ymin = TA_mean-TA_se, ymax =TA_mean+TA_se), width = 0.01, size = 1.2)+
+  labs(y = "TA ",
+       x = "",
+       color = "")+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_x_continuous(breaks=c(2,3,4,5),
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+  #scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14),
+  )
+
+
+(pH_plotmean+TA_plotmean)/(NO3_plotmean+NH4_plotmean)/(SIL_plotmean+ PO4_plotmean) +plot_layout(guides = 'collect') +plot_annotation(tag_levels = "a")
+
+ggsave(filename = here("Output","compositeChem.png"), width = 10, height = 10)
+
 ## sample plot but means and errorbars instead
 pHSlope%>%
   filter(Benthos != "Open Ocean")%>%
-  group_by(Benthos, Day_Night)%>%
+  group_by(Benthos, group_time)%>%
   summarise(mean_pHdiff = mean(deltapH, na.rm = TRUE),
             se_pHdiff = sd(deltapH, na.rm = TRUE)/sqrt(n()))%>%
-  ggplot(aes(x = Benthos, y = mean_pHdiff, color = Day_Night))+
+  ggplot(aes(x = Benthos, y = mean_pHdiff, color = group_time))+
   geom_hline(yintercept = 0, lty = 2)+
   geom_point(size = 4)+
   geom_jitter(data = pHSlope%>%
@@ -251,8 +502,8 @@ pHSlope%>%
         axis.title = element_text(size = 16),
         axis.text = element_text(size = 14))
 
-pHSlope<-pHSlope %>%
-  drop_na(TempInSitu)
+# pHSlope<-pHSlope %>%
+#   drop_na(TempInSitu)
 
 
 ### Calculate DIC from seacarb ####
@@ -354,7 +605,8 @@ summary(TADICmod)
 
 AllCO2<-AllCO2  %>%
   mutate(TA_DIC = TA/DIC) %>%
-  group_by(Sampling_DateTime) %>%
+#  group_by(Sampling_DateTime) %>%
+  group_by(Sampling_Date, Day_Night) %>%
   mutate(deltaTADIC = TA_DIC - TA_DIC[Benthos == "Open Ocean"],
          deltaNO2 = NO2 - NO2[Benthos == "Open Ocean"],
          deltaNO3 = NO3 - NO3[Benthos == "Open Ocean"],
@@ -443,7 +695,178 @@ AllCO2 %>%
 
 
 AllCO2 %>%
-  ggplot(aes(x = TempInSitu, y = SIL))+ ## eating diatoms at night??
+  mutate(Ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic")) %>%
+  ggplot(aes(x = TempInSitu, y = deltaSIL, color = Benthos))+ ## eating diatoms at night??
   geom_point()+
   geom_smooth(method = "lm")+
   facet_wrap(~Benthos, scale = "free")
+
+
+### run a pca of water chem
+
+chem_only<-AllCO2 %>%
+  drop_na(pH, TA, DIC, pCO2, CO2, CO3, HCO3) %>%
+  #filter(NO3 < 3)%>%
+ # drop_na( NO3, PO4, SIL, NO2, NH4, pH, TA)%>%
+  select(pH, TA, DIC, pCO2, CO2, CO3, HCO3)
+
+pca<-prcomp(chem_only,scale. = TRUE, center = TRUE )
+
+# calculate percent explained by each PC
+perc.explained<-round(100*pca$sdev/sum(pca$sdev),1)
+
+# Extract the scores and loadings
+PC_scores<-as_tibble(pca$x[,1:2])
+
+
+PC_loadings<-as_tibble(pca$rotation) %>%
+  bind_cols(labels = rownames(pca$rotation))
+
+
+pca_all<-AllCO2 %>%
+ # filter(NO3 < 3)%>%
+  drop_na( pH, TA, DIC, pCO2, CO2, CO3, HCO3)%>%
+  bind_cols(PC_scores)
+
+scores_plot<-pca_all %>%
+  mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
+  ggplot(aes(x = PC1, y = PC2, color =  ocean_not))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  # scale_shape_manual(values = c(1, 22,15,16))+
+  # scale_colour_manual(values = c("#D64550","#EA9E8D"))+
+  # scale_fill_manual(values = c("#D64550","#EA9E8D"))+
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  ggforce::geom_mark_ellipse(
+    aes(#fill = Tide, 
+      label = paste(ocean_not), color =ocean_not), 
+    alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
+  geom_point(size = 2) +
+  labs(
+    x = paste0("PC1 ","(",perc.explained[1],"%)"),
+    #x = "",
+    y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  theme_bw()+
+  theme(legend.position = "none",
+       # axis.text.x = element_blank(),
+      #  axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16),
+        plot.title = element_text(hjust = 0.5, size = 18),
+        strip.background = element_blank(),
+        strip.text = element_blank())+
+  facet_wrap(~Season, nrow=2)
+
+
+## loadings plots
+p2_loadings<-PC_loadings %>%
+  ggplot(aes(x=PC1+0.1, y=PC2+0.1, label=labels))+
+  geom_text(aes(x = PC1, y = PC2 ), show.legend = FALSE, size = 5) +
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  geom_segment(data = PC_loadings, aes(x=0,y=0,xend=PC1,yend=PC2),size = 1.2,
+               arrow=arrow(length=unit(0.1,"cm")))+
+ # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  labs(color ="",
+      # y = "",
+    x = paste0("PC1 ","(",perc.explained[1],"%)"),
+    y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+#  scale_color_manual(values = wes_palette("Darjeeling1"))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        #legend.position = c(0.75, 0.75),
+        legend.position = "none",
+        legend.text = element_markdown(size = 16),
+        legend.key.size = unit(1, 'cm'),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16))
+
+scores_plot+p2_loadings
+
+## PCA with nuts
+chem_only<-AllCO2 %>%
+  drop_na(NO3, NO2, NH4, PO4, SIL) %>%
+  filter(NO3 < 3,
+         PO4 < 3)%>%
+  # drop_na( NO3, PO4, SIL, NO2, NH4, pH, TA)%>%
+  select(NO3, NO2, NH4, PO4, SIL)
+
+pca<-prcomp(chem_only,scale. = TRUE, center = TRUE )
+
+# calculate percent explained by each PC
+perc.explained<-round(100*pca$sdev/sum(pca$sdev),1)
+
+# Extract the scores and loadings
+PC_scores<-as_tibble(pca$x[,1:2])
+
+
+PC_loadings<-as_tibble(pca$rotation) %>%
+  bind_cols(labels = rownames(pca$rotation))
+
+
+pca_all<-AllCO2 %>%
+   filter(NO3 < 3,
+          PO4 < 3)%>%
+  drop_na( NO3, NO2, NH4, PO4, SIL)%>%
+  bind_cols(PC_scores)
+
+scores_plot<-pca_all %>%
+  mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
+  ggplot(aes(x = PC1, y = PC2, color =  ocean_not))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  # scale_shape_manual(values = c(1, 22,15,16))+
+  # scale_colour_manual(values = c("#D64550","#EA9E8D"))+
+  # scale_fill_manual(values = c("#D64550","#EA9E8D"))+
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  ggforce::geom_mark_ellipse(
+    aes(#fill = Tide, 
+      label = paste(ocean_not), color =ocean_not), 
+    alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
+  geom_point(size = 2) +
+  labs(
+    x = paste0("PC1 ","(",perc.explained[1],"%)"),
+    #x = "",
+    y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  theme_bw()+
+  theme(legend.position = "none",
+        # axis.text.x = element_blank(),
+        #  axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16),
+        plot.title = element_text(hjust = 0.5, size = 18),
+        strip.background = element_blank(),
+        strip.text = element_blank())+
+  facet_wrap(~Season, nrow=2)
+
+
+## loadings plots
+p2_loadings<-PC_loadings %>%
+  ggplot(aes(x=PC1+0.1, y=PC2+0.1, label=labels))+
+  geom_text(aes(x = PC1, y = PC2 ), show.legend = FALSE, size = 5) +
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  geom_segment(data = PC_loadings, aes(x=0,y=0,xend=PC1,yend=PC2),size = 1.2,
+               arrow=arrow(length=unit(0.1,"cm")))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  labs(color ="",
+       # y = "",
+       x = paste0("PC1 ","(",perc.explained[1],"%)"),
+       y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  #  scale_color_manual(values = wes_palette("Darjeeling1"))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        #legend.position = c(0.75, 0.75),
+        legend.position = "none",
+        legend.text = element_markdown(size = 16),
+        legend.key.size = unit(1, 'cm'),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16))
+
+scores_plot+p2_loadings
