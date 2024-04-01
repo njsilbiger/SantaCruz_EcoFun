@@ -1,6 +1,6 @@
 ## process pH for Orion
 # Created by Nyssa Silbiger
-# Edited on 07/27/2021
+# Edited on 03/31/2024
 
 library(tidyverse)
 library(seacarb)
@@ -30,7 +30,7 @@ pHSlope<-pHcalib %>%
   filter(HOBO_Orion =="Orion") %>% # extract only the orion data
   nest_by(TrisCalDate)%>%
   mutate(fitpH = list(lm(mVTris~TTris, data = data))) %>% # linear regression of mV and temp of the tris
-  summarise(broom::tidy(fitpH)) %>% # make the output tidy
+  reframe(broom::tidy(fitpH)) %>% # make the output tidy
   select(TrisCalDate, term, estimate) %>%
   pivot_wider(names_from = term, values_from = estimate) %>%# put slope and intercept in their own column
   right_join(.,pHData) %>% # join with the pH sample data
@@ -76,7 +76,7 @@ write_csv(x = pHSlope, file = here("Data","Biogeochemistry","pHProbe_Data_calcul
 
 summ<-pHSlope %>% 
   group_by(Benthos,Quad_ID) %>%
-  summarise(deltapH = abs(pH[Day_Night == "Day"] - pH[Day_Night == "Night"])) 
+  reframe(deltapH = abs(pH[Day_Night == "Day"] - pH[Day_Night == "Night"])) 
 
 
 summ %>%  
@@ -88,7 +88,8 @@ anova(lm(deltapH~Benthos, data = summ))
 
 
 pHSlope %>%
-  ggplot(aes(x = Benthos, y = pH, color = Day_Night, shape = factor(Sampling_Date)))+
+  ggplot(aes(x = Benthos, y = pH, color = Day_Night #shape = factor(Sampling_Date)
+             ))+
   geom_boxplot(width = .1)+
   facet_grid(~factor(Sampling_Date))
 
@@ -303,12 +304,13 @@ AllCO2 %>%
   geom_smooth(method = "lm",se = FALSE)
 
 # run an ancova to see if the slopes are different
-TADICmod<-lm(TA~DIC*Benthos, data = AllCO2 %>%filter(Benthos !="Open Ocean"))
+TADICmod<-lm(TA~DIC*Benthos*Season, data = AllCO2 %>%filter(Benthos !="Open Ocean") )
 anova(TADICmod)
 summary(TADICmod)
 
-# calculate marginal effects
+# calculate marginal effects - add in season interaction here... 
 ss <- sim_slopes(TADICmod, pred = DIC, modx = Benthos, johnson_neyman = FALSE)
+
 plot(ss)
 
 # extract the individual slopes
@@ -335,9 +337,9 @@ p_slopes+P_estimate
 ggsave(here("Output","TADICComposite.png"), width = 8, height = 4)
 
 # plot 1 by 1 and extract the confidence intervals
-type2<- lmodel2(DIC ~ TA, data=AllCO2 %>% filter(Benthos == "Rockweed"), nperm = 999)
-plot(type2, "MA")
-type2
+#type2<- lmodel2(DIC ~ TA, data=AllCO2 %>% filter(Benthos == "Rockweed"), nperm = 999)
+#plot(type2, "MA")
+#type2
 
 
 ##### Plot average aragonit and calc sat state #####
@@ -357,8 +359,8 @@ AllCO2<-AllCO2  %>%
          deltaNO2 = NO2 - NO2[Benthos == "Open Ocean"],
          deltaNO3 = NO3 - NO3[Benthos == "Open Ocean"],
          deltaPO4 = PO4 - PO4[Benthos == "Open Ocean"],
-         deltaNH4 = NH4 - NH4[Benthos == "Open Ocean"]
-        # deltaSIL = SIL - SIL[Benthos == "Open Ocean"]
+         deltaNH4 = NH4 - NH4[Benthos == "Open Ocean"],
+         deltaSIL = SIL - SIL[Benthos == "Open Ocean"]
          ) %>% # difference from open ocean
   ungroup() 
 
@@ -368,36 +370,80 @@ AllCO2 %>%
   ggplot(aes(x = Benthos, y = deltaTADIC))+
   geom_boxplot()
 
-modTADICdelta<-lm(deltaTA_DIC~Benthos, data = AllCO2 %>% 
-                    filter(Benthos != "Open Ocean") )
-anova(modTADICdelta)
-summary(modTADICdelta)
+# modTADICdelta<-lm(deltaTA_DIC~Benthos, data = AllCO2 %>% 
+#                     filter(Benthos != "Open Ocean") )
+# anova(modTADICdelta)
+# summary(modTADICdelta)
 
 AllCO2 %>% 
-  filter(Benthos != "Open Ocean") %>%
-  ggplot(aes(x = Benthos, y = deltaPO4))+
-  geom_boxplot()
+  filter(Benthos != "Open Ocean",
+         deltaPO4<4,
+         deltaPO4 > -4) %>% # remove one huge outlier
+  ggplot(aes(x = Benthos, y = deltaPO4, fill = Day_Night))+
+  geom_boxplot()+
+  #geom_jitter(posi)+
+  facet_wrap(~Season, scales = "free")
 
 AllCO2 %>% 
  # filter(Benthos != "Open Ocean") %>%
-  ggplot(aes(x = Benthos, y = PO4))+
+  ggplot(aes(x = Benthos, y = PO4, fill = Season))+
   geom_boxplot()
 
 AllCO2 %>%
-  ggplot(aes(x = TempInSitu, y = deltapH, color = Benthos))+
+  ggplot(aes(x = TempInSitu, y = deltapH, color = Season))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_wrap(~Benthos)
+
+#ANCOVA temp to pH
+Muss<-lm(deltapH ~ TempInSitu*Season, data = AllCO2 %>% filter(Benthos == "Mussel"))
+anova(Muss)
+
+Rocks<-lm(deltapH ~ TempInSitu*Season, data = AllCO2 %>% filter(Benthos == "Rockweed"))
+anova(Rocks)
+
+Barn<-lm(deltapH ~ TempInSitu*Season, data = AllCO2 %>% filter(Benthos == "Barnacle"))
+anova(Barn)
+
+Surf<-lm(deltapH ~ TempInSitu*Season, data = AllCO2 %>% filter(Benthos == "Surfgrass"))
+anova(Surf)
+
+Oce<-lm(deltapH ~ TempInSitu*Season, data = AllCO2 %>% filter(Benthos == "Open Ocean"))
+anova(Oce)
+
+AllCO2 %>%
+  ggplot(aes(x = TempInSitu, y = pH, color = Season))+
   geom_point()+
   geom_smooth(method = "lm")+
   facet_wrap(~Benthos)
 
 ## delta pH strongly correlated with temp
-mod_pH_Temp<-lm(deltapH~TempInSitu*Benthos, data = AllCO2 %>% filter(Benthos != "Open Ocean"))
+mod_pH_Temp<-lm(deltapH~TempInSitu*Benthos*Season, data = AllCO2 %>% filter(Benthos != "Open Ocean"))
 anova(mod_pH_Temp)
 summary(mod_pH_Temp)
 
-### raw pH NOT correlated with temp, meaning that the temp is causing differences in the CHANGE in pH which is due to metabolism
+### 
 AllCO2 %>%
-  ggplot(aes(x = TempInSitu, y = pH, color = Benthos))+
+  filter(NO3<6,
+         PO4<1,
+         NH4 <6)%>%
+  ggplot(aes(x = TempInSitu, y = (NH4), color = Benthos))+
   geom_point()+
   geom_smooth(method = "lm")+
-  facet_wrap(~Benthos)
+  facet_wrap(~Benthos, scale = "free")
 
+AllCO2 %>%
+  filter(NO3<6,
+         PO4<1,
+         NH4 <6)%>%
+  ggplot(aes(x = TempInSitu, y = NO2))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_wrap(~Benthos, scale = "free")
+
+
+AllCO2 %>%
+  ggplot(aes(x = TempInSitu, y = SIL))+ ## eating diatoms at night??
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_wrap(~Benthos, scale = "free")
