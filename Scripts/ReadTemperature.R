@@ -16,6 +16,8 @@ library(patchwork)
 
 # pull out the file path
 path<-here("Data","Temperature","Summer_2023")
+path<-here("Data","Temperature","Fall_2023")
+path<-here("Data","Temperature","Winter_2024")
 
 # extract the files
 files <- dir(path = path,pattern = ".csv", full.names = TRUE)
@@ -34,6 +36,15 @@ read_fun<-function(name){
     slice(100:n()) # delete the first 100 points
 }
 
+read_fun<-function(name){
+  read_csv({{name}}, skip = 100, col_names = c("X1","DateTime", "Temperature","Lux" )) %>%
+    select(DateTime,Temperature,Lux) %>%
+    mutate(DateTime = as.character(DateTime))%>%
+    mutate(DateTime = case_when(
+      grepl("^0", DateTime) ~ mdy_hms(DateTime),
+      .default = mdy_hm(DateTime))) # some files are hm and others are hms
+  } 
+
 # read in all the files into one dataframe
 data<-files %>%
   set_names()%>% # set's the id of each list to the file name
@@ -46,9 +57,6 @@ data<-files %>%
                            grepl("R", BenthicID) ~"Rockweed",
                            grepl("O", BenthicID) ~"Open Ocean"))
          
-
-
-
 
 p1<-data %>%
   filter(Benthos != "Open Ocean") %>%
