@@ -11,8 +11,11 @@ library(patchwork)
 
 ## read in data #####
 sessile <- read_csv(here("Data","Community_Composition","sessile_data.csv"))
+# the functional data
+sessile_function <-read_csv(here("Data","Community_Composition","SessileFunctional.csv"))
 
 mobile <- read_csv(here("Data","Community_Composition","mobile_data.csv"))
+mobile_function <-read_csv(here("Data","Community_Composition","MobileFunctional.csv"))
 
 
 
@@ -39,11 +42,13 @@ sessile_total %>%
   group_by(Benthos, Season)%>% # calculate the average for each season
   summarise(across(c(Silvetia_compressa:Chondracanthus_canaliculatus),  ~mean(.,na.rm = TRUE))) %>%
   pivot_longer(cols = c(Silvetia_compressa:Chondracanthus_canaliculatus), names_to = "Species", values_to = "Percent_Cover")%>%
-  ggplot(aes(x = Season,y = Percent_Cover, fill = Species ))+
+  left_join(sessile_function)%>%
+  ggplot(aes(x = Season,y = Percent_Cover, fill = FunctionalGroup ))+
     geom_bar(position="stack", stat="identity")+
-  scale_fill_manual(values = cal_palette("tidepool", n = 21, type = "continuous"))+
+  scale_fill_manual(values = cal_palette("tidepool", n = 13, type = "continuous"))+
   labs(x = "",
-       y = "% Cover")+
+       y = "% Cover",
+       color = "")+
   theme_bw()+
   facet_wrap(~Benthos)
 
@@ -70,11 +75,13 @@ mobile_density %>%
   group_by(Benthos, Season)%>% # calculate the average for each season
   summarise(across(c(Lottia_sp_scaled:Strongylocentrotus_purpuratus),  ~mean(.,na.rm = TRUE))) %>%
   pivot_longer(cols = c(Lottia_sp_scaled:Strongylocentrotus_purpuratus), names_to = "Species", values_to = "Density_m2")%>%
-  ggplot(aes(x = Season,y = Density_m2, fill = Species ))+
+  left_join(mobile_function)%>% #join with functional data
+  ggplot(aes(x = Season,y = Density_m2, fill = FunctionalGroup ))+
   geom_bar(position="stack", stat="identity")+
-  scale_fill_manual(values = cal_palette("tidepool", n = 22, type = "continuous"))+
+  scale_fill_manual(values = cal_palette("tidepool", n = 9, type = "continuous"))+
   labs(x = "",
-       y = "Mean Density (m2) ")+
+       y = "Mean Density (m2)",
+       color = "")+
   theme_bw()+
   facet_wrap(~Benthos, scale = "free")
 

@@ -1,4 +1,4 @@
-Species,Functional Group
+Species,FunctionalGroup
 Silvetia_compressa,Rockweed
 Mytilus_californianus ,Mussels
 Balanus/Cthamalus_sp,Barnacles
@@ -8,7 +8,7 @@ Sand,Sand
 Brown_crust,Non-calcifying crust
 Egregia_menziesii,Brown Alga
 Brown_algae_sp,Brown Alga
-Ulva_sp,Green
+Ulva_sp,Green Alga
 Anthopleura_sp,Anemone
 Pterocladiella_capillacea,Red Alga
 Corallinales_branching,Coralline Alga
