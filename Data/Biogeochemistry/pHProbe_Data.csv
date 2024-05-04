@@ -204,7 +204,7 @@ Long Beach,B3_Dawn,Barnacle,B3,3,Dawn,04/03/2024,6:36,04/03/2024,21.1636,-77.5,3
 Long Beach,P3_Dawn,Surfgrass,P3,3,Dawn,04/03/2024,6:36,04/03/2024,22.1647,-71.3,32.32,,,,,,,,,,,,"1x rinse for falcon dirty nutrient water clean Nalgene, probably switched"
 Long Beach,B5_Dawn,Barnacle,B5,5,Dawn,04/03/2024,6:36,04/03/2024,21.265,-77.5,32.60,,,,,,,,,,,,
 Long Beach,P5_Dawn,Surfgrass,P5,5,Dawn,04/03/2024,6:36,04/03/2024,21.572,-73.1,32.00,,,,,,,,,,,,
-Long Beach,OO_Dawn1,Open Ocean,OO1,1,Dawn,04/03/2024,6:36,04/03/2024,11.433,-79.8,31.07,,,,,,,,,,,,350 mls of nutrient 
+Long Beach,OO_Dawn1,Open Ocean,OO1,1,Dawn,04/03/2024,6:36,04/03/2024,11.433,-79.8,31.07,,,,,,,,,,,,350 mls of nutrient
 Long Beach,P4_Dawn,Surfgrass,P4,5,Dawn,04/04/2024,6:35,04/04/2024,19.592,-73.9,32.82,,,,,,,,,,,,Not nut
 Long Beach,P6_Dawn,Surfgrass,P6,6,Dawn,04/04/2024,6:35,04/04/2024,19.472,-77.5,32.80,,,,,,,,,,,,
 Long Beach,B4_Dawn,Barnacle,B4,4,Dawn,04/04/2024,6:35,04/04/2024,19.384,-78.3,32.52,,,,,,,,,,,,
@@ -281,3 +281,38 @@ Long Beach,B1_Dawn,Barnacle,B1,1,Dawn,4/20/2024,6:37,4/20/2024,21.029,-44.6,33.8
 Long Beach,M4_Dawn,Mussel,M4,4,Dawn,4/20/2024,6:37,4/20/2024,20.735,-43,33.71,,,,,,,,,,,,no nut
 Long Beach,M5_Dawn,Mussel,M5,5,Dawn,4/20/2024,6:37,4/20/2024,20.862,-44.2,33.66,,,,,,,,,,,,no nut
 Long Beach,M2_Dawn,Mussel,M2,2,Dawn,4/20/2024,6:37,4/20/2024,NA,NA,NA,,,,,,,,,,,,no TA
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/27/2024,19:50,4/28/2024,21.996,-86.1,34.25,,,,,,,,,,,,"Did not calibrate salinity before this processing round, no TA"
+Long Beach,M4_Dusk,Mussel,M4,4,Dusk,4/27/2024,19:50,4/28/2024,22.602,-89.3,34.23,,,,,,,,,,,,
+Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,4/27/2024,19:50,4/28/2024,21.629,-90.1,34.22,,,,,,,,,,,,
+Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,4/27/2024,19:50,4/28/2024,21.251,-90.2,34.05,,,,,,,,,,,,
+Long Beach,OO_Dusk5,Open Ocean,OO5,5,Dusk,4/27/2024,19:50,4/28/2024,20.587,-91.5,33.94,,,,,,,,,,,,
+Long Beach,M1_Dusk,Mussel,M1,1,Dusk,4/27/2024,19:50,4/28/2024,20.994,-86.6,34.00,,,,,,,,,,,,
+Long Beach,OO_Dusk6,Open Ocean,OO6,6,Dusk,4/28/2024,19:35,4/29/2024,20.701,-99.4,33.69,,,,,,,,,,,,Re used nut bag
+Long Beach,RW5_Dusk,Rockweed,RW5,5,Dusk,4/28/2024,19:35,4/29/2024,21.187,-97.8,33.29,,,,,,,,,,,,
+Long Beach,B1_Dusk,Barnacle,B1,1,Dusk,4/28/2024,19:35,4/29/2024,21.157,-97.7,33.82,,,,,,,,,,,,Nalgene half full
+Long Beach,M1_Dusk,Mussel,M1,1,Dusk,4/28/2024,19:35,4/29/2024,21.230,-97.8,33.71,,,,,,,,,,,,"No triple rinse, Nalgene half full"
+Long Beach,M4_Dusk,Mussel,M4,4,Dusk,4/28/2024,19:35,4/29/2024,21.140,-100.1,33.78,,,,,,,,,,,,Not nut
+Long Beach,M6_Dusk,Mussel,M6,6,Dusk,4/28/2024,19:35,4/29/2024,21.119,-99.3,33.57,,,,,,,,,,,,
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/28/2024,19:35,4/29/2024,21.104,-92.1,33.72,,,,,,,,,,,,
+Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,4/28/2024,19:35,4/29/2024,NA,NA,NA,,,,,,,,,,,,No TA used nut bag
+Long Beach,OO_Dusk7,Open Ocean,OO7,7,Dusk,4/29/2024,20:17,4/30/2024,16.965,-92.6,33.78,,,,,,,,,,,,Assume nut bags are used after this point I think
+Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,4/29/2024,20:17,4/30/2024,23.361,-92.5,34.33,,,,,,,,,,,,No nut
+Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,4/29/2024,20:17,4/30/2024,23.663,-93,33.92,,,,,,,,,,,,
+Long Beach,M2_Dusk,Mussel,M2,2,Dusk,4/29/2024,20:17,4/30/2024,23.581,-91.9,33.97,,,,,,,,,,,,Not nut Nalgene 3/4 fill
+Long Beach,M4_Dusk,Mussel,M4,4,Dusk,4/29/2024,20:17,4/30/2024,23.398,-93.5,33.99,,,,,,,,,,,,no nut
+Long Beach,M6_Dusk,Mussel,M6,6,Dusk,4/29/2024,20:17,4/30/2024,23.286,-90.2,33.95,,,,,,,,,,,,Nalgene 3/4 full
+Long Beach,M6_Dawn,Mussel,M6,6,Dawn,5/1/2024,5:01,5/1/2024,21.705,-70.3,33.79,,,,,,,,,,,,
+Long Beach,OO_Dawn8,Open Ocean,OO8,8,Dawn,5/1/2024,5:01,5/1/2024,21.259,-77.5,33.93,,,,,,,,,,,,
+Long Beach,B2_Dawn,Barnacle,B2,2,Dawn,5/1/2024,5:01,5/1/2024,21.318,-78.2,33.58,,,,,,,,,,,,
+Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,5/1/2024,5:01,5/1/2024,21.211,-75.8,33.63,,,,,,,,,,,,
+Long Beach,M4_Dawn,Mussel,M4,4,Dawn,5/1/2024,5:01,5/1/2024,21.140,-77.7,33.50,,,,,,,,,,,,
+Long Beach,M2_Dawn,Mussel,M2,2,Dawn,5/1/2024,5:01,5/1/2024,21.305,-78.3,33.83,,,,,,,,,,,,
+Long Beach,B6_Dawn,Barnacle,B6,6,Dawn,5/2/2024,6:02,5/2/2024,25.086,-77.4,34.71,,,,,,,,,,,,no TA
+Long Beach,M6_Dawn,Mussel,M6,6,Dawn,5/2/2024,6:02,5/2/2024,26.526,-76.9,34.08,,,,,,,,,,,,
+Long Beach,OO_Dawn9,Open Ocean,OO9,9,Dawn,5/2/2024,6:02,5/2/2024,24.896,-77,34.07,,,,,,,,,,,,
+Long Beach,M3_Dawn,Mussel,M3,3,Dawn,5/2/2024,6:02,5/2/2024,26.201,-77.6,34.01,,,,,,,,,,,,
+Long Beach,RW3_Dusk,Rockweed,RW3,3,Dusk,5/2/2024,19:37,5/3/2024,22.871,-98.7,33.72,,,,,,,,,,,,Used TA bag
+Long Beach,M4_Dusk,Mussel,M4,4,Dusk,5/2/2024,19:37,5/3/2024,23.965,-92.2,34.06,,,,,,,,,,,,
+Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,5/2/2024,19:37,5/3/2024,23.053,-94.6,34.01,,,,,,,,,,,,
+Long Beach,M2_Dusk,Mussel,M2,2,Dusk,5/2/2024,19:37,5/3/2024,23.61,-91.9,34.11,,,,,,,,,,,,
+Long Beach,OO_Dusk8,Open Ocean,OO8,8,Dusk,5/2/2024,19:37,5/3/2024,11.878,-104.6,32.97,,,,,,,,,,,,
