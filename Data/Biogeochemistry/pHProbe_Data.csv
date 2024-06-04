@@ -91,14 +91,14 @@ Long Beach,B5_Dusk,Barnacle,B5,5,Dusk,10/21/2023,17:00,10/22/2023 11:30,21.455,-
 Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,10/21/2023,17:00,10/22/2023 11:30,NA,NA,NA,18.19,NA,20231019,10/21/2023,NA,12/7/2023,0.55,0.43,5.6,0.14,0.95,No TA
 Long Beach,B4_Dusk,Barnacle,B4,4,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.46,-80.3,33.33,18.74,2205.557636,20231023,10/21/2023,33.55,12/7/2023,0.57,0.36,4.6,0.13,1.51,
 Long Beach,P6_Dusk,Surfgrass,P6,6,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.533,-81.6,33.38,19.22,2206.949933,20231023,10/21/2023,33.6,12/7/2023,0.5,0.32,3.4,0.09,0.57,
-Long Beach,P3_Dusk,Surfgrass,P3,3,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.364,-80.8,33.24,19.17,2199.163284,20231023,10/21/2023,33.6,12/7/2023,,,,,,Not enough to 3x rinse for nutrients or fill fDOM
+Long Beach,P3_Dusk,Surfgrass,P3,3,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.364,-80.8,33.24,19.17,2199.163284,20231023,10/21/2023,33.6,12/7/2023,0.44,0.42,4.2,0.13,3.28,Not enough to 3x rinse for nutrients or fill fDOM
 Long Beach,RW2_Dusk,Rockweed,RW2,2,Dusk,10/22/2023,18:05,10/23/2023 13:00,21.415,-81.2,33.25,19.09,2121.885913,20231023,10/21/2023,33.58,12/7/2023,0.85,0.32,4.1,0.11,0.82,"Reran, old TA 2128.588359"
 Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.365,-77.5,33.22,17.67,2185.654833,20231023,10/21/2023,33.51,12/7/2023,,,,,,No Nutrients
 Long Beach,B3_Duskb,Barnacle,B3,3,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.133,-72.2,33.22,17.54,2124.613941,20231023,10/21/2023,33.5,12/7/2023,0.9,0.39,4,0.36,1.83,"Reran, old TA 2135.74415"
 Long Beach,RW4_Dusk,Rockweed,RW4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.241,-78.8,33.3,17.67,2174.487496,20231023,10/21/2023,33.44,12/7/2023,0.76,0.45,5.4,0.12,0.87,"Reran, old TA 2179.213161"
 Long Beach,B6_Dusk,Barnacle,B6,6,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.207,-74.8,33.31,17.59,2201.567223,20231023,10/21/2023,33.54,12/7/2023,1.45,0.43,5.1,0.26,6.3,"tubing was messed up, do not use Reran, old TA 2207.040752"
 Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,10/23/2023,18:04,10/24/2023 11:00,21.48,-75.8,33.24,17.59,2199.091539,20231023,10/21/2023,33.55,12/7/2023,,,,,,TA not 3x rinsed
-Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,NA,NA,NA,17.46,NA,20231023,10/21/2023,NA,12/7/2023,,,,,,No TA tubing a bit messed up not in usual spot
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,10/23/2023,18:04,10/24/2023 11:00,NA,NA,NA,17.46,NA,20231023,10/21/2023,NA,12/7/2023,0.88,0.38,4.3,0.13,2.82,No TA tubing a bit messed up not in usual spot
 Long Beach,RW6_Dusk,Rockweed,RW6,6,Dusk,10/24/2023,18:03,10/25/2023 11:30,22.144,-83.7,33.36,19.3,2243.002162,20231024,10/24/2023,33.31,12/7/2023,0.58,0.41,9.2,0.09,0.61,"Reran, old TA 2245.661047"
 Long Beach,P4_Duskb,Surfgrass,P4,4,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.131,-85.4,33.54,19.09,2199.043292,20231024,10/24/2023,33.56,12/7/2023,,,,,,No Nutrients
 Long Beach,M5_Dusk,Mussel,M5,5,Dusk,10/24/2023,18:03,10/25/2023 11:30,21.603,-80.3,33.46,19.47,2193.926626,20231024,10/24/2023,33.71,12/7/2023,0.96,0.31,2.8,0.13,1.1,
@@ -109,7 +109,7 @@ Long Beach,P1_Duskb,Surfgrass,P1,1,Dusk,10/24/2023,18:03,10/25/2023 11:30,NA,NA,
 Long Beach,OO_Dusk5,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.636,-84.7,33.4,19.99,2209.358642,20231024,10/26/2023,33.7,12/7/2023,,,,,,"Nutrient and TA bag might have been switched, reran old TA 2205.629505"
 Long Beach,OO_Dusk5d,Open Ocean,OO5,5,Dusk,10/25/2023,18:02,10/26/2023 21:00,15.372,-78.6,32.78,19.99,NA,20231024,10/26/2023,NA,12/7/2023,,,,,,"From Nutrient bag, dirty water"
 Long Beach,M4_Duskb,Mussel,M4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.888,-82.5,33.64,20.16,2214.978147,20231024,10/26/2023,33.71,12/7/2023,0.66,0.12,3.6,0.07,1.43,
-Long Beach,P4_Duskc,Surfgrass,P4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.477,-83,33.31,20.07,NA,20231024,10/26/2023,NA,12/7/2023,,,,,,Not enough TA
+Long Beach,P4_Duskc,Surfgrass,P4,4,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.477,-83,33.31,20.07,NA,20231024,10/26/2023,NA,12/7/2023,0.02,0.19,3.3,0.04,0.50,Not enough TA
 Long Beach,M6_Dusk,Mussel,M6,6,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.21,-83.7,33.58,20.16,2211.905567,20231024,10/26/2023,33.75,12/7/2023,NA,NA,NA,NA,NA,No Nutrients
 Long Beach,M1_Dusk,Mussel,M1,1,Dusk,10/25/2023,18:02,10/26/2023 21:00,21.198,-82.3,33.65,20.12,2128.295257,20231024,10/26/2023,33.7,12/7/2023,0.23,0.13,2.7,0.06,0.16,"Reran, old TA 2134.53472"
 Long Beach,B2_Duskb,Barnacle,B2,2,Dusk,10/25/2023,18:02,10/26/2023 21:00,NA,NA,NA,20.12,NA,20231024,10/26/2023,NA,12/7/2023,0.78,0.27,3.5,0.12,0.46,No TA
@@ -133,8 +133,8 @@ Long Beach,B3_Dawn,Barnacle,B3,3,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.365,-6
 Long Beach,B6_Dawn,Barnacle,B6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.357,-70.2,33.12,17.24,2171.438491,20231029,10/29/2023,33.58,12/7/2023,0.82,0.36,4.5,0.16,1.26,Reran old TA 2183.365867
 Long Beach,M2_Dawn,Mussel,M2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,21.152,-70.4,33.02,17.5,2226.115478,20231029,10/29/2023,33.57,12/7/2023,NA,NA,NA,NA,NA,No Nutrients
 Long Beach,RW4_Dawn,Rockweed,RW4,4,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,17.07,NA,20231029,10/29/2023,NA,12/7/2023,0.48,0.8,5.6,0.19,0.54,No TA
-Long Beach,P2_Dawn,Surfgrass,P2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,17.07,NA,20231029,10/29/2023,NA,12/7/2023,,,,,,No TA
-Long Beach,M6_Dawn,Mussel,M6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,17.41,NA,20231029,10/29/2023,NA,12/7/2023,,,,,,No TA
+Long Beach,P2_Dawn,Surfgrass,P2,2,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,17.07,NA,20231029,10/29/2023,NA,12/7/2023,0.74,0.4,5.8,0.11,0.53,No TA
+Long Beach,M6_Dawn,Mussel,M6,6,Dawn,10/29/2023,7:04,10/29/2023 21:00,NA,NA,NA,17.41,NA,20231029,10/29/2023,NA,12/7/2023,0.31,0.38,4.2,0.09,0.34,No TA
 Long Beach,OO_Dawn9,Open Ocean,OO9,9,Dawn,10/30/2023,7:05,10/30/2023 21:00,22.367,-68.8,33.91,16.9,2218.082634,20231029,10/30/2023,33.65,12/7/2023,,,,,,
 Long Beach,M2_Dawnb,Mussel,M2,2,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.951,-70.7,33.69,17.33,2197.223426,20231029,10/30/2023,33.66,12/7/2023,1.22,0.28,3.8,0.17,1.2,
 Long Beach,M6_Dawnb,Mussel,M6,6,Dawn,10/30/2023,7:05,10/30/2023 21:00,21.983,-69.1,33.74,17.11,2173.778668,20231029,10/30/2023,33.67,12/7/2023,NA,NA,NA,NA,NA,No Nutrients
@@ -203,10 +203,10 @@ Long Beach,B1_Dawn,Barnacle,B1,1,Dawn,11/3/2023,8:06,11/3/2023 22:00,20.363,-74.
 Long Beach,B3_Dawn,Barnacle,B3,3,Dawn,04/03/2024,6:36,04/03/2024,21.1636,-77.5,32.33,,2218.051252,20240404,04/03/2024,,,1.19,0.47,4.0,0.13,1.42,No 3x rinse
 Long Beach,P3_Dawn,Surfgrass,P3,3,Dawn,04/03/2024,6:36,04/03/2024,22.1647,-71.3,32.32,,2202.678888,20240404,,,,,,,,,"1x rinse for falcon dirty nutrient water clean Nalgene, probably switched"
 Long Beach,B5_Dawn,Barnacle,B5,5,Dawn,04/03/2024,6:36,04/03/2024,21.265,-77.5,32.60,,2219.643811,20240404,,,,1.55,0.43,4.9,0.16,1.49,
-Long Beach,P5_Dawn,Surfgrass,P5,5,Dawn,04/03/2024,6:36,04/03/2024,21.572,-73.1,32.00,,2208.829608,20240404,,,,,,,,,
+Long Beach,P5_Dawn,Surfgrass,P5,5,Dawn,04/03/2024,6:36,04/03/2024,21.572,-73.1,32.00,,2208.829608,20240404,,,,1.45,0.48,5.6,0.18,1.19,
 Long Beach,OO_Dawn1,Open Ocean,OO1,1,Dawn,04/03/2024,6:15,04/03/2024,11.433,-79.8,31.07,,2236.297592,20240404,,,,4.58,0.63,8.1,0.15,1.47,350 mls of nutrient
 Long Beach,P4_Dawn,Surfgrass,P4,5,Dawn,04/04/2024,6:35,04/04/2024,19.592,-73.9,32.82,,2218.955715,20240404,,,,,,,,,Not nut
-Long Beach,P6_Dawn,Surfgrass,P6,6,Dawn,04/04/2024,6:35,04/04/2024,19.472,-77.5,32.80,,2221.365627,20240404,,,,,,,,,
+Long Beach,P6_Dawn,Surfgrass,P6,6,Dawn,04/04/2024,6:35,04/04/2024,19.472,-77.5,32.80,,2221.365627,20240404,,,,1.10,0.47,4.6,0.13,0.91,
 Long Beach,B4_Dawn,Barnacle,B4,4,Dawn,04/04/2024,6:35,04/04/2024,19.384,-78.3,32.52,,2218.565596,20240404,,,,0.85,0.45,3.7,0.12,0.98,
 Long Beach,OO_Dawn2,Open Ocean,OO2,2,Dawn,04/04/2024,6:35,04/04/2024,18.989,-78.8,32.58,,2296.933561,20240404,,,,3.25,0.65,7.1,0.15,1.27,400 ml nutrients sample
 Long Beach,B1_Dusk,Barnacle,B1,1,Dusk,04/08/2024,19:19,4/9/2024,20.490,-73.8,33.88,,2158.799027,20240408,,,,,,,,,Not nut
@@ -214,36 +214,36 @@ Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,04/08/2024,19:19,4/9/2024,20.541,-76.1,33.
 Long Beach,B5_Dusk,Barnacle,B5,5,Dusk,04/08/2024,19:19,4/9/2024,20.372,-72.9,33.24,,2191.747104,20240408,,,,4.53,0.64,11.4,0.33,0.82,
 Long Beach,RW1_Dusk,Rockweed,RW1,1,Dusk,04/08/2024,19:19,4/9/2024,20.035,-73.5,32.96,,2233.51398,20240408,,,,6.28,0.6,13.5,0.41,3.53,
 Long Beach,RW3_Dusk,Rockweed,RW3,3,Dusk,04/08/2024,19:19,4/9/2024,20.524,-73.6,33.18,,2204.214096,20240408,,,,4.61,0.61,10.6,0.38,1.76,Nalgene not filled
-Long Beach,P3_Dusk,Surfgrass,P3,3,Dusk,04/08/2024,19:19,4/9/2024,19.847,-67.3,33.16,,2223.443073,20240408,,,,,,,,,
-Long Beach,P5_Dusk,Surfgrass,P5,5,Dusk,04/08/2024,19:19,4/9/2024,19.921,-65,33.16,,2223.591948,20240408,,,,,,,,,
+Long Beach,P3_Dusk,Surfgrass,P3,3,Dusk,04/08/2024,19:19,4/9/2024,19.847,-67.3,33.16,,2223.443073,20240408,,,,4.64,0.63,12.6,0.32,0.93,
+Long Beach,P5_Dusk,Surfgrass,P5,5,Dusk,04/08/2024,19:19,4/9/2024,19.921,-65,33.16,,2223.591948,20240408,,,,5.12,0.73,10.5,0.34,1.36,
 Long Beach,OO_Dusk1,Open Ocean,OO1,1,Dusk,04/08/2024,19:15,4/9/2024,19.699,-76.3,33.34,,2229.686529,20240408,,,,6.35,0.67,10.2,0.34,2.49,420 ml nutrient sample
 Long Beach,SAS_OO_Dusk,Open Ocean,OO,,Dusk,04/08/2024,19:19,4/9/2024,20.456,-77.3,33.28,,2213.688238,20240408,,,,5.69,0.62,10.6,0.39,1.65,
 Long Beach,M1_Dusk,Mussel,M1,1,Dusk,04/08/2024,19:19,4/9/2024,20.765,-73,33.37,,2179.696422,20240408,,,,,,,,,"no nut, had to redrill hanger bolts for m1-5"
 Long Beach,M3_Dusk,Mussel,M3,3,Dusk,04/08/2024,19:19,4/9/2024,21.129,-55.4,33.59,,,20240408,,,,,,,,,"Not much sample… weird mV, not nut"
-Long Beach,M5_Dusk,Mussel,M5,5,Dusk,04/08/2024,19:19,4/9/2024,20.746,-75.3,33.29,,2306.050341,20240408,,,,,,,,,
+Long Beach,M5_Dusk,Mussel,M5,5,Dusk,04/08/2024,19:19,4/9/2024,20.746,-75.3,33.29,,2306.050341,20240408,,,,5.40,0.65,12.7,0.41,1.6,
 Long Beach,OO_Dusk2,Open Ocean,OO2,2,Dusk,04/09/2024,19:34,04/10/2024,10.907,-72.5,32.86,,2240.160615,20240411,,,,9.64,1.03,16.3,0.42,3.08,360 ml
-Long Beach,P6_Dusk,Surfgrass,P6,6,Dusk,04/09/2024,19:38,04/10/2024,19.555,-62.5,33.61,,2185.217924,20240411,,,,,,,,,P4 tubing out of plot on this day
-Long Beach,M3_Dusk,Mussel,M3,3,Dusk,04/09/2024,19:38,04/10/2024,20.308,-68.1,33.65,,2218.27187,20240411,,,,,,,,,
+Long Beach,P6_Dusk,Surfgrass,P6,6,Dusk,04/09/2024,19:38,04/10/2024,19.555,-62.5,33.61,,2185.217924,20240411,,,,7.80,0.79,14.4,0.44,1.68,P4 tubing out of plot on this day
+Long Beach,M3_Dusk,Mussel,M3,3,Dusk,04/09/2024,19:38,04/10/2024,20.308,-68.1,33.65,,2218.27187,20240411,,,,9.52,0.82,13.5,0.57,2.99,
 Long Beach,M6_Dusk,Mussel,M6,6,Dusk,04/09/2024,19:38,04/10/2024,19.742,-69.8,33.55,,2216.008687,20240411,,,,,,,,,Not nut
 Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,04/09/2024,19:38,04/10/2024,20.249,-70.4,33.71,,2214.764062,20240411,,,,,,,,,Not nut
 Long Beach,B4_Dusk,Barnacle,B4,4,Dusk,04/09/2024,19:38,04/10/2024,19.520,-70.4,33.54,,2210.01183,20240411,,,,7.58,0.7,12.3,0.42,1.49,Not nut
 Long Beach,B6_Dusk,Barnacle,B6,6,Dusk,04/09/2024,19:38,04/10/2024,19.162,-71.5,33.51,,2195.303304,20240411,,,,,,,,,No nut
 Long Beach,RW4_Dusk,Rockweed,RW4,4,Dusk,04/09/2024,19:38,04/10/2024,18.680,-71.8,33.18,,2210.056318,20240411,,,,7.00,0.68,13.3,0.43,1.37,TA + nut Bottle just said rw not number
-Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,4/10/2024,20:03,04/11/2024,20.415,-53.7,32.99,,2184.530496,20240411,,,,,,,,,"TA tube pushed a bit out of tide pool, but still close (MA has pic), switched tubes to p56"
+Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,4/10/2024,20:03,04/11/2024,20.415,-53.7,32.99,,2184.530496,20240411,,,,3.72,0.65,10.8,0.3,2.07,"TA tube pushed a bit out of tide pool, but still close (MA has pic), switched tubes to p56"
 Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/10/2024,20:03,04/11/2024,20.617,-55.8,33.18,,2234.491933,20240411,,,,,,,,,Not nut
-Long Beach,M6_Dusk,Mussel,M6,6,Dusk,4/10/2024,20:03,04/11/2024,20.214,-66.2,32.79,,2209.871184,20240411,,,,,,,,,
+Long Beach,M6_Dusk,Mussel,M6,6,Dusk,4/10/2024,20:03,04/11/2024,20.214,-66.2,32.79,,2209.871184,20240411,,,,5.41,0.70,11.7,0.4,1.02,
 Long Beach,B6_Dusk,Barnacle,B6,6,Dusk,4/10/2024,20:03,04/11/2024,20.607,-71.5,32.94,,2208.879194,20240411,,,,4.23,0.58,12.7,0.3,0.92,B2 tubing from this day was messed up not sure if ta or nut
 Long Beach,M2_Dusk,Mussel,M2,2,Dusk,4/10/2024,20:03,04/11/2024,20.637,-69.4,32.57,,2230.240119,20240411,,,,,,,,,Not nut
 Long Beach,RW2_Dusk,Rockweed,RW2,2,Dusk,4/10/2024,20:03,04/11/2024,20.523,-69,32.94,,2231.575997,20240411,,,,6.49,0.59,13.4,0.34,2.72,
 Long Beach,OO_Dusk3,Open Ocean,OO3,3,Dusk,4/10/2024,20:01,04/11/2024,19.225,-69.2,33.11,,2236.628764,20240411,,,,6.17,0.91,14.8,0.31,1.35,360 ml nut
 Long Beach,OO_Dusk4,Open Ocean,OO4,4,Dusk,04/11/2024,20:24,04/12/2024,13.547,-25.8,32.23,,2212.274815,20240411,,,,8.29,0.85,13.2,0.36,1.21,300 ml nut
-Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,04/11/2024,20:29,04/12/2024,20.095,-38.7,33.2,,,20240411,,,,,,,,,"No TA, slightly out of plot, with some rockweed tangled in"
-Long Beach,P2_Dusk,Surfgrass,P2,2,Dusk,04/11/2024,20:29,04/12/2024,18.900,-59.1,33.09,,2202.447301,20240411,,,,,,,,,"Tubes from p56 used, but not flushed before"
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,04/11/2024,20:29,04/12/2024,20.095,-38.7,33.2,,,20240411,,,,6.70,0.68,11.3,0.35,0.69,"No TA, slightly out of plot, with some rockweed tangled in"
+Long Beach,P2_Dusk,Surfgrass,P2,2,Dusk,04/11/2024,20:29,04/12/2024,18.900,-59.1,33.09,,2202.447301,20240411,,,,5.60,0.59,11.5,0.32,0.95,"Tubes from p56 used, but not flushed before"
 Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,04/11/2024,20:29,04/12/2024,20.114,-56.7,33.64,,,20240411,,,,,,,,,"No TA, tubes pulled off bolt"
 Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,04/11/2024,20:29,04/12/2024,20.188,-63.3,32.96,,,20240411,,,,5.95,0.66,13.0,0.34,1.1,No TA
 Long Beach,M1_Dusk,Mussel,M1,1,Dusk,04/11/2024,20:29,04/12/2024,18.649,-64.2,33.27,,2220.629057,20240411,,,,,,,,,
 Long Beach,M4_Dusk,Mussel,M4,4,Dusk,04/11/2024,20:29,04/12/2024,19.572,-64.3,33.47,,2208.51517,20240411,,,,,,,,,
-Long Beach,P4_Dawn,Surfgrass,P4,4,Dawn,4/16/2024,5:54,04/16/2023,NA,NA,NA,,,20240415,,,,,,,,,Nut only
+Long Beach,P4_Dawn,Surfgrass,P4,4,Dawn,4/16/2024,5:54,04/16/2023,NA,NA,NA,,,20240415,,,,1.83,0.47,6.3,0.2,1.09,Nut only
 Long Beach,P2_Dawn,Surfgrass,P2,2,Dawn,4/16/2024,5:54,04/16/2023,NA,NA,NA,,,20240415,,,,,,,,,Nut only
 Long Beach,SAS_OO_Dawn,Open Ocean,OO,,Dawn,4/16/2024,5:54,04/16/2023,21.071,-50.8,33.34,,2236.839891,20240415,,,,2.20,0.46,6.3,0.21,0.9,
 Long Beach,OO_Dawn3,Open Ocean,OO3,3,Dawn,4/16/2024,6:05,04/16/2023,19.071,-47.9,32.99,,2223.794788,20240415,,,,7.54,0.55,6.7,0.24,1.51,420 ml nutrient sample
@@ -251,49 +251,49 @@ Long Beach,RW2_Dawn,Rockweed,RW2,2,Dawn,4/16/2024,5:54,04/16/2023,20.548,-44,33.
 Long Beach,RW4_Dawn,Rockweed,RW4,4,Dawn,4/16/2024,5:54,04/16/2023,21.122,-45.8,33.63,,2200.789259,20240415,,,,,,,,,No nut
 Long Beach,B2_Dawn,Barnacle,B2,2,Dawn,4/16/2024,5:54,04/16/2023,20.964,-50.3,33.67,,2194.494218,20240415,,,,,,,,,Nutrient Tubes Got ripped off bolts
 Long Beach,B6_Dawn,Barnacle,B6,6,Dawn,4/16/2024,5:54,04/16/2023,20.828,-49.7,33.64,,2228.673147,20240415,,,,2.66,0.49,7.5,0.26,1.71,
-Long Beach,M1_Dawn,Mussel,M1,1,Dawn,4/16/2024,5:54,04/16/2023,20.819,-50.1,33.76,,2242.498497,20240415,,,,,,,,,
+Long Beach,M1_Dawn,Mussel,M1,1,Dawn,4/16/2024,5:54,04/16/2023,20.819,-50.1,33.76,,2242.498497,20240415,,,,2.35,0.58,6.9,0.23,1.42,
 Long Beach,M4_Dawn,Mussel,M4,4,Dawn,4/16/2024,5:54,04/16/2023,20.842,-48.1,33.44,,2250.239108,20240415,,,,,,,,,No nut
 Long Beach,RW1_Dawn,Rockweed,RW1,1,Dawn,04/17/2024,6:18,04/17/2024,21.748,-41.9,33.65,,2209.24257,20240418,,,,1.17,0.44,4.2,0.11,1.15,"Nalgene not filled, TA bags from this day might have gotten slightly warm on rocks"
 Long Beach,RW3_Dawn,Rockweed,RW3,3,Dawn,04/17/2024,6:18,04/17/2024,21.939,-51.5,33.59,,2166.217785,20240418,,,,,,,,,No nut
 Long Beach,RW5_Dawn,Rockweed,RW5,5,Dawn,04/17/2024,6:18,04/17/2024,21.87,-55.5,32.69,,2475.00289,20240418,,,,36.26,0.59,20.5,1.28,6.25,Reused phyllo tubing for this
 Long Beach,M6_Dawn,Mussel,M6,6,Dawn,04/17/2024,6:18,04/17/2024,21.514,-52.3,33.69,,2212.420105,20240418,,,,,,,,,"No nut, only 1 rinse did not fill nalgene"
 Long Beach,OO_Dawn4,Open Ocean,OO4,4,Dawn,04/17/2024,6:20,04/17/2024,15.434,-56.2,32.83,,2209.562382,20240418,,,,5.77,0.57,5.2,0.16,1.65,450 ml nutrient sample
-Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,04/17/2024,6:18,04/17/2024,21.197,-52.8,33.83,,2217.55461,20240418,,,,,,,,,A little bit out of plot
-Long Beach,P4_Dawn,Surfgrass,P4,4,Dawn,04/17/2024,6:18,04/17/2024,21.827,-49.5,33.73,,2202.844948,20240418,,,,,,,,,
+Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,04/17/2024,6:18,04/17/2024,21.197,-52.8,33.83,,2217.55461,20240418,,,,0.98,0.44,4.3,0.11,0.92,A little bit out of plot
+Long Beach,P4_Dawn,Surfgrass,P4,4,Dawn,04/17/2024,6:18,04/17/2024,21.827,-49.5,33.73,,2202.844948,20240418,,,,1.09,0.45,4.7,0.12,0.7,
 Long Beach,B1_Dawn,Barnacle,B1,1,Dawn,04/17/2024,6:18,04/17/2024,NA,NA,NA,,,20240418,,,,,,,,,"no TA, tubing ripped of bolt"
 Long Beach,OO_Dawn5,Open Ocean,OO5,5,Dawn,04/18/2024,6:17,04/18/2024,21.328,-51.3,35.55,,2217.066252,20240418,,,,4.08,0.63,5.4,0.18,1.35,450 ml nutrient sample
 Long Beach,RW6_Dawn,Rockweed,RW6,6,Dawn,04/18/2024,6:17,04/18/2024,21.527,-51.5,34.20,,2217.745613,20240418,,,,1.20,0.43,5.5,0.11,0.9,
 Long Beach,RW3_Dawn,Rockweed,RW3,3,Dawn,04/18/2024,6:17,04/18/2024,21.472,-47.9,34.18,,2197.351065,20240418,,,,,,,,,no nut
-Long Beach,M5_Dawn,Mussel,M5,5,Dawn,04/18/2024,6:17,04/18/2024,21.620,-52.8,34.02,,2189.781569,20240418,,,,,,,,,
-Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,04/18/2024,6:17,04/18/2024,21.102,-52.1,33.84,,2210.167149,20240418,,,,,,,,,"Nutrients tube got ripped off, but probably after filling? Because it was pinched"
+Long Beach,M5_Dawn,Mussel,M5,5,Dawn,04/18/2024,6:17,04/18/2024,21.620,-52.8,34.02,,2189.781569,20240418,,,,1.44,0.54,5.0,0.13,1.13,
+Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,04/18/2024,6:17,04/18/2024,21.102,-52.1,33.84,,2210.167149,20240418,,,,1.38,0.5,5.1,0.13,1.15,"Nutrients tube got ripped off, but probably after filling? Because it was pinched"
 Long Beach,B2_Dawn,Barnacle,B2,2,Dawn,04/18/2024,6:17,04/18/2024,21.058,-51,34.02,,,20240418,,,,2.60,0.49,4.6,0.15,1.92,"Nalgene not filled, slightly out of place but should be fine"
-Long Beach,M2_Dawn,Mussel,M2,2,Dawn,04/18/2024,6:17,04/18/2024,NA,NA,NA,,,20240418,,,,,,,,,no TA
+Long Beach,M2_Dawn,Mussel,M2,2,Dawn,04/18/2024,6:17,04/18/2024,NA,NA,NA,,,20240418,,,,1.53,0.47,4.5,0.11,1.27,no TA
 Long Beach,OO_Dawn6,Open Ocean,OO6,6,Dawn,04/19/2024,6:16,04/19/2024,14.595,-54.3,33.51,,2215.912654,20240418,,,,4.79,0.74,5.5,0.15,2.43,450 ml nutrient sample
-Long Beach,P2_Dawn,Surfgrass,P2,2,Dawn,04/19/2024,6:16,04/19/2024,21.943,-50.2,33.97,,2218.004161,20240418,,,,,,,,,
+Long Beach,P2_Dawn,Surfgrass,P2,2,Dawn,04/19/2024,6:16,04/19/2024,21.943,-50.2,33.97,,2218.004161,20240418,,,,1.11,0.58,5.9,0.13,1.33,
 Long Beach,RW3_Dawn,Rockweed,RW3,3,Dawn,04/19/2024,6:16,04/19/2024,20.929,-50.6,33.82,,2217.419622,20240418,,,,0.92,0.49,4.1,0.11,1.29,
 Long Beach,B1_Dawn,Barnacle,B1,1,Dawn,04/19/2024,6:16,04/19/2024,22.061,-51.7,33.68,,2241.307875,20240418,,,,,,,,,"No nut nalgene half full, tubing messed up"
 Long Beach,M6_Dawn,Mussel,M6,6,Dawn,04/19/2024,6:16,04/19/2024,21.824,-49.9,33.37,,,20240418,,,,,,,,,Non nut not fill nalgene
-Long Beach,M2_Dawn,Mussel,M2,2,Dawn,04/19/2024,6:16,04/19/2024,NA,NA,NA,,,20240418,,,,,,,,,no TA
+Long Beach,M2_Dawn,Mussel,M2,2,Dawn,04/19/2024,6:16,04/19/2024,NA,NA,NA,,,20240418,,,,1.41,0.64,5.5,0.13,2.23,no TA
 Long Beach,OO_Dawn7,Open Ocean,OO7,7,Dawn,4/20/2024,6:37,4/20/2024,20.653,-46.9,33.98,,2234.406469,20240418,,,,5.65,1.07,6.9,0.27,11.84,450 ml nutrient sample
 Long Beach,RW4_Dawn,Rockweed,RW4,4,Dawn,4/20/2024,6:37,4/20/2024,21.057,-45.2,33.92,,2227.205591,20240418,,,,2.64,0.8,6.3,0.21,6.9,
 Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,4/20/2024,6:37,4/20/2024,20.879,-44.9,33.92,,2227.999606,20240418,,,,,,,,,no nut
 Long Beach,B1_Dawn,Barnacle,B1,1,Dawn,4/20/2024,6:37,4/20/2024,21.029,-44.6,33.82,,2240.104379,20240418,,,,,,,,,"no nut, nalgene half full"
 Long Beach,M4_Dawn,Mussel,M4,4,Dawn,4/20/2024,6:37,4/20/2024,20.735,-43,33.71,,2230.50334,20240418,,,,,,,,,"no nut, used tubes from P"
 Long Beach,M6_Dawn,Mussel,M6,5,Dawn,4/20/2024,6:37,4/20/2024,20.862,-44.2,33.66,,2178.212324,20240418,,,,,,,,,no nut
-Long Beach,M2_Dawn,Mussel,M2,2,Dawn,4/20/2024,6:37,4/20/2024,NA,NA,NA,,,20240418,,,,,,,,,no TA
-Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/27/2024,19:50,4/28/2024,21.996,-86.1,34.25,,,20240429,,,,,,,,,"Did not calibrate salinity before this processing round, no TA"
+Long Beach,M2_Dawn,Mussel,M2,2,Dawn,4/20/2024,6:37,4/20/2024,NA,NA,NA,,,20240418,,,,3.03,1.10,6.2,0.26,17.9,no TA
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/27/2024,19:50,4/28/2024,21.996,-86.1,34.25,,,20240429,,,,7.09,0.81,11.3,0.36,1.24,"Did not calibrate salinity before this processing round, no TA"
 Long Beach,M4_Dusk,Mussel,M4,4,Dusk,4/27/2024,19:50,4/28/2024,22.602,-89.3,34.23,,2227.685421,20240429,,,,,,,,,
 Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,4/27/2024,19:50,4/28/2024,21.629,-90.1,34.22,,2193.856062,20240429,,,,4.73,0.54,6.9,0.25,1.28,"B3 Had rip in tubing so might not be from plot, b1 nutrients were ripped off"
-Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,4/27/2024,19:50,4/28/2024,21.251,-90.2,34.05,,2203.698965,20240429,,,,,,,,,
+Long Beach,P1_Dusk,Surfgrass,P1,1,Dusk,4/27/2024,19:50,4/28/2024,21.251,-90.2,34.05,,2203.698965,20240429,,,,7.68,0.89,12.7,0.4,1.36,
 Long Beach,OO_Dusk5,Open Ocean,OO5,5,Dusk,4/27/2024,19:46,4/28/2024,20.587,-91.5,33.94,,2201.724854,20240429,,,,7.59,0.95,14.3,0.37,1.52,300 ml nutrients
 Long Beach,M1_Dusk,Mussel,M1,1,Dusk,4/27/2024,19:50,4/28/2024,20.994,-86.6,34.00,,2261.647232,20240429,,,,,,,,,
 Long Beach,OO_Dusk6,Open Ocean,OO6,6,Dusk,4/28/2024,19:31,4/29/2024,20.701,-99.4,33.69,,2210.989083,20240429,,,,2.04,0.62,8.0,0.14,2.09,300 ml nut Re used nut bag
 Long Beach,RW5_Dusk,Rockweed,RW5,5,Dusk,4/28/2024,19:35,4/29/2024,21.187,-97.8,33.29,,2375.978128,20240429,,,,45.69,0.7,18.4,0.73,4.3,
 Long Beach,B1_Dusk,Barnacle,B1,1,Dusk,4/28/2024,19:35,4/29/2024,21.157,-97.7,33.82,,2216.955904,20240429,,,,1.85,0.47,8.1,0.17,0.51,"Nalgene half full, ta bag from day before because it seemed empty"
-Long Beach,M1_Dusk,Mussel,M1,1,Dusk,4/28/2024,19:35,4/29/2024,21.230,-97.8,33.71,,2172.176454,20240429,,,,,,,,,"No triple rinse, Nalgene half full"
+Long Beach,M1_Dusk,Mussel,M1,1,Dusk,4/28/2024,19:35,4/29/2024,21.230,-97.8,33.71,,2172.176454,20240429,,,,1.46,0.57,9.7,0.14,1.04,"No triple rinse, Nalgene half full"
 Long Beach,M4_Dusk,Mussel,M4,4,Dusk,4/28/2024,19:35,4/29/2024,21.140,-100.1,33.78,,2182.644476,20240429,,,,,,,,,Not nut
-Long Beach,M6_Dusk,Mussel,M6,6,Dusk,4/28/2024,19:35,4/29/2024,21.119,-99.3,33.57,,2200.546925,20240429,,,,,,,,,Ta bag From day before because it seemed empty
-Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/28/2024,19:35,4/29/2024,21.104,-92.1,33.72,,2191.141053,20240429,,,,,,,,,
+Long Beach,M6_Dusk,Mussel,M6,6,Dusk,4/28/2024,19:35,4/29/2024,21.119,-99.3,33.57,,2200.546925,20240429,,,,2.55,1.54,8.9,0.24,5.21,Ta bag From day before because it seemed empty
+Long Beach,P4_Dusk,Surfgrass,P4,4,Dusk,4/28/2024,19:35,4/29/2024,21.104,-92.1,33.72,,2191.141053,20240429,,,,1.17,0.52,6.9,0.16,0.77,
 Long Beach,B3_Dusk,Barnacle,B3,3,Dusk,4/28/2024,19:35,4/29/2024,NA,NA,NA,,,20240429,,,,1.25,0.52,7.6,0.14,0.7,No TA used nut bag
 Long Beach,OO_Dusk7,Open Ocean,OO7,7,Dusk,4/29/2024,20:12,4/30/2024,16.965,-92.6,33.78,,2211.757144,20240429,,,,0.95,0.54,6.3,0.11,1.19,300ml Assume nut bags are used after this point I think
 Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,4/29/2024,20:17,4/30/2024,23.361,-92.5,34.33,,2195.07752,20240429,,,,,,,,,No nut
@@ -304,24 +304,24 @@ Long Beach,RW6_Dusk,Rockweed,RW6,6,Dusk,4/29/2024,20:17,4/30/2024,23.286,-90.2,3
 Long Beach,M6_Dawn,Mussel,M6,6,Dawn,5/1/2024,5:01,5/1/2024,21.705,-70.3,33.79,,,20240502,,,,,,,,,
 Long Beach,OO_Dawn8,Open Ocean,OO8,8,Dawn,5/1/2024,5:00,5/1/2024,21.259,-77.5,33.93,,2227.223284,20240502,,,,2.47,0.5,3.2,0.13,1.54,360 ml nutrient sample
 Long Beach,B2_Dawn,Barnacle,B2,2,Dawn,5/1/2024,5:01,5/1/2024,21.318,-78.2,33.58,,,20240502,,,,1.10,0.37,3.4,0.09,0.5,
-Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,5/1/2024,5:01,5/1/2024,21.211,-75.8,33.63,,2191.884791,20240502,,,,,,,,,
-Long Beach,M4_Dawn,Mussel,M4,4,Dawn,5/1/2024,5:01,5/1/2024,21.140,-77.7,33.50,,2227.115275,20240502,,,,,,,,,
+Long Beach,P1_Dawn,Surfgrass,P1,1,Dawn,5/1/2024,5:01,5/1/2024,21.211,-75.8,33.63,,2191.884791,20240502,,,,11.99,0.6,7.6,0.2,3.26,
+Long Beach,M4_Dawn,Mussel,M4,4,Dawn,5/1/2024,5:01,5/1/2024,21.140,-77.7,33.50,,2227.115275,20240502,,,,1.69,0.40,5.5,0.13,0.7,
 Long Beach,M2_Dawn,Mussel,M2,2,Dawn,5/1/2024,5:01,5/1/2024,21.305,-78.3,33.83,,,20240502,,,,,,,,,
 Long Beach,B6_Dawn,Barnacle,B6,6,Dawn,5/2/2024,6:02,5/2/2024,25.086,-77.4,34.71,,,20240502,,,,,,,,,"no TA, B1 from this day had tubes pulled up"
-Long Beach,M6_Dawn,Mussel,M6,6,Dawn,5/2/2024,6:02,5/2/2024,26.526,-76.9,34.08,,2209.436622,20240502,,,,,,,,,
+Long Beach,M6_Dawn,Mussel,M6,6,Dawn,5/2/2024,6:02,5/2/2024,26.526,-76.9,34.08,,2209.436622,20240502,,,,1.58,0.80,5.3,0.19,0.98,
 Long Beach,OO_Dawn9,Open Ocean,OO9,9,Dawn,5/2/2024,6:15,5/2/2024,24.896,-77,34.07,,2224.005767,20240502,,,,7.16,0.49,6.0,0.11,0.96,450 ml nutrient sample
 Long Beach,M3_Dawn,Mussel,M3,3,Dawn,5/2/2024,6:02,5/2/2024,26.201,-77.6,34.01,,2200.463046,20240502,,,,,,,,,
 Long Beach,RW3_Dusk,Rockweed,RW3,3,Dusk,5/2/2024,19:37,5/3/2024,22.871,-98.7,33.72,,2198.968869,20240502,,,,,,,,,Used TA bag
-Long Beach,M4_Dusk,Mussel,M4,4,Dusk,5/2/2024,19:37,5/3/2024,23.965,-92.2,34.06,,2207.755011,20240502,,,,,,,,,
+Long Beach,M4_Dusk,Mussel,M4,4,Dusk,5/2/2024,19:37,5/3/2024,23.965,-92.2,34.06,,2207.755011,20240502,,,,3.88,0.61,7.9,0.22,0.92,
 Long Beach,B2_Dusk,Barnacle,B2,2,Dusk,5/2/2024,19:37,5/3/2024,23.053,-94.6,34.01,,2208.979597,20240502,,,,2.20,0.5,6.4,0.14,0.8,
 Long Beach,M2_Dusk,Mussel,M2,2,Dusk,5/2/2024,19:37,5/3/2024,23.61,-91.9,34.11,,2188.280118,20240502,,,,,,,,,
 Long Beach,OO_Dusk8,Open Ocean,OO8,8,Dusk,5/2/2024,19:34,5/3/2024,11.878,-104.6,32.97,,2203.060221,20240502,,,,2.30,0.52,6.2,0.12,1.16,300 ml nutrients
 Long Beach,OO_Dawn10,Open Ocean,OO10,10,Dawn,5/4/2024,6:09,5/4/2024,21.644,-79.2,34.35,,2226.350307,20240502,,,,2.69,0.65,7.7,0.17,1.53,400 ml nutrients sample
 Long Beach,B2_Dawn,Barnacle,B2,2,Dawn,5/4/2024,6:00,5/4/2024,21.555,-80.1,33.75,,2210.151055,20240502,,,,1.78,0.48,7.4,0.18,1.26,
 Long Beach,M2_Dawn,Mussel,M2,2,Dawn,5/4/2024,6:00,5/4/2024,NA,NA,NA,,,20240502,,,,,,,,,No ta or nut
-Long Beach,M3_Dawn,Mussel,M3,3,Dawn,5/4/2024,6:00,5/4/2024,21.333,-81.7,33.66,,2242.085275,20240502,,,,,,,,,
-Long Beach,OO_Dawn11,Open Ocean,OO11,11,Dawn,5/5/2024,6:20,5/5/2024,20.550,-74.2,33.13,,2227.348439,20240506,,,,4.26,0.59,11.5,0.21,1.39,"450 ml nutrient sample, but have few mls of unfiltered, back up nutrients from capped Nalgene at 6:40 from the same Arizona tea scoop, backup sample data in drive "
+Long Beach,M3_Dawn,Mussel,M3,3,Dawn,5/4/2024,6:00,5/4/2024,21.333,-81.7,33.66,,2242.085275,20240502,,,,2.72,0.50,7.5,0.18,1.67,
+Long Beach,OO_Dawn11,Open Ocean,OO11,11,Dawn,5/5/2024,6:20,5/5/2024,20.550,-74.2,33.13,,2227.348439,20240506,,,,4.26,0.59,11.5,0.21,1.39,"450 ml nutrient sample, but have few mls of unfiltered, back up nutrients from capped Nalgene at 6:40 from the same Arizona tea scoop, backup sample data in drive"
 Long Beach,M2_Dawn,Mussel,M2,2,Dawn,5/5/2024,6:19,5/5/2024,20.475,-76.4,32.73,,2189.41394,20240506,,,,,,,,,"B1 from this day had TA pulled off, but B1 nutrients are good, there was some surf grass wrapped around B1"
-Long Beach,M3_Dawn,Mussel,M3,3,Dawn,5/5/2024,6:19,5/5/2024,20.045,-78,32.91,,2221.118266,20240506,,,,,,,,,
+Long Beach,M3_Dawn,Mussel,M3,3,Dawn,5/5/2024,6:19,5/5/2024,20.045,-78,32.91,,2221.118266,20240506,,,,2.31,0.53,8.9,0.22,1.22,
 Long Beach,RW3_Dusk,Rockweed,RW3,3,Dusk,5/5/2024,19:40,5/6/2024,23.184,-78.1,34.06,,,20240506,,,,,,,,,"no ta, nutrients not iced on ride over from field site"
 Long Beach,M2_Dusk,Mussel,M2,2,Dusk,5/5/2024,19:40,5/6/2024,21.295,-74.4,32.89,,2201.724854,20240506,,,,,,,,,No nut
