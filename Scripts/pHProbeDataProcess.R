@@ -75,17 +75,17 @@ write_csv(x = pHSlope, file = here("Data","Biogeochemistry","pHProbe_Data_calcul
 
 
 
-summ<-pHSlope %>% 
-  group_by(Benthos,Quad_ID) %>%
-  reframe(deltapH = abs(pH[Day_Night == "Day"] - pH[Day_Night == "Night"])) 
-
-
-summ %>%  
-ggplot(aes(x = Benthos, y = deltapH, color = Benthos))+
-  geom_boxplot()+
-  geom_jitter(width = 0.1)
-
-anova(lm(deltapH~Benthos, data = summ))
+# summ<-pHSlope %>% 
+#   group_by(Benthos,Quad_ID) %>%
+#   reframe(deltapH = abs(pH[Day_Night == "Day"] - pH[Day_Night == "Night"])) 
+# 
+# 
+# summ %>%  
+# ggplot(aes(x = Benthos, y = deltapH, color = Benthos))+
+#   geom_boxplot()+
+#   geom_jitter(width = 0.1)
+# 
+# anova(lm(deltapH~Benthos, data = summ))
 
 
 pHSlope %>%
@@ -178,9 +178,10 @@ pHSlope<-pHSlope %>%
 
 pHSlope%>%
   mutate( Month = month(Sampling_Date)) %>% # TA divided by DIC
-  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+  mutate(Season = case_when(Month %in% c(4,5)~"Spring",
+                            Month %in% c(7,8)~"Summer",
                             Month %in% c(10,11)~ "Fall")) %>%
-  filter(Benthos != "Open Ocean", Season == "Fall")%>%
+  filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = Benthos, y = deltapH, fill = Day_Night))+
   geom_hline(yintercept = 0, lty = 2)+
   geom_boxplot()+
@@ -201,9 +202,10 @@ ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 pHSlope%>%
   mutate( Month = month(Sampling_Date),
           Benthos = factor(Benthos, levels = c("Open Ocean","Barnacle","Mussel","Rockweed","Surfgrass"))) %>% # TA divided by DIC
-  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+  mutate(Season = case_when(Month %in% c(4,5)~"Spring",
+                            Month %in% c(7,8)~"Summer",
                             Month %in% c(10,11)~ "Fall")) %>%
-  filter(Season == "Fall",)%>%
+ # filter(Season == "Fall",)%>%
   ggplot(aes(x = Benthos, y = pH, fill = Day_Night))+
    geom_boxplot()+
   geom_jitter(position = position_dodge(width = .8))+
@@ -215,7 +217,8 @@ pHSlope%>%
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
-        axis.text = element_text(size = 14))
+        axis.text = element_text(size = 14))+
+  facet_wrap(~Season)
 
 ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 
@@ -223,13 +226,14 @@ ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 meanocean<-pHSlope %>%
   mutate(Benthos = factor(Benthos, levels = c("Open Ocean","Barnacle","Mussel","Rockweed","Surfgrass")),
     Month = month(Sampling_Date))%>%
-  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+  mutate(Season = case_when(Month %in% c(4,5)~"Spring",
+                            Month %in% c(7,8)~"Summer",
                             Month %in% c(10,11)~ "Fall")) %>%
   filter(
-         Season == "Fall",
+       #  Season == "Fall",
          PO4<1,
          NH4 <4)%>%
-  group_by(Benthos, Day_Night)%>%
+  group_by(Benthos, Day_Night, Season)%>%
   summarise(pH_mean = mean(pH, na.rm = TRUE),
             pH_se = sd(pH, na.rm = TRUE)/sqrt(n()),
             NO3_mean = mean(NO3, na.rm = TRUE),
@@ -246,192 +250,184 @@ meanocean<-pHSlope %>%
   )
 
 
-## sample plot but means and errorbars instead - shaded reagoin is mean and error for the ocean sample
+## sample plot but means and errorbars instead - shaded regoin is mean and error for the ocean sample
 pH_plotmean<-meanocean%>%
   filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = as.numeric(Benthos), y = pH_mean, color = Day_Night))+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 7.90-0.00829 ,
-                ymax = 7.90+0.00829) ,
-                fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 8.09-0.0109 ,
-                ymax = 8.09+0.0109) ,
-            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
-  geom_hline(yintercept = 7.9, lty = 2)+
-  
-  geom_hline(yintercept = 8.09, lty = 2)+
+  geom_rect(data = meanocean %>% filter(Benthos == "Open Ocean"), 
+            aes(xmin = 1.6, 
+                xmax = 5.4 ,
+                ymin = pH_mean-pH_se ,
+                ymax = pH_mean+pH_se,
+                fill = Day_Night) ,
+               alpha = 0.1, show.legend = FALSE)+
+  geom_hline(data = meanocean %>% filter(Benthos == "Open Ocean"), aes(yintercept = pH_mean, color = Day_Night), lty = 2)+
   geom_point(size = 4)+
   geom_errorbar(aes(x = as.numeric(Benthos), ymin = pH_mean-pH_se, ymax =pH_mean+pH_se), width = 0.01, size = 1.2)+
   labs(y = "pH ",
        x = "",
        color = "")+
   scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
   scale_x_continuous(breaks=c(2,3,4,5),
-                   labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+                   labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"),
+                   limits =c(1.5, 5.5) 
+                    )+
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14),
-        )
+        )+
+  facet_wrap(~Season)
 
 
-#ggsave(filename = here("Output","pH_plotmean.png"),pH_plotmean, width = 6, height = 4)
+ggsave(filename = here("Output","pH_plotmean.png"),pH_plotmean, width = 6, height = 4)
 
 
 NO3_plotmean<-meanocean%>%
   filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = as.numeric(Benthos), y = NO3_mean, color = Day_Night))+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 1.44-0.320  ,
-                ymax = 1.44+0.320 ) ,
-            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 2.18 -0.225  ,
-                ymax = 2.18 +0.225 ) ,
-            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
-  geom_hline(yintercept = 1.44, lty = 2)+
-  
-  geom_hline(yintercept = 2.18, lty = 2)+
-  geom_point(size = 4)+
+  geom_rect(data = meanocean %>% filter(Benthos == "Open Ocean"), 
+            aes(xmin = 1.6, 
+                xmax = 5.4 ,
+                ymin = NO3_mean-NO3_se ,
+                ymax = NO3_mean+NO3_se,
+                fill = Day_Night) ,
+            alpha = 0.1, show.legend = FALSE)+
+  geom_hline(data = meanocean %>% filter(Benthos == "Open Ocean"), aes(yintercept = NO3_mean, color = Day_Night), lty = 2)+
+   geom_point(size = 4)+
   geom_errorbar(aes(x = as.numeric(Benthos), ymin = NO3_mean-NO3_se, ymax =NO3_mean+NO3_se), width = 0.01, size = 1.2)+
   labs(y = "NO3 ",
        x = "",
        color = "")+
   scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
   scale_x_continuous(breaks=c(2,3,4,5),
                      labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14),
-  )
+  )+
+  facet_wrap(~Season)
 
 
 PO4_plotmean<-meanocean%>%
   filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = as.numeric(Benthos), y = PO4_mean, color = Day_Night))+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 0.375 -0.0184   ,
-                ymax = 0.375 +0.0184  ) ,
-            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 0.438 -0.0261   ,
-                ymax = 0.438 +0.0261  ) ,
-            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
-  geom_hline(yintercept = 0.375, lty = 2)+
-  
-  geom_hline(yintercept = 0.438, lty = 2)+
+  geom_rect(data = meanocean %>% filter(Benthos == "Open Ocean"), 
+            aes(xmin = 1.6, 
+                xmax = 5.4 ,
+                ymin = PO4_mean-PO4_se ,
+                ymax = PO4_mean+PO4_se,
+                fill = Day_Night) ,
+            alpha = 0.1, show.legend = FALSE)+
+  geom_hline(data = meanocean %>% filter(Benthos == "Open Ocean"), aes(yintercept = PO4_mean, color = Day_Night), lty = 2)+
   geom_point(size = 4)+
   geom_errorbar(aes(x = as.numeric(Benthos), ymin = PO4_mean-PO4_se, ymax =PO4_mean+PO4_se), width = 0.01, size = 1.2)+
   labs(y = "PO4 ",
        x = "",
        color = "")+
   scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
   scale_x_continuous(breaks=c(2,3,4,5),
-                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"),
+                     limits =c(1.5, 5.5) 
+  )+
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14),
-  )
+  )+
+  facet_wrap(~Season)
+
 
 NH4_plotmean<-meanocean%>%
   filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = as.numeric(Benthos), y = NH4_mean, color = Day_Night))+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 1.21-  0.147   ,
-                ymax = 1.21 + 0.147  ) ,
-            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 1.23 - 0.286   ,
-                ymax = 1.23 + 0.286  ) ,
-            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
-  geom_hline(yintercept = 1.21, lty = 2)+
-  
-  geom_hline(yintercept = 1.23, lty = 2)+
+  geom_rect(data = meanocean %>% filter(Benthos == "Open Ocean"), 
+            aes(xmin = 1.6, 
+                xmax = 5.4 ,
+                ymin = NH4_mean-NH4_se ,
+                ymax = NH4_mean+NH4_se,
+                fill = Day_Night) ,
+            alpha = 0.1, show.legend = FALSE)+
+  geom_hline(data = meanocean %>% filter(Benthos == "Open Ocean"), aes(yintercept = NH4_mean, color = Day_Night), lty = 2)+
   geom_point(size = 4)+
   geom_errorbar(aes(x = as.numeric(Benthos), ymin = NH4_mean-NH4_se, ymax =NH4_mean+NH4_se), width = 0.01, size = 1.2)+
   labs(y = "NH4 ",
        x = "",
        color = "")+
   scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
   scale_x_continuous(breaks=c(2,3,4,5),
-                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"),
+                     limits =c(1.5, 5.5) 
+  )+
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14),
-  )
+  )+
+  facet_wrap(~Season)
 
 SIL_plotmean<-meanocean%>%
   filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = as.numeric(Benthos), y = SIL_mean, color = Day_Night))+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 4.78 - 0.343   ,
-                ymax = 4.78 + 0.343  ) ,
-            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 5.28 - 0.355   ,
-                ymax = 5.28 + 0.355  ) ,
-            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
-  geom_hline(yintercept = 4.78, lty = 2)+
-  
-  geom_hline(yintercept = 5.28, lty = 2)+
+  geom_rect(data = meanocean %>% filter(Benthos == "Open Ocean"), 
+            aes(xmin = 1.6, 
+                xmax = 5.4 ,
+                ymin = SIL_mean-SIL_se ,
+                ymax = SIL_mean+SIL_se,
+                fill = Day_Night) ,
+            alpha = 0.1, show.legend = FALSE)+
+  geom_hline(data = meanocean %>% filter(Benthos == "Open Ocean"), aes(yintercept = SIL_mean, color = Day_Night), lty = 2)+
   geom_point(size = 4)+
   geom_errorbar(aes(x = as.numeric(Benthos), ymin = SIL_mean-SIL_se, ymax =SIL_mean+SIL_se), width = 0.01, size = 1.2)+
-  labs(y = "Silicate ",
+  labs(y = "SIL ",
        x = "",
        color = "")+
   scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
   scale_x_continuous(breaks=c(2,3,4,5),
-                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"),
+                     limits =c(1.5, 5.5) 
+  )+
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14),
-  )
+  )+
+  facet_wrap(~Season)
 
 TA_plotmean<-meanocean%>%
   filter(Benthos != "Open Ocean")%>%
   ggplot(aes(x = as.numeric(Benthos), y = TA_mean, color = Day_Night))+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 2222. - 1.76   ,
-                ymax = 2222.  +1.76  ) ,
-            fill = "#DCC27A", alpha = 0.1, show.legend = FALSE)+
-  geom_rect(aes(xmin = 1.9 , 
-                xmax = 5.1 ,
-                ymin = 2204- 4.61   ,
-                ymax = 2204+  4.61 ) ,
-            fill = "#B0B9BE", alpha = 0.1, show.legend = FALSE)+
-  geom_hline(yintercept = 2222., lty = 2)+
-  
-  geom_hline(yintercept = 2204, lty = 2)+
+  geom_rect(data = meanocean %>% filter(Benthos == "Open Ocean"), 
+            aes(xmin = 1.6, 
+                xmax = 5.4 ,
+                ymin = TA_mean-TA_se ,
+                ymax = TA_mean+TA_se,
+                fill = Day_Night) ,
+            alpha = 0.1, show.legend = FALSE)+
+  geom_hline(data = meanocean %>% filter(Benthos == "Open Ocean"), aes(yintercept = TA_mean, color = Day_Night), lty = 2)+
   geom_point(size = 4)+
   geom_errorbar(aes(x = as.numeric(Benthos), ymin = TA_mean-TA_se, ymax =TA_mean+TA_se), width = 0.01, size = 1.2)+
   labs(y = "TA ",
        x = "",
        color = "")+
   scale_color_manual(values = cal_palette("chaparral1"))+
+  scale_fill_manual(values = cal_palette("chaparral1"))+
   scale_x_continuous(breaks=c(2,3,4,5),
-                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"))+
+                     labels=c("Barnacle", "Mussel", "Rockweed","Surfgrass"),
+                     limits =c(1.5, 5.5) 
+  )+
   #scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(axis.title = element_text(size = 16),
         axis.text = element_text(size = 14),
-  )
-
+  )+
+  facet_wrap(~Season)
 
 (pH_plotmean+TA_plotmean)/(NO3_plotmean+NH4_plotmean)/(SIL_plotmean+ PO4_plotmean) +plot_layout(guides = 'collect') +plot_annotation(tag_levels = "a")
 
@@ -526,7 +522,8 @@ AllCO2 <- pHSlope %>%
          DIC_norm = DIC*Salinity/33,# salinity normalize
          TA_DIC = TA/DIC,
          Month = month(Sampling_Date)) %>% # TA divided by DIC
-  mutate(Season = case_when(Month %in% c(7,8)~"Summer",
+  mutate(Season = case_when(Month %in% c(4,5)~"Spring",
+                            Month %in% c(7,8)~"Summer",
                             Month %in% c(10,11)~ "Fall"))
 
 # make the TA vs DIC plots
@@ -549,10 +546,12 @@ ggsave(here("Output","TADIC.png"), width = 6, height = 4)
   #facet_wrap(~Benthos)
 
 AllCO2 %>%
+  filter(TA <2300)%>%
   # filter(Benthos !="Open Ocean") %>%
-  ggplot(aes(x = DIC, y = TA, color = Season))+
+  ggplot(aes(x = DIC, y = TA, color = Benthos))+
   geom_point()+
-  geom_smooth(method = "lm",se = FALSE)
+  geom_smooth(method = "lm",se = FALSE)+
+  facet_wrap(~Season)
 
 # run an ancova to see if the slopes are different
 TADICmod<-lm(TA~DIC*Benthos*Season, data = AllCO2 %>%filter(Benthos !="Open Ocean") )
@@ -642,8 +641,9 @@ AllCO2 %>%
   geom_boxplot()
 
 AllCO2 %>%
-  ggplot(aes(x = TempInSitu, y = deltapH, color = Season))+
-  geom_point()+
+  filter(deltapH > -0.4)%>%
+  ggplot(aes(x = TempInSitu, y = deltapH))+
+  geom_point(aes(color = Season))+
   geom_smooth(method = "lm")+
   facet_wrap(~Benthos)
 
