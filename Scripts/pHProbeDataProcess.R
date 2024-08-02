@@ -23,6 +23,9 @@ pHData<-read_csv(here("Data","Biogeochemistry","pHProbe_Data.csv"))%>%
   mutate(TrisCalDate = ymd(TrisCalDate),
          Sampling_Date = mdy(Sampling_Date))
 
+# read in the fDOM data
+fDOM <- read_csv(here("Data", "Biogeochemistry","fDOM_clean.csv"))
+
 # Needed for phosphate data
 
 
@@ -870,3 +873,5 @@ p2_loadings<-PC_loadings %>%
         axis.text = element_text(size = 16))
 
 scores_plot+p2_loadings
+
+
