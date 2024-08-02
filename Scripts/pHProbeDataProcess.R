@@ -1004,16 +1004,19 @@ AllData%>%
          Benthos != "Open Ocean") %>%
   mutate(Humics = UVHumic+MarineHumic+VisibleHumic,
          Prot = Tryptophan+Tyrosine+Phenylalanine)%>%
-  select(Benthos, Season,UniqueID, Humics, Prot) %>%
-  group_by(Benthos, Season) %>%
-  summarise(mean_humics = mean(Humics, na.rm = TRUE),
-            se_humics = sd(Humics, na.rm = TRUE)/sqrt(n()))%>%
+  select(Benthos, Season,UniqueID, Humics, Prot, NO3:NH4, TA) %>%
+  pivot_longer(cols = Humics:TA)%>%
+  group_by(name, Benthos, Season) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE),
+            se_value = sd(value, na.rm = TRUE)/sqrt(n()))%>%
   mutate(Season = factor(Season, levels = c("Spring","Summer","Fall")))%>%
-  ggplot(aes(color = Benthos, y = mean_humics, x = Season))+
+  ggplot(aes(color = Benthos, y = mean_value, x = Season))+
   geom_point(size = 3)+
-  geom_errorbar(aes(ymin = mean_humics - se_humics, ymax = mean_humics+se_humics), width = 0.1)+
+  geom_errorbar(aes(ymin = mean_value - se_value, ymax = mean_value+se_value), width = 0.1)+
   scale_color_manual(values = c("grey","black","darkseagreen","aquamarine4"))+
   labs(x = "",
-       y = "Mean Humic fDOM (Raman)")+
-  theme_bw()
-ggsave(here("Output", "Humicplot.png"), width = 5, height = 5)  
+       y = "Mean value")+
+  theme_bw()+
+  facet_wrap(~name, scales = "free")
+
+ggsave(here("Output", "MeansAllplot.png"), width = 5, height = 5)  
