@@ -874,4 +874,146 @@ p2_loadings<-PC_loadings %>%
 
 scores_plot+p2_loadings
 
+# join with teh fDOm data
+AllData<- AllCO2 %>%
+  full_join(fDOM %>%
+              mutate(Sampling_Date = mdy(Sampling_Date)))
 
+
+### visualize the fDOM data for big outliers
+
+## look at the fDOM Data
+fDOM_only<-AllData%>%
+  filter(Tryptophan < 0.4) %>% # there are a few outliers
+ # filter(Benthos != "Open Ocean")%>%
+  drop_na(UVHumic:Phenylalanine, BIX, HIX, M_to_C) %>%
+  #filter(NO3 < 3)%>%
+  # drop_na( NO3, PO4, SIL, NO2, NH4, pH, TA)%>%
+  select(UVHumic:Phenylalanine, BIX, HIX, M_to_C)
+
+AllData%>%
+   drop_na(UVHumic:M_to_C) %>%
+   select(Benthos, Season,UniqueID, UVHumic:M_to_C) %>%
+  pivot_longer(cols = UVHumic:M_to_C) %>%
+  ggplot(aes(x = value))+
+  geom_histogram()+
+  facet_wrap(~name, scales = "free")
+
+pca<-prcomp(fDOM_only,scale. = TRUE, center = TRUE )
+
+# calculate percent explained by each PC
+perc.explained<-round(100*pca$sdev/sum(pca$sdev),1)
+
+# Extract the scores and loadings
+PC_scores<-as_tibble(pca$x[,1:2])
+
+
+PC_loadings<-as_tibble(pca$rotation) %>%
+  bind_cols(labels = rownames(pca$rotation))
+
+
+pca_all<-AllData %>%
+  filter(Tryptophan < 0.4) %>%
+ # filter(Benthos != "Open Ocean")%>%
+  # filter(NO3 < 3)%>%
+  drop_na(UVHumic:M_to_C)%>%
+  bind_cols(PC_scores)
+
+scores_plot<-pca_all %>%
+  mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
+  ggplot(aes(x = PC1, y = PC2, color =  Benthos))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  # scale_shape_manual(values = c(1, 22,15,16))+
+  # scale_colour_manual(values = c("#D64550","#EA9E8D"))+
+  # scale_fill_manual(values = c("#D64550","#EA9E8D"))+
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  ggforce::geom_mark_ellipse(
+    aes(#fill = Tide, 
+      label = paste(Benthos), color =Benthos), 
+    alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
+  geom_point(size = 2) +
+  labs(
+    x = paste0("PC1 ","(",perc.explained[1],"%)"),
+    #x = "",
+    y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  theme_bw()+
+  theme(legend.position = "none",
+        # axis.text.x = element_blank(),
+        #  axis.ticks.x = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16),
+        plot.title = element_text(hjust = 0.5, size = 18),
+        strip.background = element_blank(),
+       # strip.text = element_blank()
+        )+
+  facet_wrap(~Season, nrow=3)
+
+
+## loadings plots
+p2_loadings<-PC_loadings %>%
+  ggplot(aes(x=PC1+0.1, y=PC2+0.1, label=labels))+
+  geom_text(aes(x = PC1, y = PC2 ), show.legend = FALSE, size = 5) +
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  geom_segment(data = PC_loadings, aes(x=0,y=0,xend=PC1,yend=PC2),size = 1.2,
+               arrow=arrow(length=unit(0.1,"cm")))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  labs(color ="",
+       # y = "",
+       x = paste0("PC1 ","(",perc.explained[1],"%)"),
+       y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  #  scale_color_manual(values = wes_palette("Darjeeling1"))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        #legend.position = c(0.75, 0.75),
+        legend.position = "none",
+        legend.text = element_markdown(size = 16),
+        legend.key.size = unit(1, 'cm'),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16))
+
+scores_plot+p2_loadings
+
+
+AllData%>%
+  #drop_na(UVHumic:M_to_C) %>%
+  filter(Tryptophan < 0.4,
+         Benthos != "Open Ocean") %>%
+  mutate(Humics = UVHumic+MarineHumic+VisibleHumic,
+         Prot = Tryptophan+Tyrosine+Phenylalanine)%>%
+  select(Benthos, Season,UniqueID, Humics, Prot) %>%
+  pivot_longer(cols = Humics:Prot) %>%
+  group_by(name, Benthos, Season) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE),
+            se_value = sd(value, na.rm = TRUE)/sqrt(n()))%>%
+  ggplot(aes(color = Benthos, y = mean_value, x = Season))+
+  geom_point(size = 3)+
+  geom_errorbar(aes(ymin = mean_value - se_value, ymax = mean_value+se_value), width = 0.1)+
+  facet_wrap(~name, scales = "free")+
+  theme_bw()
+
+
+
+AllData%>%
+  #drop_na(UVHumic:M_to_C) %>%
+  filter(Tryptophan < 0.4,
+         Benthos != "Open Ocean") %>%
+  mutate(Humics = UVHumic+MarineHumic+VisibleHumic,
+         Prot = Tryptophan+Tyrosine+Phenylalanine)%>%
+  select(Benthos, Season,UniqueID, Humics, Prot) %>%
+  group_by(Benthos, Season) %>%
+  summarise(mean_humics = mean(Humics, na.rm = TRUE),
+            se_humics = sd(Humics, na.rm = TRUE)/sqrt(n()))%>%
+  mutate(Season = factor(Season, levels = c("Spring","Summer","Fall")))%>%
+  ggplot(aes(color = Benthos, y = mean_humics, x = Season))+
+  geom_point(size = 3)+
+  geom_errorbar(aes(ymin = mean_humics - se_humics, ymax = mean_humics+se_humics), width = 0.1)+
+  scale_color_manual(values = c("grey","black","darkseagreen","aquamarine4"))+
+  labs(x = "",
+       y = "Mean Humic fDOM (Raman)")+
+  theme_bw()
+ggsave(here("Output", "Humicplot.png"), width = 5, height = 5)  
