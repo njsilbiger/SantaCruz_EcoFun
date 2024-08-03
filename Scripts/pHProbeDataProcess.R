@@ -14,6 +14,9 @@ library(interactions)
 library(sandwich)
 library(patchwork)
 library(ggtext)
+library(lme4)
+library(lmerTest)
+library(ggh4x)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -76,7 +79,9 @@ pHSlope$TempInSitu[NoTemp]<-NA # make TA na again for the missing values
 ## write the data
 write_csv(x = pHSlope, file = here("Data","Biogeochemistry","pHProbe_Data_calculated.csv"))
 
-
+pHSlope <- pHSlope %>%
+  filter(NH4 <4,
+         NO3 < 10) # remove some of the outlier
 
 # summ<-pHSlope %>% 
 #   group_by(Benthos,Quad_ID) %>%
@@ -227,6 +232,11 @@ ggsave(here("Output","pHdifference.png"), width = 8, height = 6)
 
 
 meanocean<-pHSlope %>%
+  filter(#Tryptophan < 0.4,
+         NH4 <4,
+         NO3 < 10,
+         # Benthos != "Open Ocean"
+  ) %>%
   mutate(Benthos = factor(Benthos, levels = c("Open Ocean","Barnacle","Mussel","Rockweed","Surfgrass")),
     Month = month(Sampling_Date))%>%
   mutate(Season = case_when(Month %in% c(4,5)~"Spring",
@@ -644,11 +654,26 @@ AllCO2 %>%
   geom_boxplot()
 
 AllCO2 %>%
-  filter(deltapH > -0.4)%>%
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  )) %>%
+  filter(deltapH > -0.4,
+         Benthos != "Open Ocean")%>%
   ggplot(aes(x = TempInSitu, y = deltapH))+
-  geom_point(aes(color = Season))+
+  geom_point()+
   geom_smooth(method = "lm")+
-  facet_wrap(~Benthos)
+  facet_wrap(~plant_animal)
+
+PA<-lm(deltapH ~ TempInSitu*plant_animal , data = AllCO2 %>%
+         mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                          Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                          Benthos == "Open Ocean"~"Open Ocean"
+         )))
+
+anova(PA)
+summary(PA)
+
 
 #ANCOVA temp to pH
 Muss<-lm(deltapH ~ TempInSitu*Season, data = AllCO2 %>% filter(Benthos == "Mussel"))
@@ -681,21 +706,60 @@ summary(mod_pH_Temp)
 AllCO2 %>%
   filter(NO3<6,
          PO4<1,
-         NH4 <6)%>%
-  ggplot(aes(x = TempInSitu, y = (NH4), color = Benthos))+
+         NH4 <6,
+         Benthos != "Open Ocean")%>%
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  ))%>%
+  ggplot(aes(x = TempInSitu, y = (deltaNH4), color = plant_animal))+
   geom_point()+
   geom_smooth(method = "lm")+
-  facet_wrap(~Benthos, scale = "free")
+  facet_wrap(~plant_animal, scale = "free")
+
+deltaNH4<-lm(deltaNH4~TempInSitu*plant_animal, data = AllCO2 %>%
+               filter(NO3<6,
+                      PO4<1,
+                      NH4 <6,
+                      Benthos != "Open Ocean")%>%
+               mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                                Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                                Benthos == "Open Ocean"~"Open Ocean"
+               )))
+anova(deltaNH4)
+summary(deltaNH4)
+
 
 AllCO2 %>%
   filter(NO3<6,
          PO4<1,
-         NH4 <6)%>%
-  ggplot(aes(x = TempInSitu, y = NO2))+
+         NH4 <6,
+         Benthos != "Open Ocean")%>%
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  ))%>%
+  ggplot(aes(x = TempInSitu, y = deltaNO3))+
   geom_point()+
   geom_smooth(method = "lm")+
-  facet_wrap(~Benthos, scale = "free")
+  facet_wrap(~plant_animal)
 
+deltaNO3<-lm(deltaNO3~TempInSitu*plant_animal, data = AllCO2 %>%
+               filter(NO3<6,
+                      PO4<1,
+                      NH4 <6,
+                      Benthos != "Open Ocean")%>%
+               mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                                Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                                Benthos == "Open Ocean"~"Open Ocean"
+               )))
+anova(deltaNO3)
+summary(deltaNO3)
+
+AllCO2 <-AllCO2 %>%
+  filter(NO3<6,
+         PO4<1,
+         NH4 <6)
 
 AllCO2 %>%
   mutate(Ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic")) %>%
@@ -711,7 +775,8 @@ chem_only<-AllCO2 %>%
   drop_na(pH, TA, DIC, pCO2, CO2, CO3, HCO3) %>%
   #filter(NO3 < 3)%>%
  # drop_na( NO3, PO4, SIL, NO2, NH4, pH, TA)%>%
-  select(pH, TA, DIC, pCO2, CO2, CO3, HCO3)
+  filter(Season != "Summer") %>%
+  select(pH, TA, DIC, pCO2, CO2, CO3, HCO3) 
 
 pca<-prcomp(chem_only,scale. = TRUE, center = TRUE )
 
@@ -727,13 +792,18 @@ PC_loadings<-as_tibble(pca$rotation) %>%
 
 
 pca_all<-AllCO2 %>%
+  filter(Season != "Summer") %>%
  # filter(NO3 < 3)%>%
   drop_na( pH, TA, DIC, pCO2, CO2, CO3, HCO3)%>%
   bind_cols(PC_scores)
 
 scores_plot<-pca_all %>%
   mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
-  ggplot(aes(x = PC1, y = PC2, color =  ocean_not))+
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  ))%>%
+  ggplot(aes(x = PC1, y = PC2, color =  plant_animal))+
   # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
   # scale_shape_manual(values = c(1, 22,15,16))+
   # scale_colour_manual(values = c("#D64550","#EA9E8D"))+
@@ -742,7 +812,7 @@ scores_plot<-pca_all %>%
   geom_vline(xintercept = 0, lty = 2)+
   ggforce::geom_mark_ellipse(
     aes(#fill = Tide, 
-      label = paste(ocean_not), color =ocean_not), 
+      label = paste(plant_animal), color =plant_animal), 
     alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
   geom_point(size = 2) +
   labs(
@@ -759,8 +829,9 @@ scores_plot<-pca_all %>%
         axis.text = element_text(size = 16),
         plot.title = element_text(hjust = 0.5, size = 18),
         strip.background = element_blank(),
-        strip.text = element_blank())+
-  facet_wrap(~Season, nrow=2)
+       # strip.text = element_blank()
+      )+
+  facet_wrap(~Day_Night, nrow=2)
 
 
 ## loadings plots
@@ -791,6 +862,7 @@ scores_plot+p2_loadings
 
 ## PCA with nuts
 chem_only<-AllCO2 %>%
+  filter(Season != "Summer") %>%
   drop_na(NO3, NO2, NH4, PO4, SIL) %>%
   filter(NO3 < 3,
          PO4 < 3)%>%
@@ -811,6 +883,7 @@ PC_loadings<-as_tibble(pca$rotation) %>%
 
 
 pca_all<-AllCO2 %>%
+  filter(Season != "Summer") %>%
    filter(NO3 < 3,
           PO4 < 3)%>%
   drop_na( NO3, NO2, NH4, PO4, SIL)%>%
@@ -818,6 +891,10 @@ pca_all<-AllCO2 %>%
 
 scores_plot<-pca_all %>%
   mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  ))%>%
   ggplot(aes(x = PC1, y = PC2, color =  ocean_not))+
   # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
   # scale_shape_manual(values = c(1, 22,15,16))+
@@ -884,7 +961,10 @@ AllData<- AllCO2 %>%
 
 ## look at the fDOM Data
 fDOM_only<-AllData%>%
-  filter(Tryptophan < 0.4) %>% # there are a few outliers
+  filter(Tryptophan < 0.4,
+        NO3<6,
+        PO4<1,
+        NH4 <6) %>% # there are a few outliers
  # filter(Benthos != "Open Ocean")%>%
   drop_na(UVHumic:Phenylalanine, BIX, HIX, M_to_C) %>%
   #filter(NO3 < 3)%>%
@@ -913,7 +993,10 @@ PC_loadings<-as_tibble(pca$rotation) %>%
 
 
 pca_all<-AllData %>%
-  filter(Tryptophan < 0.4) %>%
+  filter(Tryptophan < 0.4,
+         NO3<6,
+         PO4<1,
+         NH4 <6) %>%
  # filter(Benthos != "Open Ocean")%>%
   # filter(NO3 < 3)%>%
   drop_na(UVHumic:M_to_C)%>%
@@ -921,6 +1004,10 @@ pca_all<-AllData %>%
 
 scores_plot<-pca_all %>%
   mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  ))%>%
   ggplot(aes(x = PC1, y = PC2, color =  Benthos))+
   # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
   # scale_shape_manual(values = c(1, 22,15,16))+
@@ -928,10 +1015,10 @@ scores_plot<-pca_all %>%
   # scale_fill_manual(values = c("#D64550","#EA9E8D"))+
   geom_hline(yintercept = 0, lty = 2)+
   geom_vline(xintercept = 0, lty = 2)+
-  ggforce::geom_mark_ellipse(
-    aes(#fill = Tide, 
-      label = paste(Benthos), color =Benthos), 
-    alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
+  # ggforce::geom_mark_ellipse(
+  #   aes(#fill = Tide, 
+  #     label = paste(plant_animal), color =plant_animal), 
+  #   alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
   geom_point(size = 2) +
   labs(
     x = paste0("PC1 ","(",perc.explained[1],"%)"),
@@ -978,10 +1065,16 @@ p2_loadings<-PC_loadings %>%
 
 scores_plot+p2_loadings
 
+### reorder the benthic data
+AllData <- AllData %>%
+  mutate(Benthos = factor(Benthos, levels = c("Mussel","Barnacle","Rockweed","Surfgrass","Open Ocean")))
+
+
 
 AllData%>%
   #drop_na(UVHumic:M_to_C) %>%
   filter(Tryptophan < 0.4,
+         NO3 < 10,
          Benthos != "Open Ocean") %>%
   mutate(Humics = UVHumic+MarineHumic+VisibleHumic,
          Prot = Tryptophan+Tyrosine+Phenylalanine)%>%
@@ -998,25 +1091,128 @@ AllData%>%
 
 
 
-AllData%>%
+AllData<- AllData %>%
+  mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+                                   Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+                                   Benthos == "Open Ocean"~"Open Ocean"
+  )) 
+
+AllData %>%
   #drop_na(UVHumic:M_to_C) %>%
   filter(Tryptophan < 0.4,
-         Benthos != "Open Ocean") %>%
+         NH4 <4,
+         NO3 < 10,
+        # Benthos != "Open Ocean"
+         ) %>%
   mutate(Humics = UVHumic+MarineHumic+VisibleHumic,
-         Prot = Tryptophan+Tyrosine+Phenylalanine)%>%
-  select(Benthos, Season,UniqueID, Humics, Prot, NO3:NH4, TA) %>%
-  pivot_longer(cols = Humics:TA)%>%
-  group_by(name, Benthos, Season) %>%
+         Prot = Tryptophan+Tyrosine+Phenylalanine,
+         NN = NO3+NO2)%>%
+  select(Benthos,plant_animal,Day_Night, Season,UniqueID, Humics, Prot, NN,NH4,SIL, PO4) %>%
+  pivot_longer(cols = Humics:PO4)%>%
+  group_by(name, plant_animal, Day_Night, Season) %>%
   summarise(mean_value = mean(value, na.rm = TRUE),
             se_value = sd(value, na.rm = TRUE)/sqrt(n()))%>%
   mutate(Season = factor(Season, levels = c("Spring","Summer","Fall")))%>%
-  ggplot(aes(color = Benthos, y = mean_value, x = Season))+
+  ggplot(aes(color = plant_animal, y = mean_value, x = Day_Night))+
   geom_point(size = 3)+
   geom_errorbar(aes(ymin = mean_value - se_value, ymax = mean_value+se_value), width = 0.1)+
-  scale_color_manual(values = c("grey","black","darkseagreen","aquamarine4"))+
+  scale_color_manual(values = c("black", "lightblue","darkseagreen"))+
+  #scale_color_manual(values = c("grey","black","darkseagreen","aquamarine4"))+
   labs(x = "",
+       color = "",
        y = "Mean value")+
   theme_bw()+
-  facet_wrap(~name, scales = "free")
+  facet_wrap(name~Season, scales = "free", ncol = 3)
 
 ggsave(here("Output", "MeansAllplot.png"), width = 5, height = 5)  
+
+AllData %>%
+  #drop_na(UVHumic:M_to_C) %>%
+  filter(Tryptophan < 0.4,
+         NO3 < 10,
+         # Benthos != "Open Ocean"
+  ) %>%
+  select(Benthos,plant_animal, Day_Night, Season,UniqueID, pH, TA) %>%
+  pivot_longer(cols = pH:TA)%>%
+  group_by(name, plant_animal, Season, Day_Night) %>%
+  summarise(mean_value = mean(value, na.rm = TRUE),
+            se_value = sd(value, na.rm = TRUE)/sqrt(n()))%>%
+  mutate(Season = factor(Season, levels = c("Spring","Summer","Fall")))%>%
+  ggplot(aes(color = plant_animal, y = mean_value, x = Day_Night))+
+  geom_point(size = 3)+
+  geom_errorbar(aes(ymin = mean_value - se_value, ymax = mean_value+se_value), width = 0.1)+
+  scale_color_manual(values = c("black", "lightblue","darkseagreen"))+
+  #scale_color_manual(values = c("grey","black","darkseagreen","aquamarine4"))+
+  labs(x = "",
+       color = "",
+       y = "Mean value")+
+  theme_bw()+
+  facet_wrap(name~Season, scales = "free")+
+  facetted_pos_scales(
+    y = rep(list(
+      scale_y_continuous(limits=c(7.85, 8.3)),
+      scale_y_continuous(limits=c(2160, 2235))
+    ), each = 3))
+
+## look for relationship between parameters
+
+P_slopes<- AllData%>%
+  #drop_na(UVHumic:M_to_C) %>%
+  filter(#Tryptophan < 0.4,
+         NO3 < 10) %>%
+  ggplot(aes(x = DIC, y = TA, color = Benthos))+
+  geom_point()+
+  geom_smooth(method = "lm",se = FALSE)+
+  labs(x = expression(paste("DIC (",mu,"mol kg"^-1,")")),
+       y = expression(paste("TA (",mu,"mol kg"^-1,")")))+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  theme_bw()+
+  theme(legend.position = "none",
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14))+
+  facet_wrap(~Benthos)
+
+
+model.TADIC<-lm(TA~DIC*Benthos , data = AllData%>%
+                  #drop_na(UVHumic:M_to_C) %>%
+                  filter(#Tryptophan < 0.4,
+                    NO3 < 10))
+
+anova(model.TADIC)
+summary(model.TADIC)
+
+# calculate marginal effects - add in season interaction here... 
+ss <- sim_slopes(model.TADIC, pred = DIC, modx = Benthos, johnson_neyman = FALSE)
+
+plot(ss)
+
+# extract the individual slopes
+slopes<-tibble(ss$slopes)
+colnames(slopes)[1]<-"Benthos"
+slopes<-slopes %>%
+  mutate(Benthos = factor(Benthos, levels = c("Mussel","Barnacle","Rockweed","Surfgrass","Open Ocean")))
+
+
+
+# make the plot
+P_estimate<-slopes %>%
+  ggplot(aes(y = fct_rev(Benthos), x = Est., color = Benthos))+
+  geom_point(size = 4)+
+  geom_errorbarh(aes(xmin = Est. - S.E.,xmax = Est. + S.E.  ), height = 0.01, linewidth = 1.5)+
+  scale_color_manual(values = cal_palette("chaparral1"))+
+  labs(x = "TA/DIC Slopes",
+       y = "")+
+  theme_bw()+
+  theme(legend.position = "none",
+        axis.title = element_text(size = 16),
+        axis.text = element_text(size = 14))
+# Type 2 linear regression
+
+# bring the TA DIC plots together
+P_slopes + P_estimate
+# make the TA vs DIC plots
+
+ggsave(here("Output","TADICestimates.png"), width = 12, height = 6)
+
+
+
