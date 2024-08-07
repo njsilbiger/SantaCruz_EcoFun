@@ -28,7 +28,7 @@ sessile_total <-sessile %>%
   ungroup()%>% # calculate percent cover
   mutate(across(c(Silvetia_compressa:Chondracanthus_canaliculatus),  ~ . /Total_hairs*100))%>%
   rename(BenthicID = plot, Season = season)%>% # keep consistent with other data
-  mutate(Season = factor(Season, levels = c("summer2023","fall2023","winter2024")))%>%
+  mutate(Season = factor(Season, levels = c("summer2023","fall2023","winter2024", "spring2024")))%>%
   mutate(Benthos = case_when( # add benthos name
     grepl("B", BenthicID) ~ "Barnacles",
     grepl("M", BenthicID) ~"Mussels",
@@ -45,7 +45,7 @@ sessile_total %>%
   left_join(sessile_function)%>%
   ggplot(aes(x = Season,y = Percent_Cover, fill = FunctionalGroup ))+
     geom_bar(position="stack", stat="identity")+
-  scale_fill_manual(values = cal_palette("tidepool", n = 13, type = "continuous"))+
+  scale_fill_manual(values = cal_palette("tidepool", n = 14, type = "continuous"))+
   labs(x = "",
        y = "% Cover",
        color = "")+
@@ -60,7 +60,7 @@ ggsave(here("Output","SessileComp.png"), width = 10, height = 6)
 mobile_density <-
   mobile %>%
   rename(BenthicID = plot, Season = season)%>% # keep consistent with other data
-  mutate(Season = factor(Season, levels = c("summer2023","fall2023","winter2024")))%>%
+  mutate(Season = factor(Season, levels = c("summer2023","fall2023","winter2024","spring2024")))%>%
   mutate(Benthos = case_when( # add benthos name
     grepl("B", BenthicID) ~ "Barnacles",
     grepl("M", BenthicID) ~"Mussels",
