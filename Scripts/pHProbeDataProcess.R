@@ -1160,11 +1160,11 @@ P_slopes<- AllData%>%
   #drop_na(UVHumic:M_to_C) %>%
   filter(#Tryptophan < 0.4,
          NO3 < 10) %>%
-  ggplot(aes(x = DIC, y = TA, color = Benthos))+
+  ggplot(aes(x = DIC_norm, y = TA_norm, color = Benthos))+
   geom_point()+
   geom_smooth(method = "lm",se = FALSE)+
-  labs(x = expression(paste("DIC (",mu,"mol kg"^-1,")")),
-       y = expression(paste("TA (",mu,"mol kg"^-1,")")))+
+  labs(x = expression(paste("DIC norm (",mu,"mol kg"^-1,")")),
+       y = expression(paste("TA norm (",mu,"mol kg"^-1,")")))+
   scale_color_manual(values = cal_palette("chaparral1"))+
   theme_bw()+
   theme(legend.position = "none",
@@ -1173,7 +1173,7 @@ P_slopes<- AllData%>%
   facet_wrap(~Benthos)
 
 
-model.TADIC<-lm(TA~DIC*Benthos , data = AllData%>%
+model.TADIC<-lm(TA_norm~DIC_norm*Benthos , data = AllData%>%
                   #drop_na(UVHumic:M_to_C) %>%
                   filter(#Tryptophan < 0.4,
                     NO3 < 10))
@@ -1215,4 +1215,23 @@ P_slopes + P_estimate
 ggsave(here("Output","TADICestimates.png"), width = 12, height = 6)
 
 
-
+AllData %>%
+   filter(#Tryptophan < 0.4,
+           NO3 < 10,
+           Benthos != "Open Ocean"
+           ) %>%
+  group_by(Benthos, Season, Quad_ID, Day_Night)%>%
+  summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC), .funs = function(x){mean(x, na.rm = TRUE)})%>%
+  bind_rows(AllData %>%
+              filter(Benthos == "Open Ocean") %>%
+              group_by(Benthos, Season, Day_Night)%>%
+              summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC), .funs = function(x){mean(x, na.rm = TRUE)})) %>%
+  pivot_longer(cols = pH:DIC) %>%
+  group_by(name, Season, Day_Night) %>%
+  mutate(diff = value - value[Benthos == "Open Ocean"] ) %>%
+  filter(Benthos != "Open Ocean") %>%
+  pivot_wider(names_from = name, values_from = c(value, diff)) %>%
+  
+  ggplot(aes(x = value_TempInSitu, y = value_diff_BIX))+
+  geom_point()+
+  facet_wrap(~Benthos, scales = "free")
