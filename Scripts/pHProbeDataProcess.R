@@ -31,6 +31,8 @@ fDOM <- read_csv(here("Data", "Biogeochemistry","fDOM_clean.csv"))
 
 # Needed for phosphate data
 
+# read the sessile community data 
+sessile_clean<-read_csv(here("Data","Community_Composition","Sessile_clean.csv"))
 
 ## take the mV calibration files by each date and use them to calculate pH
 pHSlope<-pHcalib %>%
@@ -1182,7 +1184,7 @@ anova(model.TADIC)
 summary(model.TADIC)
 
 # calculate marginal effects - add in season interaction here... 
-ss <- sim_slopes(model.TADIC, pred = DIC, modx = Benthos, johnson_neyman = FALSE)
+ss <- sim_slopes(model.TADIC, pred = DIC_norm, modx = Benthos, johnson_neyman = FALSE)
 
 plot(ss)
 
@@ -1228,10 +1230,45 @@ AllData %>%
               summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC), .funs = function(x){mean(x, na.rm = TRUE)})) %>%
   pivot_longer(cols = pH:DIC) %>%
   group_by(name, Season, Day_Night) %>%
-  mutate(diff = value - value[Benthos == "Open Ocean"] ) %>%
+  mutate(diff = value - value[Benthos == "Open Ocean"] ) %>% # calculate the differences with the mean value
   filter(Benthos != "Open Ocean") %>%
-  pivot_wider(names_from = name, values_from = c(value, diff)) %>%
+  pivot_wider(names_from = name, values_from = c(value, diff), names_glue = c("{name}_{.value}")) %>%
   
-  ggplot(aes(x = value_TempInSitu, y = value_diff_BIX))+
+  ggplot(aes(x = TempInSitu_value, y = BIX_diff))+
   geom_point()+
   facet_wrap(~Benthos, scales = "free")
+
+
+Chem_Comm<-AllData %>%
+  filter(#Tryptophan < 0.4,
+    NO3 < 10,
+    Benthos != "Open Ocean"
+  ) %>%
+  group_by(Benthos, Season, Quad_ID, Day_Night)%>%
+  summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC), .funs = function(x){mean(x, na.rm = TRUE)})%>%
+  bind_rows(AllData %>%
+              filter(Benthos == "Open Ocean") %>%
+              group_by(Benthos, Season, Day_Night)%>%
+              summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC), .funs = function(x){mean(x, na.rm = TRUE)})) %>%
+  pivot_longer(cols = pH:DIC) %>%
+  group_by(name, Season, Day_Night) %>%
+  mutate(diff = value - value[Benthos == "Open Ocean"] ) %>% # calculate the differences with the mean value
+  filter(Benthos != "Open Ocean") %>%
+  pivot_wider(names_from = name, values_from = c(value, diff), names_glue = c("{name}_{.value}")) %>%
+  left_join(sessile_clean %>%
+              mutate(Calcifiers = Mytilus_californianus +Corallinales_branching +Coralline_crust+Tetraclita_rubescens+Pollicipes_polymerus+`Balanus/Cthamalus_sp`+Thylacodes_squamigerus) %>%
+              select(Quad_ID, Benthos, Season, FoundationSp, Corallinales_branching, Coralline_crust, Calcifiers)) %>%
+  filter(TA_diff > -75)
+
+
+Chem_Comm %>%
+  filter(Calcifiers>0)%>%
+  ggplot(aes(x = Corallinales_branching,y = TA_diff))+
+  geom_point()+
+  geom_smooth(method ="lm")+
+  facet_wrap(~Benthos, scales = "free_x")
+
+
+mus_TA<- lm(TA_diff~Calcifiers,data = Chem_Comm %>%
+  filter(Benthos == "Mussel") )
+anova(mus_TA)

@@ -86,3 +86,21 @@ mobile_density %>%
   facet_wrap(~Benthos, scale = "free")
 
 ggsave(here("Output","MobileComp.png"), width = 10, height = 6)
+
+
+## rename the foundation species data to match the chemistry
+sessile_clean<-sessile_total %>%
+  rename(Quad_ID = BenthicID) %>%
+  mutate(Season = case_when(Season  == "fall2023"~"Fall",
+                            Season == "spring2024"~"Spring",
+                            Season == "summer2023"~"Summer",
+                            Season == "winter2024"~"Winter")) %>%
+  mutate(FoundationSp = case_when(Benthos == "Barnacles"~ `Balanus/Cthamalus_sp`,
+                                   Benthos == "Rockweed"~Silvetia_compressa,
+                                   Benthos == "Surfgrass"~Phyllospadix_sp,
+                                   Benthos == "Mussels"~Mytilus_californianus)) %>%  # add a column that is the cover of the foundation species for the right benthos
+  select(!Total_hairs) %>%
+  mutate(Benthos = ifelse(Benthos == "Mussels","Mussel",Benthos))%>%
+  mutate(Benthos = ifelse(Benthos == "Barnacles","Barnacle",Benthos))
+
+write_csv(x = sessile_clean, here("Data","Community_Composition","Sessile_clean.csv"))
