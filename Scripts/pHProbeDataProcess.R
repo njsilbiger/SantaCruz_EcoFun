@@ -1027,7 +1027,7 @@ scores_plot<-pca_all %>%
     #x = "",
     y = paste0("PC2 ","(",perc.explained[2],"%)"))+
   theme_bw()+
-  theme(legend.position = "none",
+  theme(#legend.position = "none",
         # axis.text.x = element_blank(),
         #  axis.ticks.x = element_blank(),
         panel.grid.major = element_blank(), 
@@ -1066,6 +1066,129 @@ p2_loadings<-PC_loadings %>%
         axis.text = element_text(size = 16))
 
 scores_plot+p2_loadings
+
+
+###### PCA with the average by quad ID
+
+QuadAvg<-AllData %>%
+    filter(Tryptophan < 0.4,
+         NO3<6,
+         PO4<1,
+         NH4 <6) %>%
+  group_by(Benthos, Season, Quad_ID)%>%
+  summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC, pCO2, OmegaAragonite, OmegaCalcite), .funs = function(x){mean(x, na.rm = TRUE)})%>%
+  bind_rows(AllData %>%
+              filter(Benthos == "Open Ocean") %>%
+              group_by(Benthos, Season)%>%
+              summarise_at(vars(pH:TA,NO3:NH4,UVHumic:M_to_C, TA_norm, DIC_norm, DIC, pCO2, OmegaAragonite, OmegaCalcite), .funs = function(x){mean(x, na.rm = TRUE)}))
+
+
+
+Quadpca<-QuadAvg %>%
+  filter(Benthos != "Open Ocean")%>%
+  ungroup()%>%
+   # drop_na( NO3, PO4, SIL, NO2, NH4, pH, TA)%>%
+  drop_na(pH, TA:FulvicAcid, Lignin) %>%
+  select(Season,UVHumic:FulvicAcid)
+# pH, TA, DIC, OmegaAragonite, OmegaCalcite, pCO2
+
+# scale the data by season
+Quad_scale<-Quadpca %>%
+  group_by(Season) %>%
+  mutate_all(.funs = scale)%>% # scale by season
+  mutate_all(.funs = as.numeric)%>% # make numeric
+  drop_na() %>%
+  ungroup() %>%
+  select(-Season)
+
+pca<-prcomp(Quad_scale)
+
+# calculate percent explained by each PC
+perc.explained<-round(100*pca$sdev/sum(pca$sdev),1)
+
+# Extract the scores and loadings
+PC_scores<-as_tibble(pca$x[,1:2])
+
+
+PC_loadings<-as_tibble(pca$rotation) %>%
+  bind_cols(labels = rownames(pca$rotation))
+
+
+pca_all<-QuadAvg %>%
+  filter(Benthos != "Open Ocean")%>%
+  ungroup()%>%
+  # drop_na( NO3, PO4, SIL, NO2, NH4, pH, TA)%>%
+  drop_na(pH, TA:FulvicAcid, Lignin) %>%
+#  select(Season,BIX:M_to_C)%>%
+  bind_cols(PC_scores)
+
+scores_plot<-pca_all %>%
+  # mutate(ocean_not = ifelse(Benthos == "Open Ocean", "Ocean","Benthic"))%>%
+  # mutate(plant_animal = case_when( Benthos %in% c("Mussel","Barnacle")~ "Consumer-dominated",
+  #                                  Benthos %in% c("Rockweed","Surfgrass")~ "Producer-dominated",
+  #                                  Benthos == "Open Ocean"~"Open Ocean"
+ # ))%>%
+  ggplot(aes(x = PC1, y = PC2, color =  Benthos))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  # scale_shape_manual(values = c(1, 22,15,16))+
+  # scale_colour_manual(values = c("#D64550","#EA9E8D"))+
+  # scale_fill_manual(values = c("#D64550","#EA9E8D"))+
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+ggforce::geom_mark_ellipse(
+    aes(#fill = Tide,
+      label = paste(Benthos), fill =Benthos),
+    alpha = .35, show.legend = FALSE,  label.buffer = unit(1, "mm"), con.cap=0, tol = 0.05)+
+  geom_point(size = 2) +
+  labs(
+    x = paste0("PC1 ","(",perc.explained[1],"%)"),
+    #x = "",
+    y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  theme_bw()+
+  theme(#legend.position = "none",
+    # axis.text.x = element_blank(),
+    #  axis.ticks.x = element_blank(),
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    plot.title = element_text(hjust = 0.5, size = 18),
+    strip.background = element_blank(),
+    # strip.text = element_blank()
+  )
+  #facet_wrap(~Season, nrow=3)
+
+
+## loadings plots
+p2_loadings<-PC_loadings %>%
+  ggplot(aes(x=PC1+0.1, y=PC2+0.1, label=labels))+
+  geom_text(aes(x = PC1, y = PC2 ), show.legend = FALSE, size = 5) +
+  geom_hline(yintercept = 0, lty = 2)+
+  geom_vline(xintercept = 0, lty = 2)+
+  geom_segment(data = PC_loadings, aes(x=0,y=0,xend=PC1,yend=PC2),size = 1.2,
+               arrow=arrow(length=unit(0.1,"cm")))+
+  # coord_cartesian(xlim = c(-8, 8), ylim = c(-8, 8)) +
+  labs(color ="",
+       # y = "",
+       x = paste0("PC1 ","(",perc.explained[1],"%)"),
+       y = paste0("PC2 ","(",perc.explained[2],"%)"))+
+  #  scale_color_manual(values = wes_palette("Darjeeling1"))+
+  theme_bw()+
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        #legend.position = c(0.75, 0.75),
+        legend.position = "none",
+        legend.text = element_markdown(size = 16),
+        legend.key.size = unit(1, 'cm'),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 16))
+
+scores_plot+p2_loadings
+
+
+perm<-adonis2(data.frame(pca_all$PC1, pca_all$PC2)~Benthos*Season, data = pca_all,method = "euclidean")
+perm
+
 
 ### reorder the benthic data
 AllData <- AllData %>%
@@ -1262,13 +1385,95 @@ Chem_Comm<-AllData %>%
 
 
 Chem_Comm %>%
-  filter(Calcifiers>0)%>%
-  ggplot(aes(x = Corallinales_branching,y = TA_diff))+
+ # filter(Calcifiers>0)%>%
+  ggplot(aes(x = Calcifiers,y = TA_norm_diff))+
+  geom_hline(aes(yintercept = 0), lty = 2)+
   geom_point()+
   geom_smooth(method ="lm")+
-  facet_wrap(~Benthos, scales = "free_x")
+  facet_wrap(~Benthos, scales = "free_x")+
+  theme_bw()
 
 
-mus_TA<- lm(TA_diff~Calcifiers,data = Chem_Comm %>%
+mus_TA<- lm(TA_norm_diff~Calcifiers+pH_value,data = Chem_Comm %>%
   filter(Benthos == "Mussel") )
 anova(mus_TA)
+summary(mus_TA)
+
+
+Chem_Comm %>%
+  # filter(Calcifiers>0)%>%
+  ggplot(aes(x = FoundationSp,y = M_to_C_value))+
+ # geom_hline(aes(yintercept = 0), lty = 2)+
+  geom_point()+
+  geom_smooth(method ="lm")+
+  facet_wrap(~Benthos, scales = "free")+
+  theme_bw()
+
+
+### Mantel test between chemistry and Community
+
+MantelAll<-QuadAvg %>%
+  left_join(sessile_clean) %>%
+  select(-FoundationSp) %>%
+  drop_na(pH, TA:M_to_C, DIC:OmegaCalcite,Silvetia_compressa:Chondracanthus_canaliculatus)
+
+chem<-MantelAll %>%
+  ungroup()%>%
+  select(Season, UVHumic:Phenylalanine) %>%
+  group_by(Season) %>%
+  mutate_all(.funs = scale)%>% # scale by season
+  mutate_all(.funs = as.numeric)%>% # make numeric
+  drop_na() %>%
+  ungroup() %>%
+  select(-Season)
+
+comm <- MantelAll %>%
+  ungroup() %>%
+  select(Silvetia_compressa:Chondracanthus_canaliculatus) 
+
+#abundance data frame - bray-curtis dissimilarity
+dist.com <- vegdist(comm, method = "bray")
+
+#environmental vector - euclidean distance
+# need to scale chem data
+
+
+dist.chem = dist(chem, method = "euclidean")
+#dist.chem = dist(mychem, method = "euclidean")
+
+season<-MantelAll %>%
+  ungroup() %>%
+  select(Season)
+
+#abundance vs environmental
+comm_chemSR <- mantel(dist.com, dist.chem, method = "spearman", permutations = 9999, na.rm = TRUE)
+comm_chemSR
+
+
+# Next, I need to convert these distance matrices (multiple columns) into vectors (one column), and then combine these matrices into one new data frame mat
+
+aa = as.vector(dist.com)
+tt = as.vector(dist.chem)
+season<-as.vector(season)
+
+
+#new data frame with vectorized distance matrices
+matSR = data.frame(aa,tt)
+
+
+#First is the pairwise comparison of community dissimilarity and differences in temperature:
+
+#abundance vs temperature
+mmSR = ggplot(matSR, aes(x = aa, y = tt)) +
+  geom_point(size = 3, alpha = 0.5, shape = 21) +
+  labs(y = expression(Delta*" Chem"), x = "Bray-Curtis Dissimilarity") + #fill = expression("PO"[4]^"3-")) +
+  theme( axis.text.x = element_text(face = "bold",colour = "black", size = 12),
+         axis.text.y = element_text(face = "bold", size = 11, colour = "black"),
+         axis.title= element_text(face = "bold", size = 14, colour = "black"),
+         panel.background = element_blank(),
+         panel.border = element_rect(fill = NA, colour = "black"),
+         legend.position = "top",
+         legend.text = element_text(size = 10, face = "bold"),
+         legend.title = element_text(size = 11, face = "bold")) +
+  geom_smooth(method = "lm", color= "black")
+mmSR
