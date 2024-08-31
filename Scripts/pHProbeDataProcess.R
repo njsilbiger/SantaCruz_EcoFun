@@ -17,6 +17,7 @@ library(ggtext)
 library(lme4)
 library(lmerTest)
 library(ggh4x)
+library(vegan)
 
 ## bring in pH calibration files and raw data files
 pHcalib<-read_csv(here("Data","Biogeochemistry","TrisCalibrationLog.csv")) %>%
@@ -1249,7 +1250,7 @@ AllData %>%
   theme_bw()+
   facet_wrap(name~Season, scales = "free", ncol = 3)
 
-ggsave(here("Output", "MeansAllplot.png"), width = 5, height = 5)  
+ggsave(here("Output", "MeansAllplot.png"), width = 5, height = 10)  
 
 AllData %>%
   #drop_na(UVHumic:M_to_C) %>%
