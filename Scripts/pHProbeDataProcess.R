@@ -1185,7 +1185,7 @@ p2_loadings<-PC_loadings %>%
         axis.text = element_text(size = 16))
 
 scores_plot+p2_loadings
-
+ggsave(here("Output","PCA_fdom.png"), height = 8, width = 16)
 
 perm<-adonis2(data.frame(pca_all$PC1, pca_all$PC2)~Benthos*Season, data = pca_all,method = "euclidean")
 perm
