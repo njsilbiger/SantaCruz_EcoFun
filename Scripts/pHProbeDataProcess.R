@@ -46,7 +46,7 @@ pHSlope<-pHcalib %>%
   right_join(.,pHData) %>% # join with the pH sample data
   mutate(mVTris = TempInLab*TTris + `(Intercept)`) %>% # calculate the mV of the tris at temperature in which the pH of samples were measured
 #  drop_na(TempInSitu)%>%
-  drop_na(mV) %>%
+   drop_na(mV) %>%
    mutate(pH = pH(Ex=mV,Etris=mVTris,S=Salinity,T=TempInLab))  # calculate pH of the samples using the pH seacarb function
 
 
@@ -79,12 +79,20 @@ pHSlope$TempInSitu[NoTemp]<-NA # make TA na again for the missing values
 
   #select(Date, CowTagID,Tide, Day_Night, SamplingTime,Salinity,pH, pH_insitu, TempInSitu) ## need to calculate pH insi then it is done
 
+# bring back the nutrient data that had no pH
+Data_wopH<-pHData %>%
+  select(Site:Sampling_Time, Salinity, TA, TempInSitu, Salinity_Lab, NO3:NH4)
+
+# bring back the other data that got cut from no mV
+pHSlope<-pHSlope %>%
+  full_join(Data_wopH)
+
 ## write the data
 write_csv(x = pHSlope, file = here("Data","Biogeochemistry","pHProbe_Data_calculated.csv"))
 
-pHSlope <- pHSlope %>%
-  filter(NH4 <4,
-         NO3 < 10) # remove some of the outlier
+#pHSlope <- pHSlope %>%
+#  filter(NH4 <4,
+#         NO3 < 10) # remove some of the outlier
 
 # summ<-pHSlope %>% 
 #   group_by(Benthos,Quad_ID) %>%
@@ -517,10 +525,12 @@ pHSlope%>%
 # pHSlope<-pHSlope %>%
 #   drop_na(TempInSitu)
 
+pH_nomissing<-pHSlope %>%
+  drop_na(pH,TA,Salinity, TempInSitu)
+
 
 ### Calculate DIC from seacarb ####
-AllCO2<-carb(8, pHSlope$pH, pHSlope$TA/1000000, S=pHSlope$Salinity, T=pHSlope$TempInSitu, Patm=1, P=0, Pt=0, Sit=0,
-             k1k2="x", kf="x", ks="d", pHscale="T", b="u74", gas="potential", 
+AllCO2<-carb(8, pH_nomissing$pH, pH_nomissing$TA/1000000, S=pH_nomissing$Salinity, T=pH_nomissing$TempInSitu, Patm=1, P=0, Pt=0, Sit=0, k1k2="x", kf="x", ks="d", pHscale="T", b="u74", gas="potential", 
              warn="y", eos="eos80")
 
 AllCO2 <- AllCO2 %>%
@@ -531,16 +541,26 @@ AllCO2 <- AllCO2 %>%
          HCO3 = HCO3*1000000) %>% # convert everything back to umol %>%
 select(DIC, pCO2 = pCO2insitu, CO2, CO3, HCO3, OmegaCalcite, OmegaAragonite) 
 
-AllCO2 <- pHSlope %>%
-  bind_cols(AllCO2) %>% # bring together with the original data
-  filter(deltapH < 0.14) %>% # There is a huge mussel outlier in the pH data
+AllCO2<-AllCO2 %>%
+  bind_cols(pH_nomissing %>%
+              select(Sampling_Date:UniqueID, pH)) %>%
+  full_join(pHSlope)%>%
   mutate(TA_norm = TA*Salinity/33,
          DIC_norm = DIC*Salinity/33,# salinity normalize
          TA_DIC = TA/DIC,
          Month = month(Sampling_Date)) %>% # TA divided by DIC
   mutate(Season = case_when(Month %in% c(4,5)~"Spring",
                             Month %in% c(7,8)~"Summer",
-                            Month %in% c(10,11)~ "Fall"))
+                            Month %in% c(10,11)~ "Fall")) %>%
+  select(Sampling_Date:UniqueID, Site:ID_number,Samplinghour, Month, group_time, pH:TA, DIC:OmegaAragonite,NO3:NH4,OceanpH, Notes)
+
+## Bring with the fDOM data
+FullData<-AllCO2 %>%
+  full_join(fDOM %>%
+              mutate(Sampling_Date = mdy(Sampling_Date)))
+
+write_csv(x = FullData, file = here("Data","Biogeochemistry","FullDataSet_raw.csv"))
+############# STOPPED HERE #################################
 
 # make the TA vs DIC plots
 p_slopes<-AllCO2 %>%
