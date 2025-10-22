@@ -1,0 +1,2924 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.555">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Nyssa SIlbiger">
+
+<title>Rocky Intertidal Biogeochemistry — Exploratory Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Intertidal_Biogeochem_Analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Intertidal_Biogeochem_Analysis_files/libs/quarto-html/quarto.js"></script>
+<script src="Intertidal_Biogeochem_Analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="Intertidal_Biogeochem_Analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Intertidal_Biogeochem_Analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Intertidal_Biogeochem_Analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Intertidal_Biogeochem_Analysis_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Intertidal_Biogeochem_Analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Intertidal_Biogeochem_Analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Intertidal_Biogeochem_Analysis_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview"><span class="header-section-number">1</span> Overview</a></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup"><span class="header-section-number">2</span> Setup</a>
+  <ul class="collapse">
+  <li><a href="#paths-parameters" id="toc-paths-parameters" class="nav-link" data-scroll-target="#paths-parameters"><span class="header-section-number">2.1</span> Paths &amp; Parameters</a></li>
+  </ul></li>
+  <li><a href="#data-loading-merging" id="toc-data-loading-merging" class="nav-link" data-scroll-target="#data-loading-merging"><span class="header-section-number">3</span> Data Loading &amp; Merging</a></li>
+  <li><a href="#cleaning-pre-processing" id="toc-cleaning-pre-processing" class="nav-link" data-scroll-target="#cleaning-pre-processing"><span class="header-section-number">4</span> Cleaning &amp; Pre-processing</a>
+  <ul class="collapse">
+  <li><a href="#missingness-summary" id="toc-missingness-summary" class="nav-link" data-scroll-target="#missingness-summary"><span class="header-section-number">4.1</span> Missingness Summary</a></li>
+  </ul></li>
+  <li><a href="#summary-statistics" id="toc-summary-statistics" class="nav-link" data-scroll-target="#summary-statistics"><span class="header-section-number">5</span> Summary Statistics</a></li>
+  <li><a href="#correlation-matrix" id="toc-correlation-matrix" class="nav-link" data-scroll-target="#correlation-matrix"><span class="header-section-number">6</span> Correlation Matrix</a></li>
+  <li><a href="#diel-habitat-visualizations" id="toc-diel-habitat-visualizations" class="nav-link" data-scroll-target="#diel-habitat-visualizations"><span class="header-section-number">7</span> Diel &amp; Habitat Visualizations</a>
+  <ul class="collapse">
+  <li><a href="#example-diel-plots" id="toc-example-diel-plots" class="nav-link" data-scroll-target="#example-diel-plots"><span class="header-section-number">7.1</span> Example Diel Plots</a></li>
+  </ul></li>
+  <li><a href="#carbonate-fdom-patterns" id="toc-carbonate-fdom-patterns" class="nav-link" data-scroll-target="#carbonate-fdom-patterns"><span class="header-section-number">8</span> Carbonate &amp; fDOM Patterns</a>
+  <ul class="collapse">
+  <li><a href="#carbonate-chemistry-ph-vs-ta" id="toc-carbonate-chemistry-ph-vs-ta" class="nav-link" data-scroll-target="#carbonate-chemistry-ph-vs-ta"><span class="header-section-number">8.1</span> Carbonate Chemistry (pH vs TA)</a></li>
+  <li><a href="#fdom-and-nutrient-heatmap" id="toc-fdom-and-nutrient-heatmap" class="nav-link" data-scroll-target="#fdom-and-nutrient-heatmap"><span class="header-section-number">8.2</span> fDOM and Nutrient Heatmap</a></li>
+  </ul></li>
+  <li><a href="#statistical-comparisons" id="toc-statistical-comparisons" class="nav-link" data-scroll-target="#statistical-comparisons"><span class="header-section-number">9</span> Statistical Comparisons</a></li>
+  <li><a href="#multivariate-analysis-pca" id="toc-multivariate-analysis-pca" class="nav-link" data-scroll-target="#multivariate-analysis-pca"><span class="header-section-number">10</span> Multivariate Analysis: PCA</a></li>
+  <li><a href="#potential-hypotheses-to-test" id="toc-potential-hypotheses-to-test" class="nav-link" data-scroll-target="#potential-hypotheses-to-test"><span class="header-section-number">11</span> Potential hypotheses to test</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="Intertidal_Biogeochem_Analysis.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Rocky Intertidal Biogeochemistry — Exploratory Analysis</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Nyssa SIlbiger </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="overview" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> Overview</h1>
+<p>This Quarto document:</p>
+<ul>
+<li>Loads and merges pH/TA/nutrients and fDOM datasets</li>
+<li>Cleans data and applies outlier handling (IQR rule)</li>
+<li>Summarizes by habitat and diel period</li>
+<li>Visualizes diel and habitat patterns (boxplots, TA–pH, fDOM heatmap)</li>
+<li>Computes correlation matrices and significance masks</li>
+<li>Runs non-parametric statistics (Kruskal–Wallis, Wilcoxon, Dunn vs.&nbsp;control)</li>
+<li>Performs PCA with scores and loadings plots</li>
+<li>Lists testable hypotheses informed by the exploratory results</li>
+</ul>
+<blockquote class="blockquote">
+<p><strong>Reproducibility &amp; Modularity</strong><br>
+Kept times (which removes summer), and the control label (open ocean) are parameterized in the YAML <code>params:</code> so I can change inputs without editing code chunks.</p>
+</blockquote>
+</section>
+<section id="setup" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Setup</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rstatix)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggcorrplot)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Global plot theme</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_bw</span>(<span class="at">base_size =</span> <span class="dv">12</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="paths-parameters" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="paths-parameters"><span class="header-section-number">2.1</span> Paths &amp; Parameters</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>keep_times <span class="ot">&lt;-</span> params<span class="sc">$</span>keep_times</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>control_label <span class="ot">&lt;-</span> params<span class="sc">$</span>control_label</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="data-loading-merging" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Data Loading &amp; Merging</h1>
+<p>This section loads both fDOM and pH/nutrients CSVs, parses dates, and joins on shared identifiers. We keep all samples, regarless of missing data (<code>full_join</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>load_ok <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tryCatch</span>({</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  data_ph <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"Data"</span>,<span class="st">"Biogeochemistry"</span>,<span class="st">"pHProbe_Data_calculated.csv"</span>), <span class="at">na =</span> <span class="fu">c</span>(<span class="st">"NA"</span>, <span class="st">""</span>), <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  data_fdom <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"Data"</span>,<span class="st">"Biogeochemistry"</span>,<span class="st">"fDOM_clean.csv"</span>), <span class="at">na =</span> <span class="fu">c</span>(<span class="st">"NA"</span>, <span class="st">""</span>), <span class="at">show_col_types =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Sampling_Date =</span> lubridate<span class="sc">::</span><span class="fu">mdy</span>(Sampling_Date))</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  data_merged <span class="ot">&lt;-</span> <span class="fu">full_join</span>(</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    data_ph,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    data_fdom,</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"UniqueID"</span>, <span class="st">"Benthos"</span>, <span class="st">"Quad_ID"</span>, <span class="st">"Day_Night"</span>, <span class="st">"Sampling_Date"</span>, <span class="st">"Sampling_Time"</span>,<span class="st">"Season"</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">Humic =</span> UVHumic<span class="sc">+</span>VisibleHumic<span class="sc">+</span>MarineHumic,<span class="co"># make a column for humics</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>           <span class="at">Prot =</span> Tryptophan<span class="sc">+</span>Tyrosine <span class="co"># make a column for proteinaceaus fDOM</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>           ) </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Data loaded and merged successfully.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Total merged samples:"</span>, <span class="fu">nrow</span>(data_merged), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>}, <span class="at">error =</span> <span class="cf">function</span>(e){</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  load_ok <span class="ot">&lt;&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(<span class="st">"Error loading or merging files. Please check file paths and names."</span>)</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">message</span>(e)</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Data loaded and merged successfully.
+Total merged samples: 332 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">stopifnot</span>(load_ok)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="cleaning-pre-processing" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Cleaning &amp; Pre-processing</h1>
+<p>We declare variable sets for identifiers, water chemistry, nutrients, and fDOM components. We retain only <strong>Dawn</strong> and <strong>Dusk</strong> samples, coerce numeric columns, set factor orders, drop NA grouping levels, and apply the <strong>1.5×IQR rule</strong> as a conservative outlier filter (replacing outliers with <code>NA</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Identifier variables</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>id_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"UniqueID"</span>, <span class="st">"Season"</span>, <span class="st">"Benthos"</span>, <span class="st">"Quad_ID"</span>, <span class="st">"Day_Night"</span>, <span class="st">"Sampling_Date"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Water chemistry variables (from pH probe file)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>water_chem_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Salinity"</span>, <span class="st">"pH"</span>, <span class="st">"TempInSitu"</span>, <span class="st">"TA"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Nutrient variables (from pH probe file)</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>nutrient_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"NO3"</span>, <span class="st">"PO4"</span>, <span class="st">"SIL"</span>, <span class="st">"NO2"</span>, <span class="st">"NH4"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="co"># fDOM variables (from fDOM file)</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">#fdom_vars &lt;- c("UVHumic", "Tyrosine", "VisibleHumic", "MarineHumic",</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#               "Tryptophan", "FulvicAcid", "BIX", "HIX", "FI", "M_to_C")</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co"># reduced variables</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>fdom_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Humic"</span>,<span class="st">"Prot"</span>, <span class="st">"BIX"</span>, <span class="st">"HIX"</span>, <span class="st">"M_to_C"</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>all_numeric_vars <span class="ot">&lt;-</span> <span class="fu">c</span>(water_chem_vars, nutrient_vars, fdom_vars)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Helper to IQR-filter a numeric vector (returning NA for outliers)</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>iqr_filter <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">return</span>(x)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  q1 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="fl">0.25</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>  q3 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(x, <span class="fl">0.75</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>  iqr <span class="ot">&lt;-</span> q3 <span class="sc">-</span> q1</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>  lo <span class="ot">&lt;-</span> q1 <span class="sc">-</span> <span class="fl">1.5</span> <span class="sc">*</span> iqr</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>  hi <span class="ot">&lt;-</span> q3 <span class="sc">+</span> <span class="fl">1.5</span> <span class="sc">*</span> iqr</span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ifelse</span>(x <span class="sc">&lt;</span> lo <span class="sc">|</span> x <span class="sc">&gt;</span> hi, <span class="cn">NA_real_</span>, x)</span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Cleaned dataset</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>data_clean <span class="ot">&lt;-</span> data_merged <span class="sc">%&gt;%</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Day_Night <span class="sc">%in%</span> keep_times) <span class="sc">%&gt;%</span></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">all_of</span>(id_vars), <span class="fu">any_of</span>(all_numeric_vars)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(all_numeric_vars), as.numeric)) <span class="sc">%&gt;%</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">Benthos   =</span> <span class="fu">factor</span>(Benthos, <span class="at">levels =</span> <span class="fu">c</span>(control_label, <span class="st">"Rockweed"</span>, <span class="st">"Surfgrass"</span>, <span class="st">"Barnacle"</span>, <span class="st">"Mussel"</span>)),</span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">Day_Night =</span> <span class="fu">factor</span>(Day_Night, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Dawn"</span>, <span class="st">"Dusk"</span>))</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(Benthos, Day_Night) <span class="sc">%&gt;%</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(all_numeric_vars), iqr_filter))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="missingness-summary" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="missingness-summary"><span class="header-section-number">4.1</span> Missingness Summary</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>na_summary <span class="ot">&lt;-</span> data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.)))) <span class="sc">%&gt;%</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"variable"</span>, <span class="at">values_to =</span> <span class="st">"na_count"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(na_count <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(na_count))</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>na_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 13 × 2
+   variable na_count
+   &lt;chr&gt;       &lt;int&gt;
+ 1 NH4           106
+ 2 SIL           103
+ 3 NO3            94
+ 4 PO4            94
+ 5 NO2            93
+ 6 Prot           77
+ 7 BIX            76
+ 8 Humic          71
+ 9 M_to_C         64
+10 HIX            63
+11 TA             54
+12 Salinity       32
+13 pH             25</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="summary-statistics" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Summary Statistics</h1>
+<p>Per habitat × diel period (and Season), we compute mean, SD, and sample size for all numeric variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>data_summary <span class="ot">&lt;-</span> data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Benthos, Day_Night, Season) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(<span class="fu">all_of</span>(all_numeric_vars), <span class="fu">list</span>(<span class="at">mean =</span> <span class="sc">~</span> <span class="fu">mean</span>(., <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">sd   =</span> <span class="sc">~</span> <span class="fu">sd</span>(., <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                                          <span class="at">n    =</span> <span class="sc">~</span> <span class="fu">sum</span>(<span class="sc">!</span><span class="fu">is.na</span>(.))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    )),</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>data_summary <span class="sc">%&gt;%</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Summary statistics (mean, sd, n) by habitat, time, and season.</caption>
+<colgroup>
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 3%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 1%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 2%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Benthos</th>
+<th style="text-align: left;">Day_Night</th>
+<th style="text-align: left;">Season</th>
+<th style="text-align: right;">Salinity_mean</th>
+<th style="text-align: right;">Salinity_sd</th>
+<th style="text-align: right;">Salinity_n</th>
+<th style="text-align: right;">pH_mean</th>
+<th style="text-align: right;">pH_sd</th>
+<th style="text-align: right;">pH_n</th>
+<th style="text-align: right;">TempInSitu_mean</th>
+<th style="text-align: right;">TempInSitu_sd</th>
+<th style="text-align: right;">TempInSitu_n</th>
+<th style="text-align: right;">TA_mean</th>
+<th style="text-align: right;">TA_sd</th>
+<th style="text-align: right;">TA_n</th>
+<th style="text-align: right;">NO3_mean</th>
+<th style="text-align: right;">NO3_sd</th>
+<th style="text-align: right;">NO3_n</th>
+<th style="text-align: right;">PO4_mean</th>
+<th style="text-align: right;">PO4_sd</th>
+<th style="text-align: right;">PO4_n</th>
+<th style="text-align: right;">SIL_mean</th>
+<th style="text-align: right;">SIL_sd</th>
+<th style="text-align: right;">SIL_n</th>
+<th style="text-align: right;">NO2_mean</th>
+<th style="text-align: right;">NO2_sd</th>
+<th style="text-align: right;">NO2_n</th>
+<th style="text-align: right;">NH4_mean</th>
+<th style="text-align: right;">NH4_sd</th>
+<th style="text-align: right;">NH4_n</th>
+<th style="text-align: right;">Humic_mean</th>
+<th style="text-align: right;">Humic_sd</th>
+<th style="text-align: right;">Humic_n</th>
+<th style="text-align: right;">Prot_mean</th>
+<th style="text-align: right;">Prot_sd</th>
+<th style="text-align: right;">Prot_n</th>
+<th style="text-align: right;">BIX_mean</th>
+<th style="text-align: right;">BIX_sd</th>
+<th style="text-align: right;">BIX_n</th>
+<th style="text-align: right;">HIX_mean</th>
+<th style="text-align: right;">HIX_sd</th>
+<th style="text-align: right;">HIX_n</th>
+<th style="text-align: right;">M_to_C_mean</th>
+<th style="text-align: right;">M_to_C_sd</th>
+<th style="text-align: right;">M_to_C_n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.38100</td>
+<td style="text-align: right;">0.3603054</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">7.895841</td>
+<td style="text-align: right;">0.0370698</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">16.69300</td>
+<td style="text-align: right;">0.3202483</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">2219.689</td>
+<td style="text-align: right;">5.182439</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">1.8750000</td>
+<td style="text-align: right;">1.7364249</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.3850000</td>
+<td style="text-align: right;">0.0424264</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">4.662500</td>
+<td style="text-align: right;">0.8331309</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1512500</td>
+<td style="text-align: right;">0.0405101</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.2000000</td>
+<td style="text-align: right;">0.3291548</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0920212</td>
+<td style="text-align: right;">0.0140695</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0.1044268</td>
+<td style="text-align: right;">0.0370278</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">0.8945043</td>
+<td style="text-align: right;">0.0654982</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">1.661112</td>
+<td style="text-align: right;">0.5771392</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0.7685855</td>
+<td style="text-align: right;">0.0451426</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.47100</td>
+<td style="text-align: right;">0.5936975</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">7.881854</td>
+<td style="text-align: right;">0.0402283</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">14.71333</td>
+<td style="text-align: right;">0.6306466</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">2225.683</td>
+<td style="text-align: right;">8.358783</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">4.5366667</td>
+<td style="text-align: right;">1.7531910</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0.5872727</td>
+<td style="text-align: right;">0.0835573</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">6.633333</td>
+<td style="text-align: right;">2.0096736</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0.1775000</td>
+<td style="text-align: right;">0.0467343</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">1.4545455</td>
+<td style="text-align: right;">0.4009081</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0.1500804</td>
+<td style="text-align: right;">0.0285321</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1670105</td>
+<td style="text-align: right;">0.0407329</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.9622442</td>
+<td style="text-align: right;">0.0812800</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1.161534</td>
+<td style="text-align: right;">0.6243569</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0.8176259</td>
+<td style="text-align: right;">0.0423552</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.36208</td>
+<td style="text-align: right;">0.2874775</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">8.090490</td>
+<td style="text-align: right;">0.0533197</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">19.02560</td>
+<td style="text-align: right;">0.7991823</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">2203.024</td>
+<td style="text-align: right;">8.944417</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">2.2522222</td>
+<td style="text-align: right;">1.0532423</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.4255556</td>
+<td style="text-align: right;">0.0777996</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">5.233333</td>
+<td style="text-align: right;">0.9486833</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.2122222</td>
+<td style="text-align: right;">0.1209109</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.2300000</td>
+<td style="text-align: right;">0.8075713</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1197723</td>
+<td style="text-align: right;">0.0249243</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">0.1222211</td>
+<td style="text-align: right;">0.0418463</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">0.9258560</td>
+<td style="text-align: right;">0.0848717</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">1.126585</td>
+<td style="text-align: right;">0.3475266</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0.8219864</td>
+<td style="text-align: right;">0.0508778</td>
+<td style="text-align: right;">21</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.37125</td>
+<td style="text-align: right;">0.3949842</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8.245637</td>
+<td style="text-align: right;">0.0748407</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">15.54667</td>
+<td style="text-align: right;">0.7608219</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2217.774</td>
+<td style="text-align: right;">14.150148</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">4.9225000</td>
+<td style="text-align: right;">2.7673027</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.7100000</td>
+<td style="text-align: right;">0.1690309</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8.260000</td>
+<td style="text-align: right;">2.0851858</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.2844444</td>
+<td style="text-align: right;">0.1248110</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.5825000</td>
+<td style="text-align: right;">0.4803198</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1523270</td>
+<td style="text-align: right;">0.0246222</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.1475228</td>
+<td style="text-align: right;">0.0479288</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.9326984</td>
+<td style="text-align: right;">0.0984941</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2.017696</td>
+<td style="text-align: right;">1.1042248</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.8284003</td>
+<td style="text-align: right;">0.0738367</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.41400</td>
+<td style="text-align: right;">0.2791336</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">7.877666</td>
+<td style="text-align: right;">0.0321614</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">16.82917</td>
+<td style="text-align: right;">0.3819438</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">2191.153</td>
+<td style="text-align: right;">21.010648</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.9685714</td>
+<td style="text-align: right;">1.0548369</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.4371429</td>
+<td style="text-align: right;">0.1914606</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">5.242857</td>
+<td style="text-align: right;">0.5563486</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.1714286</td>
+<td style="text-align: right;">0.1359447</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.8257143</td>
+<td style="text-align: right;">0.5333810</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.1127562</td>
+<td style="text-align: right;">0.0223109</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.0873509</td>
+<td style="text-align: right;">0.0274071</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.8444586</td>
+<td style="text-align: right;">0.0392276</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2.257768</td>
+<td style="text-align: right;">0.6613043</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.7762336</td>
+<td style="text-align: right;">0.0568244</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.64222</td>
+<td style="text-align: right;">0.4889728</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">7.855984</td>
+<td style="text-align: right;">0.0778063</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">14.40222</td>
+<td style="text-align: right;">0.1141028</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2206.656</td>
+<td style="text-align: right;">15.635454</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.5600000</td>
+<td style="text-align: right;">0.6988920</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.5383333</td>
+<td style="text-align: right;">0.1402022</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.360000</td>
+<td style="text-align: right;">1.1865918</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1500000</td>
+<td style="text-align: right;">0.0547723</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1.1175000</td>
+<td style="text-align: right;">0.1615292</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.1232823</td>
+<td style="text-align: right;">0.0202061</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1264665</td>
+<td style="text-align: right;">0.0563820</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.8908205</td>
+<td style="text-align: right;">0.0679577</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1.941363</td>
+<td style="text-align: right;">0.5779832</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.7932711</td>
+<td style="text-align: right;">0.0323953</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.49200</td>
+<td style="text-align: right;">0.2987809</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">8.049176</td>
+<td style="text-align: right;">0.0397228</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">18.38667</td>
+<td style="text-align: right;">0.6511426</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2192.423</td>
+<td style="text-align: right;">37.722771</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1.1050000</td>
+<td style="text-align: right;">0.9965691</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.3900000</td>
+<td style="text-align: right;">0.0460435</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.840000</td>
+<td style="text-align: right;">1.9654516</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1583333</td>
+<td style="text-align: right;">0.0773089</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.8880000</td>
+<td style="text-align: right;">0.2348829</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1208133</td>
+<td style="text-align: right;">0.0346784</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.0950034</td>
+<td style="text-align: right;">0.0184559</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.8597974</td>
+<td style="text-align: right;">0.0426723</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1.922399</td>
+<td style="text-align: right;">0.6562721</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.8088453</td>
+<td style="text-align: right;">0.0302606</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.41000</td>
+<td style="text-align: right;">0.4397727</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8.179804</td>
+<td style="text-align: right;">0.1405340</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">15.94500</td>
+<td style="text-align: right;">0.6891610</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">2215.180</td>
+<td style="text-align: right;">14.283947</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.2940000</td>
+<td style="text-align: right;">2.0029054</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.6033333</td>
+<td style="text-align: right;">0.0917969</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">8.800000</td>
+<td style="text-align: right;">2.5455844</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.3300000</td>
+<td style="text-align: right;">0.1383835</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1.4000000</td>
+<td style="text-align: right;">0.3459769</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.1506933</td>
+<td style="text-align: right;">0.0330243</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.1277635</td>
+<td style="text-align: right;">0.0538177</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.8191324</td>
+<td style="text-align: right;">0.0361366</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">3.115505</td>
+<td style="text-align: right;">0.6287391</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.8040618</td>
+<td style="text-align: right;">0.0816492</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.39286</td>
+<td style="text-align: right;">0.1648953</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7.897631</td>
+<td style="text-align: right;">0.1088502</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">16.78556</td>
+<td style="text-align: right;">0.3758028</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2213.461</td>
+<td style="text-align: right;">14.812645</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.6333333</td>
+<td style="text-align: right;">0.1938728</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.3216667</td>
+<td style="text-align: right;">0.0515429</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">5.350000</td>
+<td style="text-align: right;">0.8916277</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.1133333</td>
+<td style="text-align: right;">0.0791623</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.6683333</td>
+<td style="text-align: right;">0.4844550</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.1109245</td>
+<td style="text-align: right;">0.0154420</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.0873586</td>
+<td style="text-align: right;">0.0197193</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.9090535</td>
+<td style="text-align: right;">0.0490096</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2.058321</td>
+<td style="text-align: right;">0.3043213</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.7396067</td>
+<td style="text-align: right;">0.0601923</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.56750</td>
+<td style="text-align: right;">0.4792181</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">7.868478</td>
+<td style="text-align: right;">0.0467848</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">14.36167</td>
+<td style="text-align: right;">0.2132789</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">2212.029</td>
+<td style="text-align: right;">10.789451</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1.3237500</td>
+<td style="text-align: right;">0.3048155</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.4933333</td>
+<td style="text-align: right;">0.0578792</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">5.666667</td>
+<td style="text-align: right;">1.1169154</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.1544444</td>
+<td style="text-align: right;">0.0371184</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.0137500</td>
+<td style="text-align: right;">0.2107766</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1204366</td>
+<td style="text-align: right;">0.0203869</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1115370</td>
+<td style="text-align: right;">0.0517331</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.8803619</td>
+<td style="text-align: right;">0.0781380</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.837487</td>
+<td style="text-align: right;">1.0009226</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.7750413</td>
+<td style="text-align: right;">0.0428108</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.36000</td>
+<td style="text-align: right;">0.1719011</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">8.088297</td>
+<td style="text-align: right;">0.0523523</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">18.89917</td>
+<td style="text-align: right;">0.7730160</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">2190.994</td>
+<td style="text-align: right;">14.877382</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.4925000</td>
+<td style="text-align: right;">0.3192290</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.3887500</td>
+<td style="text-align: right;">0.1446609</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">4.650000</td>
+<td style="text-align: right;">1.1389218</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1112500</td>
+<td style="text-align: right;">0.0429077</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.8150000</td>
+<td style="text-align: right;">0.5741341</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.1199423</td>
+<td style="text-align: right;">0.0276692</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1192723</td>
+<td style="text-align: right;">0.0353049</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.8466627</td>
+<td style="text-align: right;">0.0601591</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.588013</td>
+<td style="text-align: right;">0.5593020</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.7622972</td>
+<td style="text-align: right;">0.0590778</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.44100</td>
+<td style="text-align: right;">0.4400114</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">8.041989</td>
+<td style="text-align: right;">0.1386101</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">14.87909</td>
+<td style="text-align: right;">0.5579687</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">2206.070</td>
+<td style="text-align: right;">19.112551</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">5.6830000</td>
+<td style="text-align: right;">2.1019306</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.6980000</td>
+<td style="text-align: right;">0.1103328</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10.950000</td>
+<td style="text-align: right;">1.8110770</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.3380000</td>
+<td style="text-align: right;">0.0755425</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1.2600000</td>
+<td style="text-align: right;">0.4355074</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1431342</td>
+<td style="text-align: right;">0.0241700</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1122324</td>
+<td style="text-align: right;">0.0327603</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.8456035</td>
+<td style="text-align: right;">0.0554959</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2.166671</td>
+<td style="text-align: right;">0.5315292</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.7582885</td>
+<td style="text-align: right;">0.0660350</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.44250</td>
+<td style="text-align: right;">0.1875976</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">7.904071</td>
+<td style="text-align: right;">0.0231209</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">17.10556</td>
+<td style="text-align: right;">0.3453662</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2186.368</td>
+<td style="text-align: right;">12.876338</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">1.0362500</td>
+<td style="text-align: right;">0.8035624</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.3287500</td>
+<td style="text-align: right;">0.0664267</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">3.887500</td>
+<td style="text-align: right;">0.4998214</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1912500</td>
+<td style="text-align: right;">0.1101217</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.3262500</td>
+<td style="text-align: right;">0.5783706</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0940806</td>
+<td style="text-align: right;">0.0245387</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0889252</td>
+<td style="text-align: right;">0.0260054</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.8819046</td>
+<td style="text-align: right;">0.0414293</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.881248</td>
+<td style="text-align: right;">0.1910608</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.7471533</td>
+<td style="text-align: right;">0.0266193</td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.47556</td>
+<td style="text-align: right;">0.5347455</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">7.893685</td>
+<td style="text-align: right;">0.0377390</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">14.71538</td>
+<td style="text-align: right;">0.6333721</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">2221.374</td>
+<td style="text-align: right;">15.454368</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">2.0525000</td>
+<td style="text-align: right;">1.2563638</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.4625000</td>
+<td style="text-align: right;">0.0462138</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">5.675000</td>
+<td style="text-align: right;">2.3236363</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1637500</td>
+<td style="text-align: right;">0.0552753</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.3112500</td>
+<td style="text-align: right;">0.4398194</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1282791</td>
+<td style="text-align: right;">0.0259437</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1029668</td>
+<td style="text-align: right;">0.0542313</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.8598643</td>
+<td style="text-align: right;">0.0478491</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">2.520103</td>
+<td style="text-align: right;">1.0232441</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.7935357</td>
+<td style="text-align: right;">0.0598026</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.34125</td>
+<td style="text-align: right;">0.2042714</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8.038811</td>
+<td style="text-align: right;">0.0733546</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">18.67909</td>
+<td style="text-align: right;">0.9594212</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">2189.224</td>
+<td style="text-align: right;">17.012351</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.9020000</td>
+<td style="text-align: right;">0.7003777</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.3880000</td>
+<td style="text-align: right;">0.0561348</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">4.490000</td>
+<td style="text-align: right;">0.6261878</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1820000</td>
+<td style="text-align: right;">0.0928320</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.9550000</td>
+<td style="text-align: right;">0.5188173</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0956959</td>
+<td style="text-align: right;">0.0209674</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.1011850</td>
+<td style="text-align: right;">0.0351238</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.8635346</td>
+<td style="text-align: right;">0.0569102</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.220953</td>
+<td style="text-align: right;">0.2273415</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.7283660</td>
+<td style="text-align: right;">0.0464750</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.64714</td>
+<td style="text-align: right;">0.4252859</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">8.202076</td>
+<td style="text-align: right;">0.0841076</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">15.37933</td>
+<td style="text-align: right;">0.7513366</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">2201.395</td>
+<td style="text-align: right;">11.875585</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">3.6777778</td>
+<td style="text-align: right;">2.3006672</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.5622222</td>
+<td style="text-align: right;">0.0881445</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">9.037500</td>
+<td style="text-align: right;">2.6370641</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.2444444</td>
+<td style="text-align: right;">0.1094430</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.9433333</td>
+<td style="text-align: right;">0.3011229</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.1276182</td>
+<td style="text-align: right;">0.0191651</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1001024</td>
+<td style="text-align: right;">0.0179265</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.8658311</td>
+<td style="text-align: right;">0.0292649</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">2.321615</td>
+<td style="text-align: right;">0.5993273</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.8288419</td>
+<td style="text-align: right;">0.0350909</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.53000</td>
+<td style="text-align: right;">0.2606147</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">7.897666</td>
+<td style="text-align: right;">0.0185127</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">17.24714</td>
+<td style="text-align: right;">0.1742330</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2202.115</td>
+<td style="text-align: right;">20.563508</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.9700000</td>
+<td style="text-align: right;">0.3880722</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.3000000</td>
+<td style="text-align: right;">0.0452769</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4.020000</td>
+<td style="text-align: right;">0.3193744</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1520000</td>
+<td style="text-align: right;">0.0454973</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.9280000</td>
+<td style="text-align: right;">0.3692831</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.0837904</td>
+<td style="text-align: right;">0.0103017</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.0682098</td>
+<td style="text-align: right;">0.0074102</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.8970827</td>
+<td style="text-align: right;">0.0351114</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">2.017290</td>
+<td style="text-align: right;">0.2383014</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.7427660</td>
+<td style="text-align: right;">0.0238183</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.61067</td>
+<td style="text-align: right;">0.3814159</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">7.866524</td>
+<td style="text-align: right;">0.0602747</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">14.95105</td>
+<td style="text-align: right;">0.6214669</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">2216.107</td>
+<td style="text-align: right;">23.421643</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">2.0066667</td>
+<td style="text-align: right;">0.6075154</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.5575000</td>
+<td style="text-align: right;">0.1212730</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">6.144444</td>
+<td style="text-align: right;">1.3947322</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.1755556</td>
+<td style="text-align: right;">0.0534114</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.3275000</td>
+<td style="text-align: right;">0.4642582</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1290979</td>
+<td style="text-align: right;">0.0182204</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.1044528</td>
+<td style="text-align: right;">0.0478919</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.9182696</td>
+<td style="text-align: right;">0.0960494</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">2.021526</td>
+<td style="text-align: right;">1.0181238</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.7931125</td>
+<td style="text-align: right;">0.0572026</td>
+<td style="text-align: right;">10</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">33.48125</td>
+<td style="text-align: right;">0.1833371</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8.082125</td>
+<td style="text-align: right;">0.0388314</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">19.73125</td>
+<td style="text-align: right;">0.3826762</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">2194.209</td>
+<td style="text-align: right;">19.112938</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">0.7316667</td>
+<td style="text-align: right;">0.5541630</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.2460000</td>
+<td style="text-align: right;">0.1297305</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">4.333333</td>
+<td style="text-align: right;">1.5331884</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.1480000</td>
+<td style="text-align: right;">0.1175585</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1.0650000</td>
+<td style="text-align: right;">0.6507457</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.1021536</td>
+<td style="text-align: right;">0.0172806</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1220871</td>
+<td style="text-align: right;">0.0321993</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.8757572</td>
+<td style="text-align: right;">0.0437616</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">1.280266</td>
+<td style="text-align: right;">0.4690939</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.7614289</td>
+<td style="text-align: right;">0.0774763</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">33.57158</td>
+<td style="text-align: right;">0.4624003</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">8.156956</td>
+<td style="text-align: right;">0.1116214</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">15.28000</td>
+<td style="text-align: right;">0.8648882</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">2200.295</td>
+<td style="text-align: right;">19.221109</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">4.0466667</td>
+<td style="text-align: right;">1.7320470</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.6700000</td>
+<td style="text-align: right;">0.0864870</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">10.350000</td>
+<td style="text-align: right;">1.8218123</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.2983333</td>
+<td style="text-align: right;">0.1132107</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1.2180000</td>
+<td style="text-align: right;">0.3126020</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.1398866</td>
+<td style="text-align: right;">0.0395086</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1384014</td>
+<td style="text-align: right;">0.0405833</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.9081010</td>
+<td style="text-align: right;">0.0655055</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">1.834786</td>
+<td style="text-align: right;">0.5226819</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.7855871</td>
+<td style="text-align: right;">0.0576868</td>
+<td style="text-align: right;">8</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="correlation-matrix" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Correlation Matrix</h1>
+<p>We compute a Pearson correlation matrix on complete cases and visualize it with significance masking.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cor_data <span class="ot">&lt;-</span> data_clean <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">all_of</span>(all_numeric_vars)) <span class="sc">%&gt;%</span> <span class="fu">drop_na</span>()</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">nrow</span>(cor_data) <span class="sc">&gt;</span> <span class="dv">0</span>){</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  cor_mat <span class="ot">&lt;-</span> rstatix<span class="sc">::</span><span class="fu">cor_mat</span>(cor_data)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  cor_p   <span class="ot">&lt;-</span> rstatix<span class="sc">::</span><span class="fu">cor_pmat</span>(cor_data)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggcorrplot</span>(</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    cor_mat,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">hc.order =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">"lower"</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">p.mat =</span> cor_p,</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">sig.level =</span> <span class="fl">0.05</span>,</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">insig =</span> <span class="st">"blank"</span>,</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">lab_size =</span> <span class="fl">2.5</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">colors =</span> <span class="fu">c</span>(<span class="st">"#6D9EC1"</span>, <span class="st">"white"</span>, <span class="st">"#E46726"</span>),</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Correlation Matrix of Biogeochemical Variables (white not significant)"</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Not enough complete data (after drop_na) to compute correlation matrix or PCA.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/correlation-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="diel-habitat-visualizations" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Diel &amp; Habitat Visualizations</h1>
+<p>A helper function produces publication-ready boxplots with jitter, faceted by <strong>Season × Benthos</strong>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Create diel (Dawn vs Dusk) boxplot faceted by Season × Benthos</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param var_to_plot Column name (string)</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param var_label  Y-axis label (string)</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>plot_diel_comparison <span class="ot">&lt;-</span> <span class="cf">function</span>(var_to_plot, var_label){</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stopifnot</span>(var_to_plot <span class="sc">%in%</span> <span class="fu">names</span>(data_clean))</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(.data[[var_to_plot]])) <span class="sc">%&gt;%</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Day_Night, <span class="at">y =</span> .data[[var_to_plot]], <span class="at">fill =</span> Day_Night)) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_boxplot</span>(<span class="at">outlier.shape =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.15</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(Season <span class="sc">~</span> Benthos, </span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>              <span class="co"># scales = "free_y", </span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>               <span class="at">ncol =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Dawn"</span> <span class="ot">=</span> <span class="st">"#FDB813"</span>, <span class="st">"Dusk"</span> <span class="ot">=</span> <span class="st">"#003865"</span>)) <span class="sc">+</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste</span>(<span class="st">"Diel Patterns in"</span>, var_label), <span class="at">x =</span> <span class="st">"Time of Day"</span>, <span class="at">y =</span> var_label) <span class="sc">+</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>, <span class="at">strip.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">"grey90"</span>),</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="example-diel-plots" class="level2" data-number="7.1">
+<h2 data-number="7.1" class="anchored" data-anchor-id="example-diel-plots"><span class="header-section-number">7.1</span> Example Diel Plots</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>(p_ph  <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"pH"</span>,         <span class="st">"pH (Total Scale)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>(p_no3 <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"NO3"</span>,        <span class="st">"Nitrate (µmol/L)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-2.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>(p_no3 <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"NO3"</span>,        <span class="st">"Nitrate (µmol/L)"</span>)<span class="sc">+</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(Season<span class="sc">~</span>Benthos, <span class="at">scales =</span> <span class="st">"free_y"</span>, <span class="at">ncol =</span> <span class="dv">5</span>)<span class="sc">+</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"free y to show within season comparison"</span>)) <span class="co"># show it again but with free y</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-3.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#(p_trp &lt;- plot_diel_comparison("Tryptophan", "Tryptophan-like fDOM (RFU)"))</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>(p_nh4 <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"NH4"</span>,        <span class="st">"Ammonium (µmol/L)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-4.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>(p_mc  <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"M_to_C"</span>,     <span class="st">"M:C"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-5.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>(p_TA  <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"TA"</span>,     <span class="st">"Total Alkalinity (µmol/kg)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-6.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>(p_bix  <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"BIX"</span>,     <span class="st">"BIX"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-7.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>(p_humic  <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"Humic"</span>,     <span class="st">"Total Humic-like fDOM (RFU)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-8.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>(p_prot  <span class="ot">&lt;-</span> <span class="fu">plot_diel_comparison</span>(<span class="st">"Prot"</span>,     <span class="st">"Total Proteinaceaous-like fDOM (RFU)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/diel-plots-9.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="carbonate-fdom-patterns" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Carbonate &amp; fDOM Patterns</h1>
+<section id="carbonate-chemistry-ph-vs-ta" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="carbonate-chemistry-ph-vs-ta"><span class="header-section-number">8.1</span> Carbonate Chemistry (pH vs TA)</h2>
+<p>Interpret vectors: <strong>Respiration</strong> ↓pH (TA ~ constant), <strong>Photosynthesis</strong> ↑pH (TA ~ constant), <strong>Calcification</strong> ↓TA &amp; ↓pH, <strong>Dissolution</strong> ↑TA &amp; ↑pH.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> pH, <span class="at">y =</span> TA, <span class="at">color =</span> Benthos, <span class="at">shape =</span> Day_Night)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set1"</span>) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Season) <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Carbonate Chemistry: pH vs. Total Alkalinity"</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Total Alkalinity (µmol/kg)"</span>, <span class="at">y =</span> <span class="st">"pH (Total Scale)"</span>,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">color =</span> <span class="st">"Habitat"</span>, <span class="at">shape =</span> <span class="st">"Time of Day"</span>) <span class="sc">+</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"right"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/ta-ph-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Carbonate chemistry scatter: pH vs Total Alkalinity, colored by habitat and shaped by diel period.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="fdom-and-nutrient-heatmap" class="level2" data-number="8.2">
+<h2 data-number="8.2" class="anchored" data-anchor-id="fdom-and-nutrient-heatmap"><span class="header-section-number">8.2</span> fDOM and Nutrient Heatmap</h2>
+<p>We compute mean values by <strong>Benthos × Day_Night × Season</strong>, then z-scale <strong>within each fDOM or nutrient component</strong> to compare relative patterns.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>fdom_heatmap_data <span class="ot">&lt;-</span> data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(Benthos, Day_Night, Season) <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(<span class="fu">c</span>(fdom_vars, nutrient_vars)), <span class="sc">~</span> <span class="fu">mean</span>(., <span class="at">na.rm =</span> <span class="cn">TRUE</span>)), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">all_of</span>(<span class="fu">c</span>(fdom_vars, nutrient_vars)), <span class="at">names_to =</span> <span class="st">"fDOM_Component"</span>, <span class="at">values_to =</span> <span class="st">"Mean_Value"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(fDOM_Component) <span class="sc">%&gt;%</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Mean_Value_Scaled =</span> <span class="fu">as.numeric</span>(<span class="fu">scale</span>(Mean_Value))) <span class="sc">%&gt;%</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>fdom_heatmap_data <span class="sc">%&gt;%</span></span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> fDOM_Component, <span class="at">y =</span> <span class="fu">paste</span>(Benthos, Day_Night, <span class="at">sep =</span> <span class="st">" - "</span>), <span class="at">fill =</span> Mean_Value_Scaled)) <span class="sc">+</span></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient2</span>(<span class="at">low =</span> <span class="st">"#075AFF"</span>, <span class="at">mid =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"#FF4500"</span>, <span class="at">midpoint =</span> <span class="dv">0</span>, <span class="at">name =</span> <span class="st">"Scaled</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="st">Mean Value"</span>) <span class="sc">+</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Mean fDOM and nutrient Component Signatures (Scaled by Component)"</span>, <span class="at">x =</span> <span class="st">"fDOM Component"</span>, <span class="at">y =</span> <span class="st">"Habitat and Time"</span>,</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"0 is the mean: positive is higher and negative is lower than the mean"</span>) <span class="sc">+</span></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))<span class="sc">+</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Season)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/fdom-heatmap-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Scaled mean fDOM component signatures across habitats and times.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="statistical-comparisons" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Statistical Comparisons</h1>
+<p>We use non-parametric tests (Kruskal–Wallis for among-habitat differences, Wilcoxon for diel contrasts within habitat, and <strong>Dunn</strong> post-hoc comparisons vs the ocean control).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Kruskal–Wallis across habitats (per variable across all time points)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Is there a difference in the average value by group?</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>stats_habitat <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(all_numeric_vars, <span class="cf">function</span>(v){</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">kruskal_test</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(v, <span class="st">"~ Benthos"</span>))) <span class="sc">%&gt;%</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable =</span> v)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">%&gt;%</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">adjust_pvalue</span>(<span class="at">method =</span> <span class="st">"bonferroni"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_significance</span>(<span class="st">"p.adj"</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>stats_habitat <span class="sc">%&gt;%</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p.adj<span class="sc">&lt;</span><span class="fl">0.055</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 9
+  .y.        n statistic    df          p method   variable   p.adj p.adj.signif
+  &lt;chr&gt;  &lt;int&gt;     &lt;dbl&gt; &lt;int&gt;      &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;       
+1 TA       247      17.4     4 0.00164    Kruskal… TA       2.30e-2 *           
+2 BIX      247      19.1     4 0.000744   Kruskal… BIX      1.04e-2 *           
+3 HIX      247      28.8     4 0.00000859 Kruskal… HIX      1.20e-4 ***         
+4 M_to_C   247      15.5     4 0.00373    Kruskal… M_to_C   5.22e-2 ns          </code></pre>
+</div>
+</div>
+<p>Comparing between Dawn and Dusk tells us more about the biological drivers. Is there a difference between day and night? If so it is probably metabolically driven (though could still be due to the metabolism of the ocean sample - i.e.&nbsp;the kelp forest)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Wilcoxon Dawn vs Dusk within habitat (per variable)</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>stats_diel <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(all_numeric_vars, <span class="cf">function</span>(v){</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Benthos, Season) <span class="sc">%&gt;%</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">wilcox_test</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(v, <span class="st">"~ Day_Night"</span>)), <span class="at">p.adjust.method =</span> <span class="st">"bonferroni"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable =</span> v)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">%&gt;%</span> <span class="fu">add_significance</span>(<span class="st">"p"</span>)</span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>stats_diel <span class="sc">%&gt;%</span></span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p<span class="sc">&lt;</span><span class="fl">0.055</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 3%">
+<col style="width: 3%">
+<col style="width: 11%">
+<col style="width: 10%">
+<col style="width: 12%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Season</th>
+<th style="text-align: left;">Benthos</th>
+<th style="text-align: left;">.y.</th>
+<th style="text-align: left;">group1</th>
+<th style="text-align: left;">group2</th>
+<th style="text-align: right;">n1</th>
+<th style="text-align: right;">n2</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p</th>
+<th style="text-align: left;">variable</th>
+<th style="text-align: left;">p.signif</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.00e+00</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">6.80e-06</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">6.66e-04</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">4.0</td>
+<td style="text-align: right;">9.87e-04</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">7.0</td>
+<td style="text-align: right;">7.87e-03</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">10.0</td>
+<td style="text-align: right;">1.50e-03</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">1.55e-04</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">4.00e-07</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">6.66e-04</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">11.0</td>
+<td style="text-align: right;">2.00e-07</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00e+00</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">1.14e-02</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">8.74e-04</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">6.21e-04</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">1.36e-04</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">20.5</td>
+<td style="text-align: right;">5.58e-03</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: right;">4.70e-04</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">44.0</td>
+<td style="text-align: right;">1.45e-02</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">1.43e-03</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">TA</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">23</td>
+<td style="text-align: right;">389.0</td>
+<td style="text-align: right;">1.00e-07</td>
+<td style="text-align: left;">TA</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">TA</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">78.0</td>
+<td style="text-align: right;">3.60e-03</td>
+<td style="text-align: left;">TA</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.59e-02</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">4.0</td>
+<td style="text-align: right;">5.48e-04</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">9.0</td>
+<td style="text-align: right;">3.60e-02</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: right;">6.95e-04</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">11.5</td>
+<td style="text-align: right;">2.06e-02</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">8.0</td>
+<td style="text-align: right;">4.26e-02</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">SIL</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.5</td>
+<td style="text-align: right;">1.05e-03</td>
+<td style="text-align: left;">SIL</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">SIL</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">11.0</td>
+<td style="text-align: right;">3.12e-02</td>
+<td style="text-align: left;">SIL</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">SIL</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1.5</td>
+<td style="text-align: right;">3.16e-03</td>
+<td style="text-align: left;">SIL</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">NO2</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">4.0</td>
+<td style="text-align: right;">9.15e-04</td>
+<td style="text-align: left;">NO2</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">NO2</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">8.5</td>
+<td style="text-align: right;">3.31e-02</td>
+<td style="text-align: left;">NO2</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Humic</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">52.0</td>
+<td style="text-align: right;">1.12e-05</td>
+<td style="text-align: left;">Humic</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">Humic</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">18.0</td>
+<td style="text-align: right;">5.45e-02</td>
+<td style="text-align: left;">Humic</td>
+<td style="text-align: left;">ns</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: left;">Prot</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8.0</td>
+<td style="text-align: right;">4.26e-02</td>
+<td style="text-align: left;">Prot</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">Prot</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">7.94e-03</td>
+<td style="text-align: left;">Prot</td>
+<td style="text-align: left;">**</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">BIX</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">37.0</td>
+<td style="text-align: right;">2.21e-02</td>
+<td style="text-align: left;">BIX</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">329.0</td>
+<td style="text-align: right;">2.92e-04</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">***</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;">1.01e-02</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">72.0</td>
+<td style="text-align: right;">8.23e-05</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">****</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">24.0</td>
+<td style="text-align: right;">1.59e-02</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">*</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">M_to_C</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">71.0</td>
+<td style="text-align: right;">1.57e-04</td>
+<td style="text-align: left;">M_to_C</td>
+<td style="text-align: left;">***</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Compare each variable to the ocean. Is it different from the ocean? If so probably because of the critters in the plot. This is by season and time of day for now</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Dunn post-hoc vs control</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>stats_vs_ocean <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(all_numeric_vars, <span class="cf">function</span>(v){</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  data_clean <span class="sc">%&gt;%</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Season, Day_Night) <span class="sc">%&gt;%</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dunn_test</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(v, <span class="st">"~ Benthos"</span>)), <span class="at">p.adjust.method =</span> <span class="st">"bonferroni"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">variable =</span> v)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>}) <span class="sc">%&gt;%</span></span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(group1 <span class="sc">==</span> control_label <span class="sc">|</span> group2 <span class="sc">==</span> control_label) <span class="sc">%&gt;%</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_significance</span>(<span class="st">"p.adj"</span>)</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>stats_vs_ocean <span class="sc">%&gt;%</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(p.adj<span class="sc">&lt;</span><span class="fl">0.055</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 9%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 9%">
+<col style="width: 2%">
+<col style="width: 2%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 9%">
+<col style="width: 11%">
+<col style="width: 10%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Season</th>
+<th style="text-align: left;">Day_Night</th>
+<th style="text-align: left;">.y.</th>
+<th style="text-align: left;">group1</th>
+<th style="text-align: left;">group2</th>
+<th style="text-align: right;">n1</th>
+<th style="text-align: right;">n2</th>
+<th style="text-align: right;">statistic</th>
+<th style="text-align: right;">p</th>
+<th style="text-align: right;">p.adj</th>
+<th style="text-align: left;">p.adj.signif</th>
+<th style="text-align: left;">variable</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">pH</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">-3.731735</td>
+<td style="text-align: right;">0.0001902</td>
+<td style="text-align: right;">0.0019017</td>
+<td style="text-align: left;">**</td>
+<td style="text-align: left;">pH</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">TempInSitu</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">3.537701</td>
+<td style="text-align: right;">0.0004036</td>
+<td style="text-align: right;">0.0040363</td>
+<td style="text-align: left;">**</td>
+<td style="text-align: left;">TempInSitu</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">TA</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">-3.446357</td>
+<td style="text-align: right;">0.0005682</td>
+<td style="text-align: right;">0.0056820</td>
+<td style="text-align: left;">**</td>
+<td style="text-align: left;">TA</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">TA</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-3.700687</td>
+<td style="text-align: right;">0.0002150</td>
+<td style="text-align: right;">0.0021502</td>
+<td style="text-align: left;">**</td>
+<td style="text-align: left;">TA</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">-3.441596</td>
+<td style="text-align: right;">0.0005783</td>
+<td style="text-align: right;">0.0057829</td>
+<td style="text-align: left;">**</td>
+<td style="text-align: left;">NO3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-3.177742</td>
+<td style="text-align: right;">0.0014843</td>
+<td style="text-align: right;">0.0148427</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">NO3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Surfgrass</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">-4.342098</td>
+<td style="text-align: right;">0.0000141</td>
+<td style="text-align: right;">0.0001411</td>
+<td style="text-align: left;">***</td>
+<td style="text-align: left;">NO3</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">NO3</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">-2.980309</td>
+<td style="text-align: right;">0.0028796</td>
+<td style="text-align: right;">0.0287958</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">NO3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Mussel</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">-2.874490</td>
+<td style="text-align: right;">0.0040468</td>
+<td style="text-align: right;">0.0404681</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">PO4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">PO4</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">-2.965018</td>
+<td style="text-align: right;">0.0030266</td>
+<td style="text-align: right;">0.0302665</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">PO4</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">NH4</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">-2.951625</td>
+<td style="text-align: right;">0.0031611</td>
+<td style="text-align: right;">0.0316107</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">NH4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">BIX</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">-2.853902</td>
+<td style="text-align: right;">0.0043186</td>
+<td style="text-align: right;">0.0431859</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">BIX</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">2.835131</td>
+<td style="text-align: right;">0.0045807</td>
+<td style="text-align: right;">0.0458069</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">HIX</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Rockweed</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">2.792848</td>
+<td style="text-align: right;">0.0052246</td>
+<td style="text-align: right;">0.0522462</td>
+<td style="text-align: left;">ns</td>
+<td style="text-align: left;">HIX</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: left;">Dawn</td>
+<td style="text-align: left;">HIX</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">3.123966</td>
+<td style="text-align: right;">0.0017843</td>
+<td style="text-align: right;">0.0178431</td>
+<td style="text-align: left;">*</td>
+<td style="text-align: left;">HIX</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: left;">Dusk</td>
+<td style="text-align: left;">M_to_C</td>
+<td style="text-align: left;">Open Ocean</td>
+<td style="text-align: left;">Barnacle</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">-4.146181</td>
+<td style="text-align: right;">0.0000338</td>
+<td style="text-align: right;">0.0003381</td>
+<td style="text-align: left;">***</td>
+<td style="text-align: left;">M_to_C</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="multivariate-analysis-pca" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> Multivariate Analysis: PCA</h1>
+<p>We run PCA on scaled, complete numeric cases and produce <strong>Scores</strong> (samples) and <strong>Loadings</strong> (variables) plots.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>pca_data <span class="ot">&lt;-</span> data_clean <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">all_of</span>(all_numeric_vars)) <span class="sc">%&gt;%</span> <span class="fu">drop_na</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(Salinity, TempInSitu)) <span class="co"># remove salinity and temp because not really important here</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>pca_ids  <span class="ot">&lt;-</span> data_clean <span class="sc">%&gt;%</span> <span class="fu">drop_na</span>(<span class="fu">all_of</span>(all_numeric_vars))<span class="sc">%&gt;%</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">all_of</span>(id_vars))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="fu">nrow</span>(pca_data) <span class="sc">&gt;</span> <span class="dv">2</span>){</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  pca_fit <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(<span class="fu">scale</span>(pca_data))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  pvar <span class="ot">&lt;-</span> <span class="fu">round</span>(pca_fit<span class="sc">$</span>sdev<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> <span class="fu">sum</span>(pca_fit<span class="sc">$</span>sdev<span class="sc">^</span><span class="dv">2</span>) <span class="sc">*</span> <span class="dv">100</span>, <span class="dv">1</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>  scores <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(pca_fit<span class="sc">$</span>x) <span class="sc">%&gt;%</span> <span class="fu">select</span>(PC1, PC2) <span class="sc">%&gt;%</span> <span class="fu">bind_cols</span>(pca_ids)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>  loadings <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(pca_fit<span class="sc">$</span>rotation, <span class="at">rownames =</span> <span class="st">"variable"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(variable, PC1, PC2)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>  plot_scores <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(scores, <span class="fu">aes</span>(PC1, PC2, <span class="at">color =</span> Benthos, <span class="at">shape =</span> Day_Night)) <span class="sc">+</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">4</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_brewer</span>(<span class="at">palette =</span> <span class="st">"Set2"</span>) <span class="sc">+</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"PCA of Samples"</span>, <span class="at">x =</span> <span class="fu">paste0</span>(<span class="st">"PC1 ("</span>, pvar[<span class="dv">1</span>], <span class="st">"%)"</span>), <span class="at">y =</span> <span class="fu">paste0</span>(<span class="st">"PC2 ("</span>, pvar[<span class="dv">2</span>], <span class="st">"%)"</span>), <span class="at">color =</span> <span class="st">"Habitat"</span>, <span class="at">shape =</span> <span class="st">"Time of Day"</span>)<span class="sc">+</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>Day_Night, <span class="at">ncol =</span> <span class="dv">1</span>)</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>  plot_loadings <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(loadings, <span class="fu">aes</span>(PC1, PC2, <span class="at">label =</span> variable)) <span class="sc">+</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">0</span>, <span class="at">y =</span> <span class="dv">0</span>, <span class="at">xend =</span> PC1<span class="sc">*</span><span class="dv">2</span>, <span class="at">yend =</span> PC2<span class="sc">*</span><span class="dv">2</span>), <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">color =</span> <span class="st">"grey50"</span>) <span class="sc">+</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_text_repel</span>(<span class="at">size =</span> <span class="fl">3.5</span>) <span class="sc">+</span></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"PCA Loadings (Variables)"</span>, <span class="at">x =</span> <span class="fu">paste0</span>(<span class="st">"PC1 ("</span>, pvar[<span class="dv">1</span>], <span class="st">"%)"</span>), <span class="at">y =</span> <span class="fu">paste0</span>(<span class="st">"PC2 ("</span>, pvar[<span class="dv">2</span>], <span class="st">"%)"</span>))</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a>  plot_scores <span class="sc">+</span> plot_loadings</span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb28-23"><a href="#cb28-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Skipping PCA: Not enough complete cases for analysis.</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb28-24"><a href="#cb28-24" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Intertidal_Biogeochem_Analysis_files/figure-html/pca-run-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Not too much going on with the PCA, but there are lots of variables right now.</p>
+</section>
+<section id="potential-hypotheses-to-test" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> Potential hypotheses to test</h1>
+<ul>
+<li><strong>H1 (Net Photosynthesis):</strong> Producer habitats (Rockweed, Surfgrass) exhibit higher pH and lower DIN (NO3, PO4) at <strong>Dusk</strong> vs <strong>Dawn</strong>, relative to the <strong>Open Ocean</strong> control.</li>
+<li><strong>H2 (Respiration/Excretion):</strong> Animal habitats (Mussel, Barnacle) show lower pH and higher <strong>NH4</strong> at <strong>Dawn</strong> after nighttime respiration.</li>
+<li><strong>H3 (Calcification Signature):</strong> Calcifying habitats reduce <strong>TA</strong> relative to control, particularly at night, shifting points <strong>down-left</strong> in TA–pH space. Also lower TA at dusk means they have been calcifying all day. Lower TA than the Ocean shows the calcification signature. Higher than ocean is dissolution. Note: look for CCA in the surfgrass and rockweed beds in the cover data.</li>
+<li><strong>H4 (DOM Source):</strong> Animal habitats elevate protein-like fDOM (Tyrosine, Tryptophan) and shift DOM indices (low <strong>HIX</strong>, high <strong>BIX</strong>). Producer habitats should have higher Humics.</li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,413 @@
+---
+title: "Rocky Intertidal Biogeochemistry — Exploratory Analysis "
+author: "Nyssa SIlbiger"
+format:
+  html:
+    toc: true
+    toc-location: left
+    number-sections: true
+    theme: cosmo
+  pdf: default
+execute:
+  warning: false
+  message: false
+  echo: true
+params:
+  keep_times: ["Dawn", "Dusk"]
+  control_label: "Open Ocean"
+---
+
+# Overview
+
+This Quarto document:
+
+- Loads and merges pH/TA/nutrients and fDOM datasets
+- Cleans data and applies outlier handling (IQR rule)
+- Summarizes by habitat and diel period
+- Visualizes diel and habitat patterns (boxplots, TA–pH, fDOM heatmap)
+- Computes correlation matrices and significance masks
+- Runs non-parametric statistics (Kruskal–Wallis, Wilcoxon, Dunn vs. control)
+- Performs PCA with scores and loadings plots
+- Lists testable hypotheses informed by the exploratory results
+
+> **Reproducibility & Modularity**  
+> Kept times (which removes summer), and the control label (open ocean) are parameterized in the YAML `params:` so I can change inputs without editing code chunks.
+
+# Setup
+
+```{r}
+#| label: setup-packages
+#| message: false
+#| warning: false
+
+
+library(tidyverse)
+library(patchwork)
+library(rstatix)
+library(ggcorrplot)
+library(ggrepel)
+library(here)
+library(lubridate)
+library(kableExtra)
+
+# Global plot theme
+theme_set(theme_bw(base_size = 12))
+```
+
+## Paths & Parameters
+
+```{r}
+#| label: setup-params
+keep_times <- params$keep_times
+control_label <- params$control_label
+```
+
+# Data Loading & Merging
+
+This section loads both fDOM and pH/nutrients CSVs, parses dates, and joins on shared identifiers. We keep all samples, regarless of missing data (`full_join`).
+
+```{r}
+#| label: load-merge
+#| error: true
+
+load_ok <- TRUE
+tryCatch({
+  data_ph <- read_csv(here::here("Data","Biogeochemistry","pHProbe_Data_calculated.csv"), na = c("NA", ""), show_col_types = FALSE)
+  data_fdom <- read_csv(here::here("Data","Biogeochemistry","fDOM_clean.csv"), na = c("NA", ""), show_col_types = FALSE) %>%
+    mutate(Sampling_Date = lubridate::mdy(Sampling_Date))
+
+  data_merged <- full_join(
+    data_ph,
+    data_fdom,
+    by = c("UniqueID", "Benthos", "Quad_ID", "Day_Night", "Sampling_Date", "Sampling_Time","Season")
+  ) %>%
+    mutate(Humic = UVHumic+VisibleHumic+MarineHumic,# make a column for humics
+           Prot = Tryptophan+Tyrosine # make a column for proteinaceaus fDOM
+           ) 
+
+  cat("Data loaded and merged successfully.\n")
+  cat("Total merged samples:", nrow(data_merged), "\n")
+}, error = function(e){
+  load_ok <<- FALSE
+  message("Error loading or merging files. Please check file paths and names.")
+  message(e)
+})
+
+stopifnot(load_ok)
+```
+
+# Cleaning & Pre-processing
+
+We declare variable sets for identifiers, water chemistry, nutrients, and fDOM components. We retain only **Dawn** and **Dusk** samples, coerce numeric columns, set factor orders, drop NA grouping levels, and apply the **1.5×IQR rule** as a conservative outlier filter (replacing outliers with `NA`).
+
+```{r}
+#| label: clean-variables
+
+# Identifier variables
+id_vars <- c("UniqueID", "Season", "Benthos", "Quad_ID", "Day_Night", "Sampling_Date")
+
+# Water chemistry variables (from pH probe file)
+water_chem_vars <- c("Salinity", "pH", "TempInSitu", "TA")
+
+# Nutrient variables (from pH probe file)
+nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4")
+
+# fDOM variables (from fDOM file)
+#fdom_vars <- c("UVHumic", "Tyrosine", "VisibleHumic", "MarineHumic",
+#               "Tryptophan", "FulvicAcid", "BIX", "HIX", "FI", "M_to_C")
+
+# reduced variables
+fdom_vars <- c("Humic","Prot", "BIX", "HIX", "M_to_C")
+
+all_numeric_vars <- c(water_chem_vars, nutrient_vars, fdom_vars)
+
+# Helper to IQR-filter a numeric vector (returning NA for outliers)
+iqr_filter <- function(x){
+  if(!is.numeric(x)) return(x)
+  q1 <- quantile(x, 0.25, na.rm = TRUE)
+  q3 <- quantile(x, 0.75, na.rm = TRUE)
+  iqr <- q3 - q1
+  lo <- q1 - 1.5 * iqr
+  hi <- q3 + 1.5 * iqr
+  ifelse(x < lo | x > hi, NA_real_, x)
+}
+
+# Cleaned dataset
+data_clean <- data_merged %>%
+  filter(Day_Night %in% keep_times) %>%
+  select(all_of(id_vars), any_of(all_numeric_vars)) %>%
+  mutate(across(all_of(all_numeric_vars), as.numeric)) %>%
+  mutate(
+    Benthos   = factor(Benthos, levels = c(control_label, "Rockweed", "Surfgrass", "Barnacle", "Mussel")),
+    Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk"))
+  ) %>%
+  drop_na(Benthos, Day_Night) %>%
+  mutate(across(all_of(all_numeric_vars), iqr_filter))
+```
+
+## Missingness Summary
+
+```{r}
+#| label: na-summary
+na_summary <- data_clean %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  pivot_longer(everything(), names_to = "variable", values_to = "na_count") %>%
+  filter(na_count > 0) %>%
+  arrange(desc(na_count))
+
+na_summary
+```
+
+# Summary Statistics
+
+Per habitat × diel period (and Season), we compute mean, SD, and sample size for all numeric variables.
+
+```{r}
+#| label: grouped-summary
+#| tbl-cap: "Summary statistics (mean, sd, n) by habitat, time, and season."
+
+data_summary <- data_clean %>%
+  group_by(Benthos, Day_Night, Season) %>%
+  summarise(
+    across(all_of(all_numeric_vars), list(mean = ~ mean(., na.rm = TRUE),
+                                          sd   = ~ sd(., na.rm = TRUE),
+                                          n    = ~ sum(!is.na(.))
+    )),
+    .groups = "drop"
+  )
+
+data_summary %>%
+  kable()
+```
+
+# Correlation Matrix
+
+We compute a Pearson correlation matrix on complete cases and visualize it with significance masking.
+
+```{r}
+#| label: correlation
+cor_data <- data_clean %>% select(all_of(all_numeric_vars)) %>% drop_na()
+
+if(nrow(cor_data) > 0){
+  cor_mat <- rstatix::cor_mat(cor_data)
+  cor_p   <- rstatix::cor_pmat(cor_data)
+
+  ggcorrplot(
+    cor_mat,
+    hc.order = TRUE,
+    type = "lower",
+    p.mat = cor_p,
+    sig.level = 0.05,
+    insig = "blank",
+    lab = TRUE,
+    lab_size = 2.5,
+    colors = c("#6D9EC1", "white", "#E46726"),
+    title = "Correlation Matrix of Biogeochemical Variables (white not significant)"
+  )
+} else {
+  cat("Not enough complete data (after drop_na) to compute correlation matrix or PCA.\n")
+}
+```
+
+# Diel & Habitat Visualizations
+
+A helper function produces publication-ready boxplots with jitter, faceted by **Season × Benthos**.
+
+```{r}
+#| label: plot-fun
+#' Create diel (Dawn vs Dusk) boxplot faceted by Season × Benthos
+#' @param var_to_plot Column name (string)
+#' @param var_label  Y-axis label (string)
+plot_diel_comparison <- function(var_to_plot, var_label){
+  stopifnot(var_to_plot %in% names(data_clean))
+
+  data_clean %>%
+    filter(!is.na(.data[[var_to_plot]])) %>%
+    ggplot(aes(x = Day_Night, y = .data[[var_to_plot]], fill = Day_Night)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_jitter(width = 0.15, alpha = 0.5, size = 2) +
+    facet_wrap(Season ~ Benthos, 
+              # scales = "free_y", 
+               ncol = 5) +
+    scale_fill_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+    labs(title = paste("Diel Patterns in", var_label), x = "Time of Day", y = var_label) +
+    theme(legend.position = "none", strip.background = element_rect(fill = "grey90"),
+          axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+## Example Diel Plots
+
+```{r}
+#| label: diel-plots
+#| fig-cap: "Diel (Dawn vs Dusk) differences by Season × Benthos for selected variables."
+(p_ph  <- plot_diel_comparison("pH",         "pH (Total Scale)"))
+(p_no3 <- plot_diel_comparison("NO3",        "Nitrate (µmol/L)"))
+(p_no3 <- plot_diel_comparison("NO3",        "Nitrate (µmol/L)")+
+    facet_wrap(Season~Benthos, scales = "free_y", ncol = 5)+
+    labs(title = "free y to show within season comparison")) # show it again but with free y
+#(p_trp <- plot_diel_comparison("Tryptophan", "Tryptophan-like fDOM (RFU)"))
+(p_nh4 <- plot_diel_comparison("NH4",        "Ammonium (µmol/L)"))
+(p_mc  <- plot_diel_comparison("M_to_C",     "M:C"))
+(p_TA  <- plot_diel_comparison("TA",     "Total Alkalinity (µmol/kg)"))
+(p_bix  <- plot_diel_comparison("BIX",     "BIX"))
+(p_humic  <- plot_diel_comparison("Humic",     "Total Humic-like fDOM (RFU)"))
+(p_prot  <- plot_diel_comparison("Prot",     "Total Proteinaceaous-like fDOM (RFU)"))
+
+
+```
+
+# Carbonate & fDOM Patterns
+
+## Carbonate Chemistry (pH vs TA)
+
+Interpret vectors: **Respiration** ↓pH (TA ~ constant), **Photosynthesis** ↑pH (TA ~ constant), **Calcification** ↓TA & ↓pH, **Dissolution** ↑TA & ↑pH.
+
+```{r}
+#| label: ta-ph
+#| fig-cap: "Carbonate chemistry scatter: pH vs Total Alkalinity, colored by habitat and shaped by diel period."
+
+data_clean %>%
+  ggplot(aes(x = pH, y = TA, color = Benthos, shape = Day_Night)) +
+  geom_point(size = 3.5, alpha = 0.8) +
+  scale_color_brewer(palette = "Set1") +
+  facet_wrap(~ Season) +
+  labs(title = "Carbonate Chemistry: pH vs. Total Alkalinity",
+       x = "Total Alkalinity (µmol/kg)", y = "pH (Total Scale)",
+       color = "Habitat", shape = "Time of Day") +
+  theme(legend.position = "right")
+```
+
+## fDOM and Nutrient Heatmap
+
+We compute mean values by **Benthos × Day_Night × Season**, then z-scale **within each fDOM or nutrient component** to compare relative patterns.
+
+```{r}
+#| label: fdom-heatmap
+#| fig-cap: "Scaled mean fDOM component signatures across habitats and times."
+
+fdom_heatmap_data <- data_clean %>%
+  group_by(Benthos, Day_Night, Season) %>%
+  summarise(across(all_of(c(fdom_vars, nutrient_vars)), ~ mean(., na.rm = TRUE)), .groups = "drop") %>%
+  pivot_longer(cols = all_of(c(fdom_vars, nutrient_vars)), names_to = "fDOM_Component", values_to = "Mean_Value") %>%
+  group_by(fDOM_Component) %>%
+  mutate(Mean_Value_Scaled = as.numeric(scale(Mean_Value))) %>%
+  ungroup()
+
+fdom_heatmap_data %>%
+  ggplot(aes(x = fDOM_Component, y = paste(Benthos, Day_Night, sep = " - "), fill = Mean_Value_Scaled)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(low = "#075AFF", mid = "white", high = "#FF4500", midpoint = 0, name = "Scaled
+Mean Value") +
+  labs(title = "Mean fDOM and nutrient Component Signatures (Scaled by Component)", x = "fDOM Component", y = "Habitat and Time",
+       subtitle = "0 is the mean: positive is higher and negative is lower than the mean") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  facet_wrap(~Season)
+```
+
+# Statistical Comparisons
+
+We use non-parametric tests (Kruskal–Wallis for among-habitat differences, Wilcoxon for diel contrasts within habitat, and **Dunn** post-hoc comparisons vs the ocean control).
+
+```{r}
+#| label: stats-tests
+
+# Kruskal–Wallis across habitats (per variable across all time points)
+# Is there a difference in the average value by group?
+stats_habitat <- map_dfr(all_numeric_vars, function(v){
+  data_clean %>%
+    kruskal_test(as.formula(paste(v, "~ Benthos"))) %>%
+    mutate(variable = v)
+}) %>%
+  adjust_pvalue(method = "bonferroni") %>%
+  add_significance("p.adj")
+
+stats_habitat %>%
+  filter(p.adj<0.055)
+```
+
+Comparing between Dawn and Dusk tells us more about the biological drivers. Is there a difference between day and night? If so it is probably metabolically driven (though could still be due to the metabolism of the ocean sample - i.e. the kelp forest)
+```{r}
+#| label: stats-diel
+# Wilcoxon Dawn vs Dusk within habitat (per variable)
+
+stats_diel <- map_dfr(all_numeric_vars, function(v){
+  data_clean %>%
+    group_by(Benthos, Season) %>%
+    wilcox_test(as.formula(paste(v, "~ Day_Night")), p.adjust.method = "bonferroni") %>%
+    mutate(variable = v)
+}) %>% add_significance("p")
+
+stats_diel %>%
+  filter(p<0.055) %>%
+  kable()
+```
+
+ Compare each variable to the ocean. Is it different from the ocean? If so probably because of the critters in the plot. This is by season and time of day for now
+```{r}
+#| label: stats-vs-ocean
+# Dunn post-hoc vs control
+stats_vs_ocean <- map_dfr(all_numeric_vars, function(v){
+  data_clean %>%
+    group_by(Season, Day_Night) %>%
+    dunn_test(as.formula(paste(v, "~ Benthos")), p.adjust.method = "bonferroni") %>%
+    mutate(variable = v)
+}) %>%
+  filter(group1 == control_label | group2 == control_label) %>%
+  add_significance("p.adj")
+
+stats_vs_ocean %>%
+  filter(p.adj<0.055) %>%
+  kable()
+```
+
+# Multivariate Analysis: PCA
+
+We run PCA on scaled, complete numeric cases and produce **Scores** (samples) and **Loadings** (variables) plots.
+
+```{r}
+#| label: pca-prep
+pca_data <- data_clean %>% select(all_of(all_numeric_vars)) %>% drop_na() %>%
+  select(-c(Salinity, TempInSitu)) # remove salinity and temp because not really important here
+pca_ids  <- data_clean %>% drop_na(all_of(all_numeric_vars))%>%
+  select(all_of(id_vars))
+```
+
+```{r}
+#| label: pca-run
+if(nrow(pca_data) > 2){
+  pca_fit <- prcomp(scale(pca_data))
+  pvar <- round(pca_fit$sdev^2 / sum(pca_fit$sdev^2) * 100, 1)
+
+  scores <- as_tibble(pca_fit$x) %>% select(PC1, PC2) %>% bind_cols(pca_ids)
+  loadings <- as_tibble(pca_fit$rotation, rownames = "variable") %>% select(variable, PC1, PC2)
+
+  plot_scores <- ggplot(scores, aes(PC1, PC2, color = Benthos, shape = Day_Night)) +
+    geom_point(size = 4, alpha = 0.7) +
+    scale_color_brewer(palette = "Set2") +
+    labs(title = "PCA of Samples", x = paste0("PC1 (", pvar[1], "%)"), y = paste0("PC2 (", pvar[2], "%)"), color = "Habitat", shape = "Time of Day")+
+    facet_wrap(~Day_Night, ncol = 1)
+
+  plot_loadings <- ggplot(loadings, aes(PC1, PC2, label = variable)) +
+    geom_segment(aes(x = 0, y = 0, xend = PC1*2, yend = PC2*2), arrow = arrow(length = unit(0.2, "cm")), color = "grey50") +
+    geom_text_repel(size = 3.5) +
+    geom_hline(yintercept = 0, linetype = "dashed", color = "grey70") +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "grey70") +
+    labs(title = "PCA Loadings (Variables)", x = paste0("PC1 (", pvar[1], "%)"), y = paste0("PC2 (", pvar[2], "%)"))
+
+  plot_scores + plot_loadings
+} else {
+  cat("Skipping PCA: Not enough complete cases for analysis.\n")
+}
+```
+
+Not too much going on with the PCA, but there are lots of variables right now.
+
+# Potential hypotheses to test
+
+- **H1 (Net Photosynthesis):** Producer habitats (Rockweed, Surfgrass) exhibit higher pH and lower DIN (NO3, PO4) at **Dusk** vs **Dawn**, relative to the **Open Ocean** control.
+- **H2 (Respiration/Excretion):** Animal habitats (Mussel, Barnacle) show lower pH and higher **NH4** at **Dawn** after nighttime respiration.
+- **H3 (Calcification Signature):** Calcifying habitats reduce **TA** relative to control, particularly at night, shifting points **down-left** in TA–pH space. Also lower TA at dusk means they have been calcifying all day. Lower TA than the Ocean shows the calcification signature.  Higher than ocean is dissolution. Note: look for CCA in the surfgrass and rockweed beds in the cover data.
+- **H4 (DOM Source):** Animal habitats elevate protein-like fDOM (Tyrosine, Tryptophan) and shift DOM indices (low **HIX**, high **BIX**). Producer habitats should have higher Humics. 
+
