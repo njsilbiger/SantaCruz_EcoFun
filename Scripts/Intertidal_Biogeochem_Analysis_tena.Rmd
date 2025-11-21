@@ -1,13 +1,14 @@
 ---
 title: "Rocky Intertidal Biogeochemistry — Exploratory Analysis "
-author: "Nyssa SIlbiger"
-format:
-  html:
+author: "Nyssa + Tena"
+output:
+  html_document:
     toc: true
-    toc-location: left
+    toc-float: true
     number-sections: true
     theme: cosmo
-  pdf: default
+  github_document:
+    html_preview: false
 execute:
   warning: false
   message: false
@@ -34,6 +35,10 @@ This Quarto document:
 > Kept times (which removes summer), and the control label (open ocean) are parameterized in the YAML `params:` so I can change inputs without editing code chunks.
 
 # Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ```{r}
 #| label: setup-packages
