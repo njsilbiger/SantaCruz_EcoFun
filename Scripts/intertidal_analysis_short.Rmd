@@ -1,0 +1,1010 @@
+---
+title: "intertidal_analysis_short"
+author: "tena"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: cosmo
+  github_document:
+    html_preview: false
+params:
+  keep_times: ["Dawn", "Dusk"]
+  control_label: "Open Ocean"
+---
+
+# Overview
+
+This document:
+
+- Loads and merges pH/TA/nutrients and fDOM datasets
+- Cleans data and applies outlier handling (IQR rule)
+- Summarizes by habitat and diel period
+- Creates PCA for seasonal drivers
+- Visualizes diel and habitat patterns (boxplots, TA–pH, fDOM heatmap)
+- Computes correlation matrices and significance masks
+- Runs ANOVAs
+- Visualizes ANOVA results and reassesses hypotheses
+
+> **Reproducibility & Modularity**  
+> Kept times (which removes summer), and the control label (open ocean) are parameterized in the YAML `params:` so I can change inputs without editing code chunks.
+
+# Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(patchwork)
+library(rstatix)
+library(ggcorrplot)
+library(ggrepel)
+library(here)
+library(lubridate)
+library(kableExtra)
+library(car)
+library(emmeans)
+library(agricolae)
+library(lme4)
+library(paletteer)
+
+# Global plot theme
+theme_set(theme_bw(base_size = 12))
+```
+
+## Paths & Parameters
+
+```{r params}
+keep_times <- params$keep_times
+control_label <- params$control_label
+```
+
+# Data Loading & Merging
+
+This section loads both fDOM and pH/nutrients CSVs, parses dates, and joins on shared identifiers. We keep all samples, regarless of missing data (`full_join`).
+
+```{r data_load}
+load_ok <- TRUE
+tryCatch({
+  data_ph <- read_csv(here::here("Data","Biogeochemistry","pHProbe_Data_calculated.csv"), na = c("NA", ""), show_col_types = FALSE) 
+    #mutate(Sampling_Date = lubridate::mdy(Sampling_Date))
+  data_fdom <- read_csv(here::here("Data","Biogeochemistry","fDOM_clean.csv"), na = c("NA", ""), show_col_types = FALSE) %>%
+    mutate(Sampling_Date = lubridate::mdy(Sampling_Date))
+
+  data_merged <- full_join(
+    data_ph,
+    data_fdom,
+    by = c("UniqueID", "Benthos", "Quad_ID", "Day_Night", "Sampling_Date", "Sampling_Time","Season")
+  ) %>%
+    mutate(Humic = UVHumic+VisibleHumic+MarineHumic,# make a column for humics
+           Prot = Tryptophan+Tyrosine, # make a column for proteinaceaus fDOM
+           Nitrogen = NO3+NO2 # make a column of total N
+           ) 
+
+  cat("Data loaded and merged successfully.\n")
+  cat("Total merged samples:", nrow(data_merged), "\n")
+}, error = function(e){
+  load_ok <<- FALSE
+  message("Error loading or merging files. Please check file paths and names.")
+  message(e)
+})
+
+sessile <- read_csv(here("Data","Community_Composition","sessile_data.csv"))
+sessile_function <-read_csv(here("Data","Community_Composition","SessileFunctional.csv"))
+
+mobile <- read_csv(here("Data","Community_Composition","mobile_data.csv"))
+mobile_function <-read_csv(here("Data","Community_Composition","MobileFunctional.csv"))
+
+stopifnot(load_ok)
+```
+
+# Cleaning & Pre-processing
+
+We declare variable sets for identifiers, water chemistry, nutrients, and fDOM components. We retain only **Dawn** and **Dusk** samples, coerce numeric columns, set factor orders, drop NA grouping levels, and apply the **1.5×IQR rule** as a conservative outlier filter (replacing outliers with `NA`).
+
+```{r clean-variables}
+
+# Identifier variables
+id_vars <- c("UniqueID", "Season", "Benthos", "Quad_ID", "Day_Night", "Sampling_Date")
+
+# Water chemistry variables (from pH probe file)
+water_chem_vars <- c("Salinity", "pH", "TempInSitu", "TA")
+
+# Nutrient variables (from pH probe file)
+nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "Nitrogen")
+
+# fDOM variables (from fDOM file)
+#fdom_vars <- c("UVHumic", "Tyrosine", "VisibleHumic", "MarineHumic",
+#               "Tryptophan", "FulvicAcid", "BIX", "HIX", "FI", "M_to_C")
+
+# reduced variables
+fdom_vars <- c("Humic","Prot", "BIX", "HIX", "M_to_C")
+
+all_numeric_vars <- c(water_chem_vars, nutrient_vars, fdom_vars)
+
+# only vars of interest
+numeric_vars <- c("pH", "TA", "Nitrogen", "Humic", "Prot", "BIX", "HIX", "M_to_C")
+
+# Helper to IQR-filter a numeric vector (returning NA for outliers)
+iqr_filter <- function(x){
+  if(!is.numeric(x)) return(x)
+  q1 <- quantile(x, 0.25, na.rm = TRUE)
+  q3 <- quantile(x, 0.75, na.rm = TRUE)
+  iqr <- q3 - q1
+  lo <- q1 - 1.5 * iqr
+  hi <- q3 + 1.5 * iqr
+  ifelse(x < lo | x > hi, NA_real_, x)
+}
+
+# Cleaned dataset
+data_clean <- data_merged %>%
+  filter(Day_Night %in% keep_times) %>%
+  select(-M_to_C) %>%
+  mutate(M_to_C = MarineHumic / VisibleHumic) %>%
+  select(all_of(id_vars), any_of(all_numeric_vars)) %>%
+  mutate(across(all_of(all_numeric_vars), as.numeric)) %>%
+  mutate(
+    Benthos   = factor(Benthos, levels = c(control_label, "Rockweed", "Surfgrass", "Barnacle", "Mussel")),
+    Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk"))
+  ) %>%
+  drop_na(Benthos, Day_Night) %>%
+  
+  mutate(across(all_of(all_numeric_vars), iqr_filter))
+```
+
+# Summary Statistics
+
+Per habitat × diel period (and Season), we compute mean, SD, and sample size for all numeric variables.
+
+```{r summary-stats}
+
+data_summary <- data_clean %>%
+  group_by(Benthos, Day_Night, Season) %>%
+  summarise(
+    across(all_of(all_numeric_vars), list(mean = ~ mean(., na.rm = TRUE),
+                                          sd   = ~ sd(., na.rm = TRUE),
+                                          n    = ~ sum(!is.na(.))
+    )),
+    .groups = "drop"
+  )
+
+data_summary %>%
+  kable()
+```
+
+# Background plots
+
+## Correlation Matrix
+
+We compute a Pearson correlation matrix on complete cases and visualize it with significance masking.
+```{r corr-matrix}
+cor_data <- data_clean %>% select(all_of(numeric_vars)) %>% drop_na()
+
+if(nrow(cor_data) > 0){
+  cor_mat <- rstatix::cor_mat(cor_data)
+  cor_p   <- rstatix::cor_pmat(cor_data)
+
+  ggcorrplot(
+    cor_mat,
+    hc.order = TRUE,
+    type = "lower",
+    p.mat = cor_p,
+    sig.level = 0.05,
+    insig = "blank",
+    lab = TRUE,
+    lab_size = 2.5,
+    colors = c("#6D9EC1", "white", "#E46726"),
+    title = "Correlation Matrix of Biogeochemical Variables\n(white not significant)"
+  )
+} else {
+  cat("Not enough complete data (after drop_na) to compute correlation matrix or PCA.\n")
+}
+```
+
+### PCA plots
+```{r PCA-func, echo=FALSE}
+pca_biplot <- function(df,
+                       vars,
+                       title = "PCA biplot",
+                       color_var = "Season",
+                       shape_var = "Day_Night",
+                       facet_var = "Benthos") {
+  
+  # Keep only needed columns
+  df_sub <- df %>%
+    dplyr::select(all_of(c(vars, color_var, shape_var, facet_var))) %>%
+    tidyr::drop_na(all_of(vars))
+  
+  # Numeric matrix for PCA
+  num_mat <- df_sub %>%
+    dplyr::select(all_of(vars)) %>%
+    as.matrix()
+  
+  # Run PCA (scaled)
+  pca_res <- prcomp(num_mat, scale. = TRUE)
+  
+  # Scores (samples)
+  scores <- as.data.frame(pca_res$x[, 1:2])
+  colnames(scores) <- c("PC1", "PC2")
+  scores <- cbind(scores,
+                  df_sub %>% dplyr::select(all_of(c(color_var, shape_var, facet_var))))
+  
+  # Loadings (variable arrows)
+  loadings <- as.data.frame(pca_res$rotation[, 1:2])
+  colnames(loadings) <- c("PC1", "PC2")
+  loadings$var <- rownames(loadings)
+  
+  # Scale arrows to fit in score space
+  mult <- min(
+    (max(scores$PC1) - min(scores$PC1)) / (max(loadings$PC1) - min(loadings$PC1)),
+    (max(scores$PC2) - min(scores$PC2)) / (max(loadings$PC2) - min(loadings$PC2))
+  ) * 0.7
+  
+  loadings_scaled <- loadings
+  loadings_scaled$PC1 <- loadings_scaled$PC1 * mult
+  loadings_scaled$PC2 <- loadings_scaled$PC2 * mult
+  
+  # % variance explained
+  var_expl <- pca_res$sdev^2 / sum(pca_res$sdev^2) * 100
+  
+  ggplot(scores, aes(x = PC1, y = PC2)) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    geom_point(aes_string(color = color_var, shape = shape_var),
+               size = 3, alpha = 0.8) +
+    geom_segment(data = loadings_scaled,
+                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
+                 arrow = arrow(length = unit(0.2, "cm"))) + #arrows
+    geom_text_repel(
+    data = loadings_scaled,
+    aes(x = PC1, y = PC2, label = var),
+    size = 4,
+    segment.color = "grey50",
+    max.overlaps = Inf
+)+
+    facet_wrap(as.formula(paste("~", facet_var)))+
+    scale_color_paletteer_d("nationalparkcolors::Arches")+
+    #scale_color_manual(values = c("Fall" = "#bf2624", "Spring" = "#6dd8bf"))+
+    stat_ellipse(aes_string(color=color_var), level = 0.95)+ #circles
+    labs(
+      title = title,
+      x = paste0("PC1 (", round(var_expl[1], 1), "%)"),
+      y = paste0("PC2 (", round(var_expl[2], 1), "%)")
+    ) +
+    theme_bw()
+}
+
+```
+
+
+## Seasonal differences - PCA
+
+Do different seasons have distinct chemical/fDOM signatures? Which variables drive those differences?
+
+```{r PCA-plots, fig.height=8}
+# original one without benthos (unfaceted)
+pca_biplot(
+  data_clean,
+  vars      = numeric_vars,
+  title     = "PCA of Nutrients and fDOM components driving seasonal differences",
+  color_var = "Season",
+  shape_var = "Day_Night",
+  facet_var = "Season"
+)
+
+p_pca_season <- pca_biplot(
+  data_clean,
+  vars      = numeric_vars,
+  title     = "PCA of Nutrients and fDOM components driving seasonal differences",
+  color_var = "Season",
+  shape_var = "Day_Night",
+  facet_var = "Benthos"
+)
+
+p_pca_season
+
+p_pca_benthos <- pca_biplot(
+  data_clean,
+  vars = numeric_vars,
+  title = "PCA of Nutrients and fDOM components across benthos by season",
+  color_var = "Benthos",
+  shape_var = "Day_Night",
+  facet_var = "Season"
+)
+
+p_pca_benthos
+
+p_pca_diel <- pca_biplot(
+  data_clean,
+  vars = numeric_vars,
+  title = "PCA of nutrients and fDOM components across benthos by dawn/dusk",
+  color_var = "Benthos",
+  shape_var = "Season",
+  facet_var = "Day_Night"
+)
+
+p_pca_diel
+```
+
+Spring shows strong nutrient and DOM enrichment, can also see diel variability in nutrient accumulation.
+
+# Dawn vs Dusk analyses across Benthos and Seasons
+
+This could be due to lost samples using diel variability, let's look at Day_Night results
+
+```{r ANOVA, fig.keep = "none"}
+# create long format df
+testing_df <- data_clean %>%
+  pivot_longer(cols = all_of(all_numeric_vars),
+               names_to = "variable", values_to = "Value")
+
+nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "Nitrogen")
+all_numeric_vars_normal <- c(water_chem_vars, nutrient_vars, fdom_vars)
+
+# running lm and creating diagnostic plots
+map_dfr(all_numeric_vars, function(v){
+  df_sub <- testing_df %>%
+    filter(variable == v) # filter by variable
+    options(contrasts = c("contr.sum", "contr.poly"))
+    fit <- lm(Value ~ Day_Night * Benthos * Season, data = df_sub)
+  par(mfrow = c(2,2)) # create 2x2 for plots
+  plot(fit, main = paste("Diagnostics for", v)) # check assumptions using qq and residuals plots
+})
+
+# okay NO3, PO4, Humic, Prot, HIX looks like they need to be transformed
+
+transform_var <- c("NO3", "PO4", "Humic", "Prot", "HIX")
+transformed_var <- map_dfr(transform_var, function(v){
+  testing_df %>%
+    filter(variable == v) %>% # filter by variable
+    mutate(Value = sqrt(Value),
+           variable = paste0(v,"_transformed"))
+})
+
+```
+
+just the anova results
+
+```{r ANOVA-table}
+testing_df_norm <- bind_rows(testing_df, transformed_var) 
+numeric_vars_normal <- c("pH", "TA", "Nitrogen", "Humic_transformed", "Prot_transformed", "BIX", "HIX_transformed", "M_to_C")
+
+# let's see all ANOVA results together
+anovas_full <- map_dfr(numeric_vars_normal, function(v){
+  df_sub <- testing_df_norm %>%
+    filter(variable == v) # filter by variable
+    options(contrasts = c("contr.sum", "contr.poly"))
+    fit <- lmer(Value ~ Day_Night * Benthos * Season + (1| Quad_ID), data = df_sub)
+    Anova(fit, type = "III") %>%
+    as.data.frame() %>%
+    rownames_to_column("term") %>%
+    filter(term != "(Intercept)") %>%
+    filter(`Pr(>Chisq)` < 0.05) %>% # see what's significant
+    mutate(variable = v)
+})
+anovas_full %>%
+  kable()
+```
+Summary Table
+
+|Term                     | Variable(s) sig         |
+|-------------------------|:-----------------------:|
+|Day_Night                | TA, Humic, Prot, HIX    |
+|Benthos                  | TA, NH4, Prot, BIX, M:C |
+|Season                   | TA, NH4, Prot, M:C      |
+|Benthos:Season           | Humic                   |
+|Day_Night:Benthos        | PO4                     |
+|Day_Night:Season         | PO4, NO2, HIX           |
+|Day_Night:Benthos:Season | pH, TempInSitu, NO3, SIL|
+
+
+
+Let's look at differences across benthos in their dawn/dusk values over the two seasons
+
+# Heatmap colored in comparison to OO
+
+```{r heatmap-plot-code}
+# take means of all variables
+heatmap_data <- data_clean %>%
+  group_by(Benthos, Day_Night, Season) %>%
+  summarise(across(all_of(numeric_vars), ~ mean(.x, na.rm = TRUE)),
+            .groups = "drop") %>%
+  pivot_longer(cols = all_of(numeric_vars),
+               names_to = "variable",
+               values_to = "Mean_Value")
+
+# get open ocean means for comparison
+open_ocean_ref <- heatmap_data %>%
+  filter(Benthos == "Open Ocean") %>%
+  select(-Benthos) %>%
+  rename(OpenOcean_Value = Mean_Value)
+
+# join both to calculate ΔOO
+fdom_diff <- heatmap_data %>%
+  filter(Benthos != "Open Ocean") %>% 
+  left_join(open_ocean_ref,
+            by = c("Day_Night","Season","variable")) %>%
+  mutate(Diff_from_OO = Mean_Value - OpenOcean_Value)
+
+# scale the differences so we can plot it
+fdom_diff <- fdom_diff %>%
+  group_by(variable) %>%
+  mutate(Diff_Scaled = as.numeric(scale(Diff_from_OO))) %>%
+  ungroup() %>%
+  mutate(Benthos = factor(Benthos, levels = c("Barnacle", "Mussel", "Rockweed", "Surfgrass"))) %>%
+  mutate(variable = factor(variable, levels =  c("pH", "TA", "Nitrogen", "Humic", "Prot", "BIX", "HIX", "M_to_C")))
+
+# heat map colored by difference from open ocean
+fdom_diff %>%
+  ggplot(aes(x = variable,
+             y = Day_Night,
+             fill = Diff_Scaled)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#075AFF", mid = "white", high = "#FF4500",
+    midpoint = 0, name = "Scaled difference\nfrom open ocean"
+  ) +
+  labs(
+    title = "Deviation from Open Ocean fDOM + Nutrients",
+    x = "Component",
+    y = "Time of day"
+  ) +
+  theme_minimal() +
+  facet_grid(Benthos ~ Season) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 10)
+  )
+
+```
+## ANOVA
+```{r heatmap-ANOVA, fig.height=10}
+# filter out NAs
+testing_df_norm <- testing_df_norm %>% 
+  filter(!is.na(Value))%>%
+  mutate(Season = as.factor(Season))
+
+compute_sig_to_ctrl <- function(testing_df_norm, vars = all_numeric_vars_normal) {
+  
+  options(contrasts = c("contr.sum", "contr.poly")) # set contrasts for type III ANOVA
+  
+  res_tbl <- map(vars, function(v) {
+    df <- testing_df_norm %>%
+      filter(variable == v)
+    
+    fit <- lm(Value ~ Benthos * Day_Night * Season, data = df) # create lm
+    model <- Anova(fit, type = "III")
+    emm <- emmeans(fit, ~ Benthos | Day_Night * Season) # emmeans for tukey's hsd
+    vs_ctrl <- contrast(emm, method = "trt.vs.ctrl", ref = control_label, adjust = "mvt")
+    td  <- as.data.frame(vs_ctrl)
+    
+    comp_tbl <- td %>%
+      separate(contrast, c("left","right"), sep = " - ", remove = FALSE) %>%
+      mutate(
+        Benthos  = if_else(right == control_label, left, right),
+        variable = v,
+        sig = case_when(
+          is.na(p.value)  ~ NA_character_,
+          p.value < 0.001 ~ "***",
+          p.value < 0.01  ~ "**",
+          p.value < 0.05  ~ "*",
+          TRUE            ~ ""
+        )
+      ) 
+    ctrl_tbl <- crossing(
+      variable = v,
+      Season   = unique(td$Season),
+      Day_Night= unique(td$Day_Night),
+      Benthos  = control_label
+    ) %>%
+      mutate(
+        estimate = NA_real_, SE = NA_real_, df = NA_real_, t.ratio = NA_real_,
+        p.value  = NA_real_, sig = ""
+      )
+
+    bind_rows(comp_tbl, ctrl_tbl) %>%
+      distinct(variable, Season, Day_Night, Benthos, .keep_all = TRUE)
+  }) %>% compact() %>% list_rbind()
+
+  res_tbl
+}
+
+sig_to_ctrl <- compute_sig_to_ctrl(testing_df_norm) %>%
+  mutate(variable = sub("_transformed$", "", variable)) # convert name back for join
+
+
+# get n so we can add to the plot
+n_table <- testing_df_norm %>%
+  mutate(variable = sub("_transformed$", "", variable)) %>%
+  group_by(Season, Benthos, variable, Day_Night) %>%
+  summarise(n = sum(!is.na(Value)), .groups = "drop")
+
+# join all data for plotting
+plot_df <- fdom_diff %>%  
+  left_join(sig_to_ctrl, by = c("Season","Day_Night","Benthos","variable")) %>%
+  left_join(n_table,   by = c("Season","Day_Night","Benthos","variable"))
+
+# create plot
+plot_df %>%
+  ggplot(aes(x = variable,
+             y = Day_Night,
+             fill = Diff_Scaled)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#075AFF", mid = "white", high = "#FF4500",
+    midpoint = 0, name = "Scaled difference\nfrom open ocean"
+  ) +
+  labs(
+    title = "Dusk vs Dawn fDOM + Nutrients (orig ANOVA)",
+    x = "Component",
+    y = "Time of day"
+  ) +
+  geom_text(aes(label = ifelse(is.na(sig),"",paste0(sig,"\nn\n",n))), color = "black", size = 3) +
+  theme_minimal() +
+  facet_grid(Benthos ~ Season) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(size = 10)
+  )
+```
+
+## One-sample t-test
+```{r heatmap-ttest, fig.height = 10}
+compute_sig_to_ctrl_ttest <- function(testing_df_norm, 
+                                      vars = all_numeric_vars_normal,
+                                      control_label) {
+  
+  res_tbl <- map(vars, function(v) { # loop for each variable
+    df_var <- testing_df_norm %>%
+      filter(variable == v)
+    
+    res_by_sd <- df_var %>%
+      group_nest(Season, Day_Night) %>% # group by season and dawn/dusk
+      mutate(
+        res = map(data, function(df_sd) {
+          ctrl_vals <- df_sd %>%
+            filter(Benthos == control_label) %>%
+            pull(Value)
+          ctrl_mean <- mean(ctrl_vals, na.rm = TRUE) # get OO mean
+
+          df_sd %>%
+            group_by(Benthos) %>%
+            summarise(
+              n       = sum(!is.na(Value)),
+              mean    = mean(Value, na.rm = TRUE),
+              .groups = "drop"
+            ) %>%
+            mutate(
+              # one-sample test vs control mean for each benthos
+              p.value = map_dbl(Benthos, function(b) {
+                x <- df_sd %>% filter(Benthos == b) %>% pull(Value)
+                t.test(x, mu = ctrl_mean)$p.value
+              }),
+              estimate = mean - ctrl_mean,
+              variable = v
+            )
+        })
+      ) %>%
+      select(-data) %>%
+      unnest(res)
+    
+    # add sig stars
+    res_by_sd %>%
+      mutate(
+        sig = case_when(
+          is.na(p.value)  ~ NA_character_,
+          p.value < 0.001 ~ "***",
+          p.value < 0.01  ~ "**",
+          p.value < 0.05  ~ "*",
+          TRUE            ~ ""
+        )
+      )
+  }) %>% 
+    compact() %>% 
+    list_rbind()
+  
+  res_tbl
+}
+
+sig_to_ctrl_ttest <- compute_sig_to_ctrl_ttest(testing_df_norm,
+                                               vars = all_numeric_vars_normal,
+                                               control_label = control_label) %>%
+  mutate(variable = sub("_transformed$", "", variable))
+
+plot_df_ttest <- fdom_diff %>%
+  left_join(sig_to_ctrl_ttest, 
+            by = c("Season","Day_Night","Benthos","variable"))
+
+# create plot
+plot_df_ttest %>%
+  ggplot(aes(x = variable,
+             y = Day_Night,
+             fill = Diff_Scaled)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#075AFF", mid = "white", high = "#FF4500",
+    midpoint = 0, name = "Scaled difference\nfrom open ocean"
+  ) +
+  labs(
+    title = "Dusk vs Dawn fDOM + Nutrients (t-test vs control)",
+    x = "Component",
+    y = "Time of day"
+  ) +
+  geom_text(aes(label = ifelse(is.na(sig), "", paste0(sig, "\nn\n", n))),
+            color = "black", size = 3) +
+  theme_minimal() +
+  facet_grid(Benthos ~ Season) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text  = element_text(size = 10)
+  )
+
+```
+
+## Dunn's test
+```{r heatmap-dunn, fig.height = 10}
+compute_sig_to_ctrl_dunn <- function(testing_df_norm, 
+                                     vars = numeric_vars,
+                                     control_label) {
+  
+  res_tbl <- map(vars, function(v) { # loop for each variable
+    df_var <- testing_df_norm %>%
+      filter(variable == v)
+    
+    df_var %>%
+      group_by(Season, Day_Night) %>% # group by season and dawn/dusk
+      group_modify(~ {
+        df_sd <- .x
+  
+        dunn_res <- df_sd %>%
+          rstatix::dunn_test(Value ~ Benthos, p.adjust.method = "bonferroni")
+        
+        # keep only comparisons involving OO
+        dunn_ctrl <- dunn_res %>%
+          filter(group1 == control_label | group2 == control_label) %>%
+          mutate(
+            Benthos  = if_else(group1 == control_label, group2, group1),
+            variable = v,
+            p.value  = p.adj
+          )
+        
+        dunn_ctrl
+      }) %>%
+      ungroup()
+  }) %>%
+    compact() %>%
+    list_rbind() %>%
+    mutate(
+      sig = case_when(
+        is.na(p.value)  ~ NA_character_,
+        p.value < 0.001 ~ "***",
+        p.value < 0.01  ~ "**",
+        p.value < 0.05  ~ "*",
+        TRUE            ~ ""
+      )
+    )
+  
+  res_tbl
+}
+
+sig_to_ctrl_dunn <- compute_sig_to_ctrl_dunn(testing_df_norm,
+                                             vars = numeric_vars,
+                                             control_label = control_label) %>%
+  mutate(variable = sub("_transformed$", "", variable))
+
+plot_df_dunn <- fdom_diff %>%
+  left_join(sig_to_ctrl_dunn, 
+            by = c("Season","Day_Night","Benthos","variable")) %>%
+  left_join(n_table, 
+            by = c("Season","Day_Night","Benthos","variable"))
+
+# create plot
+plot_df_dunn %>%
+  ggplot(aes(x = variable,
+             y = Day_Night,
+             fill = Diff_Scaled)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "#075AFF", mid = "white", high = "#FF4500",
+    midpoint = 0, name = "Scaled difference\nfrom open ocean"
+  ) +
+  labs(
+    title = "Dusk vs Dawn fDOM + Nutrients (Dunn’s test vs control)",
+    x = "Component",
+    y = "Time of day"
+  ) +
+  geom_text(aes(label = ifelse(is.na(sig), "", paste0(sig, "\nn\n", n))),
+            color = "black", size = 3) +
+  theme_minimal() +
+  facet_grid(Benthos ~ Season) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text  = element_text(size = 10)
+  )
+
+```
+
+# Create effect size plots
+
+```{r effect-size-plot}
+
+build_diel_effect_df_one_scaled <- function(var_name, data = data_clean) {
+  stopifnot(var_name %in% names(data))
+  
+  # scale the variable (global z-score)
+  data_z <- data %>%
+    mutate(var_z = as.numeric(scale(.data[[var_name]])))
+  
+  fml <- as.formula("var_z ~ Day_Night * Season * Benthos + (1|Quad_ID)")
+  fit <- lmer(fml, data = data_z)
+  
+  # emmeans for Day_Night within each Season × Benthos
+  emm <- emmeans(fit, ~ Day_Night | Season * Benthos)
+  
+  # Dusk - Dawn contrast in *scaled units* (≈ SD units)
+  diel <- contrast(emm, method = "revpairwise")
+  
+  # summary with p-values + 95% CI
+  df <- summary(diel, infer = c(TRUE, TRUE), level = 0.95) |>
+    as.data.frame()
+  
+  # CI column names can vary; harmonize to lower.CL / upper.CL
+  if (!"lower.CL" %in% names(df)) {
+    if ("asymp.LCL" %in% names(df)) {
+      df <- df |>
+        rename(
+          lower.CL = asymp.LCL,
+          upper.CL = asymp.UCL
+        )
+    } else if ("LCL" %in% names(df)) {
+      df <- df |>
+        rename(
+          lower.CL = LCL,
+          upper.CL = UCL
+        )
+    }
+  }
+  
+  df %>%
+    mutate(
+      est_std   = estimate,     
+      lower_std = lower.CL,
+      upper_std = upper.CL,
+      variable  = var_name
+    )
+}
+
+effects_all <- map_dfr(
+  numeric_vars,
+  build_diel_effect_df_one_scaled,
+  data = data_clean
+)
+
+effects_all <- effects_all |>
+  mutate(
+    sig = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ "ns"
+    ),
+    variable = factor(variable, levels = rev(numeric_vars))
+  )
+
+ggplot(effects_all,
+       aes(x = est_std, y = variable,
+           color = Season,  
+           alpha = sig != "ns")) +   
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey70") +
+  geom_errorbarh(aes(xmin = lower_std, xmax = upper_std),
+                 height = 0.15) +
+  geom_point(size = 2) +
+  facet_wrap(~ Benthos, ncol = 5) +
+  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0.3),
+                     guide = "none") +
+  scale_color_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  labs(
+    title = "Standardized Dusk–Dawn Effect Sizes by Variable and Benthos",
+    x = "Standardized effect size (Dusk – Dawn, SD units)",
+    y = NULL,
+    color = "Season"
+  ) +
+  
+  theme_bw() +
+  theme(
+    strip.background = element_rect(fill = "grey90"),
+    axis.text.y = element_text(size = 9)
+  )
+
+```
+
+# Diel boxplots with significance levels
+
+```{r diel-boxplots}
+build_sig_df <- function(var_name, data = data_clean) {
+  stopifnot(var_name %in% names(data))
+  
+  # fit ANOVA
+  fml <- as.formula(paste(var_name, "~ Day_Night * Season * Benthos + (1|Quad_ID)"))
+  fit <- lmer(fml, data = data)
+  
+  # Dawn vs Dusk within each Season × Benthos
+  emm  <- emmeans(fit, ~ Day_Night | Season * Benthos)
+  contr_df <- as.data.frame(contrast(emm, method = "revpairwise"))
+  # columns: Season, Benthos, contrast, estimate, SE, df, t.ratio, p.value
+  
+  # Turn p-values into stars
+  sig_df <- contr_df |>
+    select(Season, Benthos, p.value) |>
+    distinct() |>
+    mutate(sig = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ "ns"
+    )) |>
+    left_join(
+      data |>
+        group_by(Season, Benthos) |>
+        summarise(y_pos = max(.data[[var_name]], na.rm = TRUE),
+                  .groups = "drop"),
+      by = c("Season", "Benthos")
+    ) |>
+    mutate(y_pos = y_pos * 1.05)   # a bit above top whisker
+  
+  # drop non-significant labels to reduce clutter
+  sig_df |> filter(sig != "ns")
+}
+
+plot_diel_with_sig <- function(var_name, var_label, 
+                               data = data_clean,
+                               free_y = FALSE) {
+  stopifnot(var_name %in% names(data))
+  
+  sig_df <- build_sig_df(var_name, data = data)
+  
+  facet_scales <- if (free_y) "free_y" else "fixed"
+  
+  ggplot(
+    data |> filter(!is.na(.data[[var_name]])),
+    aes(x = Day_Night, y = .data[[var_name]], fill = Day_Night)
+  ) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_jitter(width = 0.15, alpha = 0.5, size = 2) +
+    facet_wrap(Season ~ Benthos, ncol = 5, scales = facet_scales) +
+    scale_fill_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+    labs(
+      title = paste("Diel Patterns in", var_label),
+      x = "Time of Day",
+      y = var_label
+    ) +
+    theme(
+      legend.position = "none",
+      strip.background = element_rect(fill = "grey90"),
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    ) +
+    geom_text(
+      data = sig_df,
+      aes(x = 1.5, y = y_pos, label = sig),
+      inherit.aes = FALSE,
+      size = 4
+    )
+}
+
+```
+
+## Example plots
+
+```{r diel-boxplot-ex}
+(p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
+(p_no3  <- plot_diel_with_sig("NO3",  "Nitrate (µmol/L)", free_y = TRUE))
+(p_sil  <- plot_diel_with_sig("SIL",  "Silicate (µmol/L)"))
+(p_po4  <- plot_diel_with_sig("PO4",  "Phosphate (µmol/L)"))
+(p_TA   <- plot_diel_with_sig("TA",   "Total Alkalinity (µmol/kg)"))
+(p_hix  <- plot_diel_with_sig("HIX",  "HIX"))
+(p_hum  <- plot_diel_with_sig("Humic","Total Humic-like fDOM (RFU)"))
+(p_prot <- plot_diel_with_sig("Prot", "Total Proteinaceous-like fDOM (RFU)"))
+(p_mc <- plot_diel_with_sig("M_to_C", "M:C"))
+```
+
+# Community Composition
+
+## Sessile
+```{r sessile-barplot}
+## sum across the canopy and understory ###
+
+sessile_total <-sessile %>%
+  group_by(plot, season)%>%
+  summarise_at(.vars = vars(Silvetia_compressa:Chondracanthus_canaliculatus), .funs = sum)%>% 
+  mutate(Total_hairs = rowSums(across(Silvetia_compressa:Chondracanthus_canaliculatus))) %>% # count total crosshairs
+  ungroup()%>% # calculate percent cover
+  mutate(across(c(Silvetia_compressa:Chondracanthus_canaliculatus),  ~ . /Total_hairs*100))%>%
+  rename(BenthicID = plot, Season = season)%>% # keep consistent with other data
+  mutate(Season = factor(Season, levels = c("summer2023","fall2023","winter2024", "spring2024")))%>%
+  mutate(Benthos = case_when( # add benthos name
+    grepl("B", BenthicID) ~ "Barnacles",
+    grepl("M", BenthicID) ~"Mussels",
+    grepl("P", BenthicID) ~"Surfgrass",
+    grepl("R", BenthicID) ~"Rockweed"), 
+    .after = BenthicID)
+
+
+## Make a stacked barplot of all the species across seasons
+sessile_total %>%
+  group_by(Benthos, Season)%>% # calculate the average for each season
+  summarise(across(c(Silvetia_compressa:Chondracanthus_canaliculatus),  ~mean(.,na.rm = TRUE))) %>%
+  pivot_longer(cols = c(Silvetia_compressa:Chondracanthus_canaliculatus), names_to = "Species", values_to = "Percent_Cover")%>%
+  left_join(sessile_function)%>%
+  filter(Season %in% c('fall2023','spring2024')) %>%
+  ggplot(aes(x = Season,y = Percent_Cover, fill = FunctionalGroup ))+
+    geom_bar(position="stack", stat="identity")+
+  scale_fill_paletteer_d("MetBrewer::Signac")+
+  labs(x = "",
+       y = "% Cover",
+       color = "")+
+  theme_bw()+
+  facet_wrap(~Benthos)
+
+#ggsave(here("Output","SessileComp.png"), width = 10, height = 6)
+```
+
+## Mobiles
+```{r mobile-barplot}
+
+## calculate denisity per m2 (used 0.25m2 quad)
+mobile_density <-
+  mobile %>%
+  rename(BenthicID = plot, Season = season)%>% # keep consistent with other data
+  mutate(Season = factor(Season, levels = c("summer2023","fall2023","winter2024","spring2024")))%>%
+  mutate(Benthos = case_when( # add benthos name
+    grepl("B", BenthicID) ~ "Barnacles",
+    grepl("M", BenthicID) ~"Mussels",
+    grepl("P", BenthicID) ~"Surfgrass",
+    grepl("R", BenthicID) ~"Rockweed"), 
+    .after = BenthicID)%>%
+  select(-c(Littorina_sp_raw, Lottia_sp_raw))%>%
+  mutate(across(c(Lottia_sp_scaled:Strongylocentrotus_purpuratus),  ~./0.25))
+  
+
+mobile_density %>%
+  group_by(Benthos, Season)%>% # calculate the average for each season
+  summarise(across(c(Lottia_sp_scaled:Strongylocentrotus_purpuratus),  ~mean(.,na.rm = TRUE))) %>%
+  pivot_longer(cols = c(Lottia_sp_scaled:Strongylocentrotus_purpuratus), names_to = "Species", values_to = "Density_m2")%>%
+  left_join(mobile_function)%>% #join with functional data
+  filter(Season %in% c('fall2023','spring2024')) %>%
+  ggplot(aes(x = Season,y = Density_m2, fill = FunctionalGroup ))+
+  geom_bar(position="stack", stat="identity")+
+  scale_fill_paletteer_d("MetBrewer::Signac")+
+  labs(x = "",
+       y = "Mean Density (m2)",
+       color = "")+
+  theme_bw()+
+  facet_wrap(~Benthos, scale = "free")
+
+#ggsave(here("Output","MobileComp.png"), width = 10, height = 6)
+
+
+## rename the foundation species data to match the chemistry
+sessile_clean<-sessile_total %>%
+  rename(Quad_ID = BenthicID) %>%
+  mutate(Season = case_when(Season  == "fall2023"~"Fall",
+                            Season == "spring2024"~"Spring",
+                            Season == "summer2023"~"Summer",
+                            Season == "winter2024"~"Winter")) %>%
+  mutate(FoundationSp = case_when(Benthos == "Barnacles"~ `Balanus/Cthamalus_sp`,
+                                   Benthos == "Rockweed"~Silvetia_compressa,
+                                   Benthos == "Surfgrass"~Phyllospadix_sp,
+                                   Benthos == "Mussels"~Mytilus_californianus)) %>%  # add a column that is the cover of the foundation species for the right benthos
+  select(!Total_hairs) %>%
+  mutate(Benthos = ifelse(Benthos == "Mussels","Mussel",Benthos))%>%
+  mutate(Benthos = ifelse(Benthos == "Barnacles","Barnacle",Benthos))
+
+#write_csv(x = sessile_clean, here("Data","Community_Composition","Sessile_clean.csv"))
+
+```
