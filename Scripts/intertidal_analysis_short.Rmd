@@ -36,7 +36,7 @@ This document:
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-```{r}
+```{r libs}
 library(tidyverse)
 library(patchwork)
 library(rstatix)
@@ -332,20 +332,17 @@ p_pca_diel
 Spring shows strong nutrient and DOM enrichment, can also see diel variability in nutrient accumulation.
 
 # Dawn vs Dusk analyses across Benthos and Seasons
-
-This could be due to lost samples using diel variability, let's look at Day_Night results
-
+Start by assessing assumptions of normality and homogeneity of variance.
 ```{r ANOVA, fig.keep = "none"}
 # create long format df
 testing_df <- data_clean %>%
-  pivot_longer(cols = all_of(all_numeric_vars),
+  pivot_longer(cols = all_of(numeric_vars),
                names_to = "variable", values_to = "Value")
 
 nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "Nitrogen")
-all_numeric_vars_normal <- c(water_chem_vars, nutrient_vars, fdom_vars)
 
 # running lm and creating diagnostic plots
-map_dfr(all_numeric_vars, function(v){
+map_dfr(numeric_vars, function(v){
   df_sub <- testing_df %>%
     filter(variable == v) # filter by variable
     options(contrasts = c("contr.sum", "contr.poly"))
@@ -354,9 +351,8 @@ map_dfr(all_numeric_vars, function(v){
   plot(fit, main = paste("Diagnostics for", v)) # check assumptions using qq and residuals plots
 })
 
-# okay NO3, PO4, Humic, Prot, HIX looks like they need to be transformed
-
-transform_var <- c("NO3", "PO4", "Humic", "Prot", "HIX")
+# Nitrogen, Humic, Prot, HIX looks like they need to be transformed
+transform_var <- c("Nitrogen", "Humic", "Prot", "HIX")
 transformed_var <- map_dfr(transform_var, function(v){
   testing_df %>%
     filter(variable == v) %>% # filter by variable
@@ -364,13 +360,22 @@ transformed_var <- map_dfr(transform_var, function(v){
            variable = paste0(v,"_transformed"))
 })
 
+# check that transformations worked
+transformed_vars <- c("Nitrogen_transformed", "Humic_transformed", "Prot_transformed", "HIX_transformed")
+map_dfr(transformed_vars, function(v){
+  df_sub <- transformed_var %>%
+    filter(variable == v) # filter by variable
+    options(contrasts = c("contr.sum", "contr.poly"))
+    fit <- lm(Value ~ Day_Night * Benthos * Season, data = df_sub)
+  par(mfrow = c(2,2)) # create 2x2 for plots
+  plot(fit, main = paste("Diagnostics for", v)) # check assumptions using qq and residuals plots
+})
 ```
 
 just the anova results
-
 ```{r ANOVA-table}
 testing_df_norm <- bind_rows(testing_df, transformed_var) 
-numeric_vars_normal <- c("pH", "TA", "Nitrogen", "Humic_transformed", "Prot_transformed", "BIX", "HIX_transformed", "M_to_C")
+numeric_vars_normal <- c("pH", "TA", "Nitrogen_transformed", "Humic_transformed", "Prot_transformed", "BIX", "HIX_transformed", "M_to_C")
 
 # let's see all ANOVA results together
 anovas_full <- map_dfr(numeric_vars_normal, function(v){
@@ -405,7 +410,7 @@ Summary Table
 Let's look at differences across benthos in their dawn/dusk values over the two seasons
 
 # Heatmap colored in comparison to OO
-
+Calculates means per benthos x season x day/night and compares against the open ocean mean
 ```{r heatmap-plot-code}
 # take means of all variables
 heatmap_data <- data_clean %>%
@@ -432,7 +437,8 @@ fdom_diff <- heatmap_data %>%
 # scale the differences so we can plot it
 fdom_diff <- fdom_diff %>%
   group_by(variable) %>%
-  mutate(Diff_Scaled = as.numeric(scale(Diff_from_OO))) %>%
+  mutate(Diff_Scaled = as.numeric(scale(Diff_from_OO)), # scale function scales AND centers, leading to inconsistencies
+         Diff_Scaled_Nocenter = as.numeric(scale(Diff_from_OO, center = FALSE))) %>%  # scales without centering
   ungroup() %>%
   mutate(Benthos = factor(Benthos, levels = c("Barnacle", "Mussel", "Rockweed", "Surfgrass"))) %>%
   mutate(variable = factor(variable, levels =  c("pH", "TA", "Nitrogen", "Humic", "Prot", "BIX", "HIX", "M_to_C")))
@@ -441,7 +447,7 @@ fdom_diff <- fdom_diff %>%
 fdom_diff %>%
   ggplot(aes(x = variable,
              y = Day_Night,
-             fill = Diff_Scaled)) +
+             fill = Diff_Scaled_Nocenter)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(
     low = "#075AFF", mid = "white", high = "#FF4500",
@@ -467,7 +473,7 @@ testing_df_norm <- testing_df_norm %>%
   filter(!is.na(Value))%>%
   mutate(Season = as.factor(Season))
 
-compute_sig_to_ctrl <- function(testing_df_norm, vars = all_numeric_vars_normal) {
+compute_sig_to_ctrl <- function(testing_df_norm, vars = numeric_vars_normal) {
   
   options(contrasts = c("contr.sum", "contr.poly")) # set contrasts for type III ANOVA
   
@@ -531,7 +537,7 @@ plot_df <- fdom_diff %>%
 plot_df %>%
   ggplot(aes(x = variable,
              y = Day_Night,
-             fill = Diff_Scaled)) +
+             fill = Diff_Scaled_Nocenter)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(
     low = "#075AFF", mid = "white", high = "#FF4500",
@@ -554,7 +560,7 @@ plot_df %>%
 ## One-sample t-test
 ```{r heatmap-ttest, fig.height = 10}
 compute_sig_to_ctrl_ttest <- function(testing_df_norm, 
-                                      vars = all_numeric_vars_normal,
+                                      vars = numeric_vars_normal,
                                       control_label) {
   
   res_tbl <- map(vars, function(v) { # loop for each variable
@@ -610,7 +616,7 @@ compute_sig_to_ctrl_ttest <- function(testing_df_norm,
 }
 
 sig_to_ctrl_ttest <- compute_sig_to_ctrl_ttest(testing_df_norm,
-                                               vars = all_numeric_vars_normal,
+                                               vars = numeric_vars_normal,
                                                control_label = control_label) %>%
   mutate(variable = sub("_transformed$", "", variable))
 
@@ -622,14 +628,14 @@ plot_df_ttest <- fdom_diff %>%
 plot_df_ttest %>%
   ggplot(aes(x = variable,
              y = Day_Night,
-             fill = Diff_Scaled)) +
+             fill = Diff_Scaled_Nocenter)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(
     low = "#075AFF", mid = "white", high = "#FF4500",
     midpoint = 0, name = "Scaled difference\nfrom open ocean"
   ) +
   labs(
-    title = "Dusk vs Dawn fDOM + Nutrients (t-test vs control)",
+    title = "Dusk vs Dawn fDOM + Nutrients (t-test vs open ocean)",
     x = "Component",
     y = "Time of day"
   ) +
@@ -660,7 +666,7 @@ compute_sig_to_ctrl_dunn <- function(testing_df_norm,
         df_sd <- .x
   
         dunn_res <- df_sd %>%
-          rstatix::dunn_test(Value ~ Benthos, p.adjust.method = "bonferroni")
+          rstatix::dunn_test(Value ~ Benthos, p.adjust.method = "none")
         
         # keep only comparisons involving OO
         dunn_ctrl <- dunn_res %>%
@@ -705,7 +711,7 @@ plot_df_dunn <- fdom_diff %>%
 plot_df_dunn %>%
   ggplot(aes(x = variable,
              y = Day_Night,
-             fill = Diff_Scaled)) +
+             fill = Diff_Scaled_Nocenter)) +
   geom_tile(color = "white") +
   scale_fill_gradient2(
     low = "#075AFF", mid = "white", high = "#FF4500",
