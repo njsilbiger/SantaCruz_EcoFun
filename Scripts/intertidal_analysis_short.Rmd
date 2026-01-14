@@ -1094,22 +1094,48 @@ plot_diel_with_sig <- function(var_name, var_label,
 
 ```{r diel-boxplot-ex}
 (p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
-(p_nit  <- plot_diel_with_sig("Nitrogen",  "Total Nitrogen (µmol/L)", free_y = TRUE))
-(p_sil  <- plot_diel_with_sig("SIL",  "Silicate (µmol/L)"))
-(p_po4  <- plot_diel_with_sig("PO4",  "Phosphate (µmol/L)"))
-(p_TA   <- plot_diel_with_sig("TA",   "Total Alkalinity (µmol/kg)"))
+(p_nit  <- plot_diel_with_sig("Nitrogen",  expression(paste("Total Nitrogen (µmol L"^-1,")")), free_y = TRUE))
 (p_bix  <- plot_diel_with_sig("BIX",  "Biological Index (BIX)"))
 (p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)"))
 (p_mc <- plot_diel_with_sig("M_to_C", "M:C"))
+(p_TA   <- plot_diel_with_sig("TA",   expression(paste("Total Alkalinity (µmol kg"^-1,")"))))
+
+p_ph + p_nit + p_bix + p_hix + p_TA + p_mc + 
+  plot_layout(axes = "collect_x", ncol = 2)
+
+#ggsave(here("Output","DielPlots.png"), width = 14, height = 12) 
 ```
 
 # Tidal exchange analysis
 Samples were all collected at "high tide," but does it matter if water is coming in (flood) or leaving (ebb)? 
 ```{r ebb-flood}
 # what is our spread of tidal exchange over dusk/dawn?
-ggplot(testing_df_norm, aes(Tide, fill = Day_Night)) +
+ggplot(testing_df_norm %>%
+         mutate(Tide = factor(Tide, levels = c("ebb", "flood"),
+                              labels = c("Ebb", "Flood"))), 
+       aes(Tide, fill = Day_Night)) +
   facet_wrap(~Season)+
-  geom_bar(position = "fill")
+  geom_bar(position = "fill")+
+  scale_fill_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  labs(
+    x = "Tidal exchange",
+    y = "Proportion of samples",
+    fill = "Sampling Time"
+  )
+
+ggplot(testing_df_norm %>%
+         mutate(Tide = factor(Tide, levels = c("ebb", "flood"),
+                              labels = c("Ebb", "Flood"))), 
+         aes(Day_Night, fill = Tide)) +
+  facet_wrap(~Season)+
+  geom_bar(position = "fill")+
+  scale_fill_manual(values = c("Flood" = "#C28FFF", "Ebb" = "#A97C49")) +
+  labs(
+    x = "Sampling time",
+    y = "Proportion of samples",
+    fill = "Tidal Exchange"
+  )
+
 # no dawn ebb samples during fall, and few dusk ebb samples during spring
 
 # okay, well does there seem to be an effect regardless of season?
@@ -1212,12 +1238,16 @@ sessile_total %>%
   pivot_longer(cols = c(Silvetia_compressa:Chondracanthus_canaliculatus), names_to = "Species", values_to = "Percent_Cover")%>%
   left_join(sessile_function)%>%
   filter(Season %in% c('fall2023','spring2024')) %>%
+  mutate(Season = factor(Season, 
+    levels =  c("fall2023", "spring2024"), 
+    labels = c("Fall", "Spring"))) %>%
   ggplot(aes(x = Season,y = Percent_Cover, fill = FunctionalGroup ))+
     geom_bar(position="stack", stat="identity")+
   scale_fill_paletteer_d("MetBrewer::Signac")+
   labs(x = "",
        y = "% Cover",
-       color = "")+
+       color = "",
+       fill = "Functional Group")+
   theme_bw()+
   facet_wrap(~Benthos)
 
@@ -1248,12 +1278,16 @@ mobile_density %>%
   pivot_longer(cols = c(Lottia_sp_scaled:Strongylocentrotus_purpuratus), names_to = "Species", values_to = "Density_m2")%>%
   left_join(mobile_function)%>% #join with functional data
   filter(Season %in% c('fall2023','spring2024')) %>%
+  mutate(Season = factor(Season, 
+    levels =  c("fall2023", "spring2024"), 
+    labels = c("Fall", "Spring"))) %>%
   ggplot(aes(x = Season,y = Density_m2, fill = FunctionalGroup ))+
   geom_bar(position="stack", stat="identity")+
   scale_fill_paletteer_d("MetBrewer::Signac")+
   labs(x = "",
-       y = "Mean Density (m2)",
-       color = "")+
+       y = expression(paste("Mean Density (m"^2,")")),
+       color = "",
+       fill = "Functional Group")+
   theme_bw()+
   facet_wrap(~Benthos, scale = "free")
 
