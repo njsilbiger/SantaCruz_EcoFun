@@ -83,7 +83,7 @@ tryCatch({
   ) %>%
     mutate(Humic = UVHumic+VisibleHumic+MarineHumic,# make a column for humics
            Prot = Tryptophan+Tyrosine, # make a column for proteinaceaus fDOM
-           Nitrogen = NO3+NO2 # make a column of total N
+           NOx = NO3+NO2 # make a column of total N
            )
   data_merged <- data_merged %>%
     left_join(data_tidal, by = c("Sampling_Date", "Day_Night"))
@@ -118,7 +118,7 @@ id_vars <- c("UniqueID", "Season", "Benthos", "Quad_ID", "Day_Night", "Sampling_
 water_chem_vars <- c("Salinity", "pH", "TempInSitu", "TA")
 
 # Nutrient variables (from pH probe file)
-nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "Nitrogen")
+nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "NOx")
 
 # fDOM variables (from fDOM file)
 #fdom_vars <- c("UVHumic", "Tyrosine", "VisibleHumic", "MarineHumic",
@@ -130,11 +130,11 @@ fdom_vars <- c("Humic","Prot", "BIX", "HIX", "M_to_C")
 all_numeric_vars <- c(water_chem_vars, nutrient_vars, fdom_vars)
 
 # only vars of interest
-numeric_vars <- c("pH", "TA", "Nitrogen", "Humic", "Prot", "BIX", "HIX", "M_to_C")
+numeric_vars <- c("pH", "TA", "NOx", "Humic", "Prot", "BIX", "HIX", "M_to_C")
 
-ratio_vars <- c("pH", "TA", "Nitrogen", "BIX", "HIX", "M_to_C")
+ratio_vars <- c("pH", "TA", "NOx", "BIX", "HIX", "M_to_C")
   
-raw_vars <- c("pH", "TA", "Nitrogen", "Humic", "Prot")
+raw_vars <- c("pH", "TA", "NOx", "Humic", "Prot")
 
 # Helper to IQR-filter a numeric vector (returning NA for outliers)
 iqr_filter <- function(x){
@@ -151,7 +151,7 @@ iqr_filter <- function(x){
 data_clean <- data_merged %>%
   filter(Day_Night %in% keep_times) %>%
   select(-M_to_C) %>%
-  mutate(M:C = MarineHumic / VisibleHumic) %>%
+  mutate(M_to_C = MarineHumic / VisibleHumic) %>%
   select(all_of(id_vars), any_of(all_numeric_vars)) %>%
   mutate(across(all_of(all_numeric_vars), as.numeric)) %>%
   mutate(
@@ -449,7 +449,7 @@ testing_df <- data_clean %>%
   pivot_longer(cols = all_of(numeric_vars),
                names_to = "variable", values_to = "Value")
 
-nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "Nitrogen")
+nutrient_vars <- c("NO3", "PO4", "SIL", "NO2", "NH4", "NOx")
 
 # running lm and creating diagnostic plots
 map_dfr(numeric_vars, function(v){
@@ -461,8 +461,8 @@ map_dfr(numeric_vars, function(v){
   plot(fit, main = paste("Diagnostics for", v)) # check assumptions using qq and residuals plots
 })
 
-# Nitrogen, Humic, Prot, HIX looks like they need to be transformed
-transform_var <- c("Nitrogen", "Humic", "Prot", "HIX")
+# NOx, Humic, Prot, HIX looks like they need to be transformed
+transform_var <- c("NOx", "Humic", "Prot", "HIX")
 transformed_var <- map_dfr(transform_var, function(v){
   testing_df %>%
     filter(variable == v) %>% # filter by variable
@@ -471,7 +471,7 @@ transformed_var <- map_dfr(transform_var, function(v){
 })
 
 # check that transformations worked
-transformed_vars <- c("Nitrogen_transformed", "Humic_transformed", "Prot_transformed", "HIX_transformed")
+transformed_vars <- c("NOx_transformed", "Humic_transformed", "Prot_transformed", "HIX_transformed")
 map_dfr(transformed_vars, function(v){
   df_sub <- transformed_var %>%
     filter(variable == v) # filter by variable
@@ -485,7 +485,7 @@ map_dfr(transformed_vars, function(v){
 ## ANOVA results
 ```{r ANOVA-table}
 testing_df_norm <- bind_rows(testing_df, transformed_var) 
-numeric_vars_normal <- c("pH", "TA", "Nitrogen_transformed", "Humic_transformed", "Prot_transformed", "BIX", "HIX_transformed", "M_to_C")
+numeric_vars_normal <- c("pH", "TA", "NOx_transformed", "Humic_transformed", "Prot_transformed", "BIX", "HIX_transformed", "M_to_C")
 
 # let's see all ANOVA results together
 anovas_full <- map_dfr(numeric_vars_normal, function(v){
@@ -518,11 +518,11 @@ TA_model <- lmer(Value ~ Day_Night * Benthos * Season + (1|Quad_ID),
 Anova(TA_model)
 summary(TA_model)
 
-## Nitrogen model without random effect
-nitrogen_model <- lm(Value ~ Day_Night * Benthos * Season, 
+## NOx model without random effect
+NOx_model <- lm(Value ~ Day_Night * Benthos * Season, 
             data = testing_df_norm %>% 
-              filter(variable == "Nitrogen"))
-Anova(nitrogen_model, type = "III")
+              filter(variable == "NOx"))
+Anova(NOx_model, type = "III")
 
 ## BIX model
 BIX_model <- lmer(Value ~ Day_Night * Benthos * Season + (1|Quad_ID), 
@@ -552,7 +552,7 @@ summary(MC_model)
 ```{r diel-percent-change}
 ## percent change per benthos
 pct_change_df <- testing_df %>%
-  filter(variable == "TA") %>%
+  filter(variable == "NOx") %>%
   group_by(Season, Benthos, Day_Night) %>%
   summarize(
     mean_val = mean(Value, na.rm = TRUE),
@@ -569,6 +569,16 @@ pct_change_df <- testing_df %>%
     pct_change = ifelse(mean_val_Dawn == 0, NA_real_,
                         100 * diel_diff / mean_val_Dawn),
     n_total = n_Dawn + n_Dusk
+  )
+
+# not including dawn vs dusk
+seasonal_diff_df <- testing_df %>%
+  filter(variable == "NOx") %>%
+  group_by(Season, Benthos) %>%
+  summarize(
+    mean_val = mean(Value, na.rm = TRUE),
+    n = dplyr::n(),
+    .groups = "drop"
   )
 
 ```
@@ -623,9 +633,9 @@ fdom_diff <- fdom_diff %>%
   mutate(Benthos = factor(Benthos, 
     levels = c("Barnacle", "Mussel", "Rockweed", "Surfgrass"))) %>% # order benthos by assigning levels
   mutate(variable = factor(variable, 
-    levels =  c("pH", "TA", "Nitrogen", "Humic", "Prot", "BIX", "HIX", "M_to_C") # order variables by assigning levels 
+    levels =  c("pH", "TA", "NOx", "Humic", "Prot", "BIX", "HIX", "M_to_C") # order variables by assigning levels 
   ))
- #   labels = c("pH", "TA", "Nitrogen", "Humic", "Prot", "BIX", "HIX", "M:C"))) # change label for m:c formatting
+ #   labels = c("pH", "TA", "NOx", "Humic", "Prot", "BIX", "HIX", "M:C"))) # change label for m:c formatting
 
 # heat map colored by difference from open ocean
 fdom_diff %>%
@@ -1094,16 +1104,19 @@ plot_diel_with_sig <- function(var_name, var_label,
 
 ```{r diel-boxplot-ex}
 (p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
-(p_nit  <- plot_diel_with_sig("Nitrogen",  expression(paste("Total Nitrogen (µmol L"^-1,")")), free_y = TRUE))
+(p_nh4 <- plot_diel_with_sig("NH4",    expression(paste("Ammonium (µmol L"^-1,")" ))))
+(p_po4 <- plot_diel_with_sig("PO4",  expression(paste("Phosphate (µmol L"^-1,")"))))
+(p_nit  <- plot_diel_with_sig("NOx",  expression(paste("NOx (µmol L"^-1,")")), free_y = TRUE))
 (p_bix  <- plot_diel_with_sig("BIX",  "Biological Index (BIX)"))
 (p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)"))
 (p_mc <- plot_diel_with_sig("M_to_C", "M:C"))
 (p_TA   <- plot_diel_with_sig("TA",   expression(paste("Total Alkalinity (µmol kg"^-1,")"))))
 
-p_ph + p_nit + p_bix + p_hix + p_TA + p_mc + 
+
+p_ph + p_nit + p_nh4 + p_po4 + p_bix + p_hix + p_TA + p_mc + 
   plot_layout(axes = "collect_x", ncol = 2)
 
-#ggsave(here("Output","DielPlots.png"), width = 14, height = 12) 
+#ggsave(here("Output","DielPlots.png"), width = 14, height = 16) 
 ```
 
 # Tidal exchange analysis
@@ -1143,12 +1156,12 @@ anovas_full_ebb <- map_dfr(numeric_vars_normal, function(v){
   df_sub <- testing_df_norm %>%
     filter(variable == v) # filter by variable
     options(contrasts = c("contr.sum", "contr.poly"))
-    fit <- lmer(Value ~ Day_Night * Benthos + Tide + (1| Quad_ID), data = df_sub)
+    fit <- lm(Value ~ Day_Night * Benthos + Tide, data = df_sub)
     Anova(fit, type = "III") %>%
     as.data.frame() %>%
     rownames_to_column("term") %>%
     filter(term != "(Intercept)") %>%
-    filter(`Pr(>Chisq)` < 0.05) %>% # see what's significant
+    filter(`Pr(>F)` < 0.05) %>% # see what's significant
     mutate(variable = v)
 })
 anovas_full_ebb %>%
