@@ -22,13 +22,8 @@ This document:
 - Cleans data and applies outlier handling (IQR rule)
 - Summarizes by habitat and diel period
 - Creates PCA for seasonal drivers
-- Visualizes diel and habitat patterns (boxplots, TA–pH, fDOM heatmap)
-- Computes correlation matrices and significance masks
-- Runs ANOVAs
-- Visualizes ANOVA results and reassesses hypotheses
-
-> **Reproducibility & Modularity**  
-> Kept times (which removes summer), and the control label (open ocean) are parameterized in the YAML `params:` so I can change inputs without editing code chunks.
+- Plots relationships between variables to visualize processes
+- Visualizes diel and habitat patterns (boxplots)
 
 # Setup
 
@@ -38,7 +33,7 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
 ```{r libs}
 library(tidyverse)
-library(patchwork)
+library(patchwork) # combine plots
 library(rstatix)
 library(ggcorrplot)
 library(ggrepel)
@@ -48,9 +43,16 @@ library(kableExtra)
 library(car)
 library(emmeans)
 library(agricolae)
-library(lme4)
-library(paletteer)
+library(lme4) # random effects
+library(paletteer) # color palettes
 library(ggh4x)
+library(mgcv)
+library(performance) 
+library(MuMIn)       
+library(rsample)     
+library(yardstick)   
+library(gratia) 
+library(ggnewscale) # multiple color scales on one plot
 
 # Global plot theme
 theme_set(theme_bw(base_size = 12))
@@ -216,83 +218,12 @@ if(nrow(cor_data) > 0){
 }
 ```
 
-### PCA plots
+## PCA plots
+
+### Seasonal differences - PCA
+Do different seasons have distinct chemical/fDOM signatures? Which variables drive those differences?
+
 ```{r PCA-func, echo=FALSE}
-pca_biplot <- function(df,
-                       vars,
-                       title = "PCA biplot",
-                       color_var = "Season",
-                       shape_var = "Day_Night",
-                       facet_var = "Benthos") {
-  
-  # Keep only needed columns
-  df_sub <- df %>%
-    dplyr::select(all_of(c(vars, color_var, shape_var, facet_var))) %>%
-    tidyr::drop_na(all_of(vars))
-  
-  # Numeric matrix for PCA
-  num_mat <- df_sub %>%
-    dplyr::select(all_of(vars)) %>%
-    as.matrix()
-  
-  # Run PCA (scaled)
-  pca_res <- prcomp(num_mat, scale. = TRUE)
-  
-  # Scores (samples)
-  scores <- as.data.frame(pca_res$x[, 1:2])
-  colnames(scores) <- c("PC1", "PC2")
-  scores <- cbind(scores,
-                  df_sub %>% dplyr::select(all_of(c(color_var, shape_var, facet_var))))
-  
-  # Loadings (variable arrows)
-  loadings <- as.data.frame(pca_res$rotation[, 1:2])
-  colnames(loadings) <- c("PC1", "PC2")
-  loadings$var <- rownames(loadings)
-  
-  # Scale arrows to fit in score space
-  mult <- min(
-    (max(scores$PC1) - min(scores$PC1)) / (max(loadings$PC1) - min(loadings$PC1)),
-    (max(scores$PC2) - min(scores$PC2)) / (max(loadings$PC2) - min(loadings$PC2))
-  ) * 0.7
-  
-  loadings_scaled <- loadings
-  loadings_scaled$PC1 <- loadings_scaled$PC1 * mult
-  loadings_scaled$PC2 <- loadings_scaled$PC2 * mult
-  
-  # % variance explained
-  var_expl <- pca_res$sdev^2 / sum(pca_res$sdev^2) * 100
-  
-  ggplot(scores, aes(x = PC1, y = PC2)) +
-    geom_hline(yintercept = 0, linetype = "dashed") +
-    geom_vline(xintercept = 0, linetype = "dashed") +
-    geom_point(aes_string(color = color_var, shape = shape_var),
-               size = 3, alpha = 0.8) +
-    geom_segment(data = loadings_scaled,
-                 aes(x = 0, y = 0, xend = PC1, yend = PC2),
-                 arrow = arrow(length = unit(0.2, "cm"))) + #arrows
-    geom_text_repel(
-    data = loadings_scaled,
-    aes(x = PC1, y = PC2, label = var),
-    size = 4,
-    segment.color = "grey50",
-    max.overlaps = Inf
-)+
-    facet_wrap(as.formula(paste("~", facet_var)))+
-    scale_color_paletteer_d("nationalparkcolors::Arches")+
-    #scale_color_manual(values = c("Fall" = "#bf2624", "Spring" = "#6dd8bf"))+
-    stat_ellipse(aes_string(color=color_var), level = 0.95)+ #circles
-    labs(
-      title = title,
-      x = paste0("PC1 (", round(var_expl[1], 1), "%)"),
-      y = paste0("PC2 (", round(var_expl[2], 1), "%)")
-    ) +
-    theme_bw()
-}
-
-```
-
-
-```{r PCA-func-ilike, echo=FALSE}
 pca_miplot <- function(df,
                        vars,
                        title = "PCA biplot",
@@ -365,15 +296,7 @@ pca_miplot <- function(df,
     theme_bw()
 }
 
-pca_miplot(
-  data_clean,
-  vars      = numeric_vars,
-  title     = "PCA of Nutrients and fDOM components driving seasonal differences",
-  color_var = "Day_Night",
-  shape_var = "Day_Night",
-  facet_var = "Season"
-)
-
+# using vars of interest
 pca_miplot(
   data_clean,
   vars      = ratio_vars,
@@ -383,66 +306,596 @@ pca_miplot(
   facet_var = "Season"
 )
 
-pca_miplot(
-  data_clean,
-  vars      = raw_vars,
-  title     = "PCA of Nutrients and fDOM components driving seasonal differences",
+```
+
+### One PCA standardized within season
+```{r pca-season, fig.height=6}
+pca_biplot <- function(df,
+                       vars,
+                       season_var = "Season",
+                       color_var = "Day_Night",
+                       ellipse_var = "Benthos") {
+
+  # select vars of interest
+  df_sub <- df %>%
+    select(all_of(c(vars, season_var, color_var, ellipse_var))) %>%
+    drop_na(all_of(vars))
+
+  # standardize within season
+  df_scaled <- df_sub %>%
+    group_by(.data[[season_var]]) %>%
+    mutate(across(all_of(vars), scale)) %>%
+    ungroup()
+
+  # run PCA
+  num_mat <- df_scaled %>%
+    select(all_of(vars)) %>%
+    as.matrix()
+
+  pca_res <- prcomp(num_mat, scale. = FALSE)
+
+  # get scores
+  scores <- as.data.frame(pca_res$x[, 1:2])
+  colnames(scores) <- c("PC1", "PC2")
+
+  scores <- scores %>%
+    bind_cols(
+      df_scaled %>%
+        select(all_of(c(season_var, color_var, ellipse_var)))
+    ) %>%
+    mutate(
+      Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk"))
+    )
+
+  # get loadings
+  loadings <- as.data.frame(pca_res$rotation[, 1:2])
+  colnames(loadings) <- c("PC1", "PC2")
+  loadings$var <- rownames(loadings)
+
+  # scale loadings
+  mult <- min(
+    diff(range(scores$PC1)) / diff(range(loadings$PC1)),
+    diff(range(scores$PC2)) / diff(range(loadings$PC2))
+  ) * 0.7
+
+  loadings <- loadings %>%
+    mutate(
+      PC1 = PC1 * mult,
+      PC2 = PC2 * mult
+    )
+
+  # variance
+  var_expl <- (pca_res$sdev^2 / sum(pca_res$sdev^2)) * 100
+
+  # make plot
+  ggplot(scores, aes(PC1, PC2)) +
+
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+
+    geom_point(
+      aes(color = Day_Night, shape = Day_Night),
+      size = 3,
+      alpha = 0.8
+    ) +
+
+    scale_color_manual(
+      values = c(
+        "Dawn" = "#FDB813",
+        "Dusk" = "#003865"
+      ),
+      name = "Sampling Time"
+    ) +
+
+    scale_shape_manual(
+      values = c(
+        "Dawn" = 16,
+        "Dusk" = 17
+      ),
+      name = "Sampling Time"
+    ) +
+
+    ggnewscale::new_scale_color() +
+
+    stat_ellipse(
+      aes(
+        group = .data[[ellipse_var]],
+        color = .data[[ellipse_var]]
+      ),
+      linewidth = 1,
+      alpha = 0.8
+    ) +
+
+    scale_color_paletteer_d("nationalparkcolors::Acadia",
+                            name = "Benthos") +
+
+    geom_segment(
+      data = loadings,
+      aes(x = 0, y = 0, xend = PC1, yend = PC2),
+      arrow = arrow(length = unit(0.2, "cm")),
+      inherit.aes = FALSE
+    ) +
+
+    geom_text_repel(
+      data = loadings,
+      aes(PC1, PC2, label = var),
+      size = 4,
+      inherit.aes = FALSE
+    ) +
+
+    facet_wrap(as.formula(paste("~", season_var))) +
+
+    labs(
+      x = paste0("PC1 (", round(var_expl[1], 1), "%)"),
+      y = paste0("PC2 (", round(var_expl[2], 1), "%)")
+    ) +
+
+    theme_bw()
+}
+
+# colored by benthos - no clear separation
+pca_biplot(data_clean,
+  vars      = ratio_vars,
+  season_var = "Season",
+  color_var = "Day_Night",
+  ellipse_var = "Benthos")
+
+# colored by dawn/dusk cleaner
+pca_biplot(data_clean,
+  vars      = ratio_vars,
+  season_var = "Season",
+  color_var = "Day_Night",
+  ellipse_var = "Day_Night")
+
+```
+
+### One PCA per season - shows pH decoupling from NOX, but I think the above one is better
+```{r PCA-separate, fig.height=6}
+pca_miplot_separate <- function(df,
+                                vars,
+                                season_var = "Season",
+                                color_var = "Day_Night",
+                                shape_var = "Day_Night",
+                                ellipse_var = "Benthos") {
+
+  
+  # select data
+  df_sub <- df %>%
+    select(all_of(c(vars, season_var, color_var, shape_var, ellipse_var))) %>%
+    drop_na(all_of(vars))
+  
+  # ---- 2. Initialize lists ----
+  scores_list <- list()
+  loadings_list <- list()
+  
+  # loop over seasons
+  for(season in unique(df_sub[[season_var]])) {
+    
+    df_season <- df_sub %>% filter(.data[[season_var]] == season)
+    
+    # PCA per season
+    pca <- prcomp(df_season[,vars], scale.=TRUE)
+    
+    # Scores
+    sco <- as.data.frame(pca$x[,1:2])
+    colnames(sco) <- c("PC1","PC2")
+    sco <- cbind(sco, df_season[,c(season_var, color_var, ellipse_var)])
+    
+    # Loadings scaled to score space
+    loadings <- as.data.frame(pca$rotation[,1:2])
+    colnames(loadings) <- c("PC1","PC2")
+    loadings$var <- rownames(loadings)
+    
+    # Scale arrows
+    mult <- min(
+      diff(range(sco$PC1)) / diff(range(loadings$PC1)),
+      diff(range(sco$PC2)) / diff(range(loadings$PC2))
+    ) * 0.7
+    loadings$PC1 <- loadings$PC1 * mult
+    loadings$PC2 <- loadings$PC2 * mult
+    loadings[[season_var]] <- season
+    
+    # % variance explained for axis labels
+    var_expl <- round(pca$sdev^2 / sum(pca$sdev^2) * 100, 1)
+    sco$PC1_label <- paste0("PC1 (", var_expl[1], "%)")
+    sco$PC2_label <- paste0("PC2 (", var_expl[2], "%)")
+    
+    # Store
+    scores_list[[season]] <- sco
+    loadings_list[[season]] <- loadings
+  }
+  
+  # combine seasons
+  scores_all <- bind_rows(scores_list)
+  loadings_all <- bind_rows(loadings_list)
+  
+  # create plot
+  ggplot(scores_all, aes(PC1, PC2)) +
+    
+    geom_hline(yintercept = 0, linetype="dashed") +
+    geom_vline(xintercept = 0, linetype="dashed") +
+    
+    # Points: Day/Night
+    geom_point(aes(color = .data[[color_var]], shape = .data[[shape_var]]),
+               size=3, alpha=0.8) +
+    scale_color_manual(values=c("Dawn"="#FDB813","Dusk"="#003865"),
+                       name="Sampling Time") +
+    scale_shape_manual(values=c(16,17), name="Sampling Time") +
+    
+    ggnewscale::new_scale_color() +
+    
+    # Ellipses by Benthos
+    stat_ellipse(aes(group=.data[[ellipse_var]], color=.data[[ellipse_var]]),
+                 linewidth=1, alpha=0.8) +
+    scale_color_brewer(palette="Set2", name="Benthos") +
+    
+    # Loadings
+    geom_segment(data=loadings_all, aes(x=0, y=0, xend=PC1, yend=PC2),
+                 arrow=arrow(length=unit(0.2,"cm")), inherit.aes=FALSE) +
+    geom_text_repel(data=loadings_all, aes(x=PC1, y=PC2, label=var),
+                    size=4, segment.color="grey50", inherit.aes=FALSE) +
+    
+    # Facet by season
+    facet_wrap(as.formula(paste("~", season_var))) +
+    
+    # Axis labels with % variance
+    labs(
+      x = unique(scores_all$PC1_label),
+      y = unique(scores_all$PC2_label)
+    ) +
+    
+    theme_bw()
+}
+
+
+pca_miplot_separate(data_clean,
+  vars      = ratio_vars,
+  season_var = "Season",
   color_var = "Day_Night",
   shape_var = "Day_Night",
-  facet_var = "Season"
-)
+  ellipse_var = "Benthos")
 ```
 
-## Seasonal differences - PCA
+# Regressions
 
-Do different seasons have distinct chemical/fDOM signatures? Which variables drive those differences?
+## pH and nitrogen
+Note: removed two outliers
+```{r ph-nit, fig.height=5}
+# pH and nitrate relationship
+ggplot(data_clean %>%
+         filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
+  coord_trans(x = "log") +
+  geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
+  scale_color_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  geom_smooth(method = "lm", se = TRUE, aes(color = "black")) +
+  facet_wrap(~Day_Night, scale = "free")+
+  theme(strip.background = element_rect(fill = "white"))
 
-```{r PCA-plots, fig.height=8}
-# original one without benthos (unfaceted)
-pca_biplot(
-  data_clean,
-  vars      = numeric_vars,
-  title     = "PCA of Nutrients and fDOM components driving seasonal differences",
-  color_var = "Season",
-  shape_var = "Day_Night",
-  facet_var = "Season"
-)
+dat2 <- data_clean %>%
+  mutate(
+    Day_Night = factor(Day_Night),
+    Season    = factor(Season),
+    Benthos   = factor(Benthos),
+    logNOx    = log(NOx)
+  ) %>%
+  filter(is.finite(pH), is.finite(NOx), NOx > 0)
 
-p_pca_season <- pca_biplot(
-  data_clean,
-  vars      = numeric_vars,
-  title     = "PCA of Nutrients and fDOM components driving seasonal differences",
-  color_var = "Season",
-  shape_var = "Day_Night",
-  facet_var = "Benthos"
-)
+## We expect the relationship between pH and NOx to change with Day_Night (shown in the plot) and Season. pH changes with benthos
 
-p_pca_season
+pHNOxmodel <- lm(pH ~ logNOx * Day_Night * Season + Benthos, data = dat2)
+Anova(pHNOxmodel, type = "II")
+```
+```{r hix-bix, echo = FALSE, eval = FALSE}
+# HIX and BIX are correlated with each other, makes sense. There is either more fresh/labile DOM (BIX) or more complex DOM (HIX). 
+ggplot(data_clean %>%
+         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
+       aes(x = BIX, y = HIX, color = Day_Night)) +
+  geom_point() +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(
+    rows = vars(Season),
+    cols = vars(Benthos)
+  ) +
+  labs(
+    color = "Sampling Time"
+  )
 
-p_pca_benthos <- pca_biplot(
-  data_clean,
-  vars = numeric_vars,
-  title = "PCA of Nutrients and fDOM components across benthos by season",
-  color_var = "Benthos",
-  shape_var = "Day_Night",
-  facet_var = "Season"
-)
+# relationships between nitrates and BIX
+## consumer dawn: as NOx decreases, BIX increases
+ggplot(data_clean  %>%
+         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
+       aes(x = NOx, y = BIX, color = Day_Night)) +
+  geom_point() +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos),
+    scales = "free_x"
+  ) +
+  labs(
+    color = "Sampling Time"
+  )
 
-p_pca_benthos
+## consumer dawn: as NOx increases, HIX increases
+ggplot(data_clean  %>%
+         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
+       aes(x = NOx, y = HIX, color = Day_Night)) +
+  geom_point() +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(
+    rows = vars(Season),
+    cols = vars(Benthos),
+    scales = "free_x"
+  ) +
+  labs(
+    color = "Sampling Time"
+  )
 
-p_pca_diel <- pca_biplot(
-  data_clean,
-  vars = numeric_vars,
-  title = "PCA of nutrients and fDOM components across benthos by dawn/dusk",
-  color_var = "Benthos",
-  shape_var = "Season",
-  facet_var = "Day_Night"
-)
+# relationships between ammonium and HIX/BIX
+## consumer dawn: as NH4 increases, HIX increases
+#nh4hixplot<-
+ggplot(data_clean, aes(x = NH4, y = HIX, color = Day_Night)) +
+  geom_point() +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos), 
+    scales = "free",
+    switch = "y")
 
-p_pca_diel
+
+## consumer dawn: as NH4 increases, BIX decreases; rockweed increases at dawn
+nh4bixplot <-
+ggplot(data_clean, aes(x = NH4, y = BIX, color = Day_Night)) +
+  geom_point() +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos), 
+    scales = "free",
+    switch = "y")
+  
+nh4hixplot + nh4bixplot + plot_layout(guides = "collect", ncol = 1, 
+                                      axes = "collect")
+# combine benthos, facet by sampling time
+dielhixplot <-
+ggplot(data_clean  %>% filter(Season == "Spring") %>%
+         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
+       aes(x = NOx, y = HIX, color = Benthos)) +
+  geom_point() +
+  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~Day_Night)+
+  labs(
+    color = "Benthos"
+  )
+
+dielbixplot <-
+ggplot(data_clean  %>% filter(Season == "Spring") %>%
+         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
+       aes(x = NOx, y = BIX, color = Benthos)) +
+  geom_point() +
+  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~Day_Night)+
+  labs(
+    color = "Benthos"
+  )
+
+dielhixplot + dielbixplot + plot_layout(guides = "collect")
+
+ggsave(here("Output","HIXBIXPlot.png"), width = 12, height = 6)
 ```
 
-Spring shows strong nutrient and DOM enrichment, can also see diel variability in nutrient accumulation.
+## NH4 and NOx
+
+### Original plot
+```{r nh4-nox}
+ggplot(data_clean %>% 
+         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), 
+       aes(x = NH4, y = NOx, color = Day_Night)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +   
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) + 
+  facet_grid2(Season~Benthos, scales = "free", switch = "y" ) + 
+  labs( x = expression(paste("NH"[4]," (", mu, "mol L"^-1,")")), 
+        y = expression(paste("NO"[x]," (", mu, "mol L"^-1,")")), 
+        color = "Sampling Time" )
+```
+
+### Within each benthos x season x sampling time, is there a relationship?
+Strong mussel coupling in fall throughout the day = strong remineralization and nitrification. <br> Rockweeds at dawn = microbial processing at night, masked by NH4 uptake during the day. <br> Surfgrass at dusk =  help. <br> Barnacles only ones in Spring + only at dusk. 
+```{r nh4-nox-sig}
+# ONLY KEEPING SIG LINES
+## create log columns
+data_logged <- data_clean %>%
+  mutate(
+    logNH4 = log(NH4),
+    logNOx = log(NOx)
+  )
+## regression of nitrogens
+nitrogenmodel <- lm(logNOx ~ logNH4 * Day_Night * Season * Benthos,
+  data = data_logged
+)
+Anova(nitrogenmodel, type = "III")
+
+## calculate slopes
+emm <- summary(emtrends(nitrogenmodel,
+  ~ Day_Night | Benthos * Season,
+  var = "logNH4"),
+  infer = c(TRUE,TRUE)) %>%
+  as.data.frame()
+
+print(emm)
+
+## differences between dawn and dusk?
+pairs(
+  emtrends(
+    nitrogenmodel,
+    ~ Day_Night | Benthos * Season,
+    var = "logNH4"
+  )
+)
+
+## filter sig slopes
+alpha <- 0.05
+
+sig_slopes <- emm %>%
+  filter(p.value < alpha) %>%
+  transmute(
+    Day_Night, Benthos, Season,
+    slope = `logNH4.trend`
+  )
+
+## intercept on log scale for each panel at log(NH4)=0
+new0 <- data_logged %>%
+  distinct(Day_Night, Benthos, Season) %>%
+  mutate(logNH4 = 0)
+
+new0$intercept <- predict(nitrogenmodel, newdata = new0)
+
+line_df <- new0 %>%
+  left_join(sig_slopes, by = c("Day_Night", "Benthos", "Season")) %>%
+  filter(!is.na(slope))
+
+## plot
+ggplot(data_logged %>%
+    mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
+  aes(x = logNH4, y = logNOx, color = Day_Night)
+) +
+  geom_point() +
+  geom_abline(
+    data = line_df,
+    aes(intercept = intercept, slope = slope, color = Day_Night),
+    inherit.aes = FALSE,
+    linewidth = 1
+  ) +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  facet_grid2(Season ~ Benthos, 
+              scales = "free", 
+              switch = "y") +
+  labs(
+    x = expression(paste("log(NH"[4], ") (", mu, "mol L"^-1, ")")),
+    y = expression(paste("log(NO"[x], ") (", mu, "mol L"^-1, ")")),
+    color = "Sampling Time"
+  )
+```
+
+## pH and HIX
+```{r}
+# pH and HIX plot
+ggplot(data_clean %>%
+        mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))), 
+       aes(x = pH, y = HIX, color = Benthos)) +
+  geom_point() +
+  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = expression(paste("pH")),
+    y = expression(paste("HIX")),
+    color = "Benthos"
+  )+ 
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos),
+    switch = "y"
+    #scale = "free",
+    #independent = "all"
+  )
+
+#ggsave(here("Output","pH_HIX_plot.png"), width = 10, height = 8)
+
+```
+
+### only significant lines
+```{r}
+# start by fitting the model to see significant trends
+pHHIXmodel <- lm(HIX~pH * Season * Benthos, data = data_clean)
+#plot(pHHIXmodel)
+summary(pHHIXmodel)
+
+# only filter out significant slopes
+alpha <- 0.05
+
+tr_SB <- summary(emtrends(pHHIXmodel, 
+                          specs = ~ Season * Benthos, 
+                          var = "pH"),
+                infer = c(TRUE, TRUE)) %>% # get p values
+  as.data.frame()
+
+print(tr_SB)
+
+sig_tr_SB <- tr_SB %>%
+  filter(p.value < alpha) %>%
+  transmute(
+    Season,
+    Benthos,
+    slope = pH.trend
+  )
+
+
+# get intercepts
+intercepts <- data_clean %>%
+  distinct(Season, Benthos) %>%
+  mutate(pH = 0)
+
+intercepts$intercept <- predict(pHHIXmodel, newdata = intercepts)
+
+line_df <- intercepts %>%
+  left_join(sig_tr_SB, by = c("Season", "Benthos")) %>%
+  filter(!is.na(slope))   # ONLY significant regressions
+
+# plot sig lines
+ggplot(
+  data_clean %>%
+    mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))),
+  aes(x = pH, y = HIX, color = Benthos)
+) +
+  geom_point() +
+  scale_color_manual(values = c(
+    "Open Ocean" = "#8C8C8C",
+    "Surfgrass"  = "#5BB360",
+    "Rockweed"   = "#5A8F5D",
+    "Barnacle"   = "#6E86C2",
+    "Mussel"     = "#233B75"
+  )) +
+  geom_abline(
+    data = line_df,
+    aes(intercept = intercept, slope = slope),
+    inherit.aes = FALSE
+  ) +
+  labs(
+    x = expression(paste("pH")),
+    y = expression(paste("HIX")),
+    color = "Benthos"
+  ) +
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos),
+    switch = "y"
+  )
+
+```
 
 # Dawn vs Dusk analyses across Benthos and Seasons
 Start by assessing assumptions of normality and homogeneity of variance.
@@ -599,8 +1052,201 @@ Summary Table
 |Day_Night:Benthos:Season | pH, TempInSitu, NO3, SIL|
 
 
-
 Let's look at differences across benthos in their dawn/dusk values over the two seasons
+
+## Diel boxplots with significance levels
+```{r diel-boxplots}
+build_sig_df <- function(var_name = ratio_vars, data = data_clean) {
+  stopifnot(var_name %in% names(data))
+  
+  # fit ANOVA
+  fml <- as.formula(paste(var_name, "~ Day_Night * Season * Benthos + (1|Quad_ID)"))
+  fit <- lmer(fml, data = data)
+  
+  # Dawn vs Dusk within each Season × Benthos
+  emm  <- emmeans(fit, ~ Day_Night | Season * Benthos)
+  contr_df <- as.data.frame(contrast(emm, method = "revpairwise"))
+  # columns: Season, Benthos, contrast, estimate, SE, df, t.ratio, p.value
+  
+  # Turn p-values into stars
+  sig_df <- contr_df %>%
+    select(Season, Benthos, p.value) %>%
+    distinct() %>%
+    mutate(sig = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ "ns"
+    )) %>%
+    left_join(
+      data %>%
+        group_by(Season, Benthos) %>%
+        summarise(y_pos = max(.data[[var_name]], na.rm = TRUE),
+                  .groups = "drop"),
+      by = c("Season", "Benthos")
+    ) %>%
+    mutate(y_pos = y_pos * 1.05) %>% # a bit above top whisker
+    filter(sig != "ns")
+}
+
+plot_diel_with_sig <- function(var_name, var_label, 
+                               data = data_clean,
+                               free_y = FALSE) {
+  stopifnot(var_name %in% names(data))
+  
+  sig_df <- build_sig_df(var_name, data = data)
+  
+  facet_scales <- if (free_y) "free_y" else "fixed"
+  
+  ggplot(
+    data %>% filter(!is.na(.data[[var_name]])),
+    aes(x = Day_Night, y = .data[[var_name]], fill = Day_Night)
+  ) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_jitter(width = 0.15, alpha = 0.5, size = 2) +
+    facet_grid(rows = vars(Season),cols = vars(Benthos),
+              scales = facet_scales,switch = "y"
+) +
+    scale_fill_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+    labs(
+      #title = paste("Diel Patterns in", var_label),
+      x = "Sampling Time",
+      y = var_label
+    ) +
+    theme(
+      legend.position = "none",
+      strip.background = element_rect(fill = "grey90"),
+      strip.placement = "outside",
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    ) +
+    geom_text(
+      data = sig_df,
+      aes(x = 1.5, y = y_pos, label = sig),
+      inherit.aes = FALSE,
+      size = 4
+    )
+}
+
+```
+
+## Example plots
+
+```{r diel-boxplot-ex}
+(p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
+(p_TA   <- plot_diel_with_sig("TA",   expression(paste("Total Alkalinity (µmol kg"^-1,")")))
+  + theme(strip.text.y = element_blank(), strip.background.y = element_blank()))
+(p_nit  <- plot_diel_with_sig("NOx",  expression(paste("NO"[x], " (µmol L"^-1,")")), free_y = TRUE) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
+(p_nh4 <- plot_diel_with_sig("NH4",    expression(paste("NH"[4]," (µmol L"^-1,")" ))) + theme(strip.text = element_blank(), strip.background = element_blank()))
+(p_po4 <- plot_diel_with_sig("PO4",  expression(paste("Phosphate (µmol L"^-1,")"))) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
+(p_mc <- plot_diel_with_sig("M_to_C", "M:C")
+  + theme(strip.text = element_blank(), strip.background = element_blank()))
+(p_bix  <- plot_diel_with_sig("BIX",  "Biological Index (BIX)")
+  + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
+(p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)")
+  + theme(strip.text = element_blank(), strip.background = element_blank()))
+
+
+p_ph + p_TA + p_nit + p_nh4+ p_bix + p_hix + 
+  plot_layout(axes = "collect_x", ncol = 2)
+
+ggsave(here("Output","DielPlots.png"), width = 14, height = 14) 
+```
+
+## Effect size plots
+```{r effect-size-plot}
+
+build_diel_effect_df_one_scaled <- function(var_name, data = data_clean) {
+  stopifnot(var_name %in% names(data))
+  
+  # scale the variable (global z-score)
+  data_z <- data %>%
+    mutate(var_z = as.numeric(scale(.data[[var_name]])))
+  
+  fml <- as.formula("var_z ~ Day_Night * Season * Benthos + (1|Quad_ID)")
+  fit <- lmer(fml, data = data_z)
+  
+  # emmeans for Day_Night within each Season × Benthos
+  emm <- emmeans(fit, ~ Day_Night | Season * Benthos)
+  
+  # Dusk - Dawn contrast in *scaled units* (≈ SD units)
+  diel <- contrast(emm, method = "revpairwise")
+  
+  # summary with p-values + 95% CI
+  df <- summary(diel, infer = c(TRUE, TRUE), level = 0.95) %>%
+    as.data.frame()
+  
+  # standardize CI names
+  if (!"lower.CL" %in% names(df)) {
+    if ("asymp.LCL" %in% names(df)) {
+      df <- df %>%
+        rename(
+          lower.CL = asymp.LCL,
+          upper.CL = asymp.UCL
+        )
+    } else if ("LCL" %in% names(df)) {
+      df <- df %>%
+        rename(
+          lower.CL = LCL,
+          upper.CL = UCL
+        )
+    }
+  }
+  
+  df %>%
+    mutate(
+      est_std   = estimate,     
+      lower_std = lower.CL,
+      upper_std = upper.CL,
+      variable  = var_name
+    )
+}
+
+effects_all <- map_dfr(
+  ratio_vars,
+  build_diel_effect_df_one_scaled,
+  data = data_clean
+)
+
+effects_all <- effects_all %>%
+  mutate(
+    sig = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ "ns"
+    ),
+    variable = factor(variable, levels = rev(ratio_vars))
+  )
+
+ggplot(effects_all,
+       aes(x = est_std, y = variable,
+           color = Season,  
+           alpha = sig != "ns")) +   
+  geom_vline(xintercept = 0, linetype = "dashed", color = "grey70") +
+  geom_errorbarh(aes(xmin = lower_std, xmax = upper_std),
+                 height = 0.15) +
+  geom_point(size = 2) +
+  facet_wrap(~ Benthos, ncol = 5) +
+  scale_y_discrete(labels = c("M_to_C" = "M:C"))+ # adjust M:C format
+  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0.3), # make sig darker
+                     guide = "none") +
+  scale_color_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  labs(
+    x = "Standardized effect size (Dusk – Dawn, SD units)",
+    y = NULL,
+    color = "Season"
+  ) +
+  
+  theme_bw() +
+  theme(
+    strip.background = element_rect(fill = "grey90"),
+    axis.text.y = element_text(size = 9)
+  )
+
+```
 
 # Heatmap colored in comparison to OO
 Calculates means per benthos x season x day/night and compares against the open ocean mean
@@ -930,492 +1576,7 @@ plot_df_dunn %>%
 
 ```
 
-# Create effect size plots
-
-```{r effect-size-plot}
-
-build_diel_effect_df_one_scaled <- function(var_name, data = data_clean) {
-  stopifnot(var_name %in% names(data))
-  
-  # scale the variable (global z-score)
-  data_z <- data %>%
-    mutate(var_z = as.numeric(scale(.data[[var_name]])))
-  
-  fml <- as.formula("var_z ~ Day_Night * Season * Benthos + (1|Quad_ID)")
-  fit <- lmer(fml, data = data_z)
-  
-  # emmeans for Day_Night within each Season × Benthos
-  emm <- emmeans(fit, ~ Day_Night | Season * Benthos)
-  
-  # Dusk - Dawn contrast in *scaled units* (≈ SD units)
-  diel <- contrast(emm, method = "revpairwise")
-  
-  # summary with p-values + 95% CI
-  df <- summary(diel, infer = c(TRUE, TRUE), level = 0.95) %>%
-    as.data.frame()
-  
-  # standardize CI names
-  if (!"lower.CL" %in% names(df)) {
-    if ("asymp.LCL" %in% names(df)) {
-      df <- df %>%
-        rename(
-          lower.CL = asymp.LCL,
-          upper.CL = asymp.UCL
-        )
-    } else if ("LCL" %in% names(df)) {
-      df <- df %>%
-        rename(
-          lower.CL = LCL,
-          upper.CL = UCL
-        )
-    }
-  }
-  
-  df %>%
-    mutate(
-      est_std   = estimate,     
-      lower_std = lower.CL,
-      upper_std = upper.CL,
-      variable  = var_name
-    )
-}
-
-effects_all <- map_dfr(
-  ratio_vars,
-  build_diel_effect_df_one_scaled,
-  data = data_clean
-)
-
-effects_all <- effects_all %>%
-  mutate(
-    sig = case_when(
-      p.value < 0.001 ~ "***",
-      p.value < 0.01  ~ "**",
-      p.value < 0.05  ~ "*",
-      TRUE            ~ "ns"
-    ),
-    variable = factor(variable, levels = rev(ratio_vars))
-  )
-
-ggplot(effects_all,
-       aes(x = est_std, y = variable,
-           color = Season,  
-           alpha = sig != "ns")) +   
-  geom_vline(xintercept = 0, linetype = "dashed", color = "grey70") +
-  geom_errorbarh(aes(xmin = lower_std, xmax = upper_std),
-                 height = 0.15) +
-  geom_point(size = 2) +
-  facet_wrap(~ Benthos, ncol = 5) +
-  scale_y_discrete(labels = c("M_to_C" = "M:C"))+ # adjust M:C format
-  scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0.3), # make sig darker
-                     guide = "none") +
-  scale_color_manual(values = c(
-    "Fall"   = "#D95F02",
-    "Spring" = "#1B9E77"
-  )) +
-  labs(
-    x = "Standardized effect size (Dusk – Dawn, SD units)",
-    y = NULL,
-    color = "Season"
-  ) +
-  
-  theme_bw() +
-  theme(
-    strip.background = element_rect(fill = "grey90"),
-    axis.text.y = element_text(size = 9)
-  )
-
-```
-
-# Diel boxplots with significance levels
-
-```{r diel-boxplots}
-build_sig_df <- function(var_name = ratio_vars, data = data_clean) {
-  stopifnot(var_name %in% names(data))
-  
-  # fit ANOVA
-  fml <- as.formula(paste(var_name, "~ Day_Night * Season * Benthos + (1|Quad_ID)"))
-  fit <- lmer(fml, data = data)
-  
-  # Dawn vs Dusk within each Season × Benthos
-  emm  <- emmeans(fit, ~ Day_Night | Season * Benthos)
-  contr_df <- as.data.frame(contrast(emm, method = "revpairwise"))
-  # columns: Season, Benthos, contrast, estimate, SE, df, t.ratio, p.value
-  
-  # Turn p-values into stars
-  sig_df <- contr_df %>%
-    select(Season, Benthos, p.value) %>%
-    distinct() %>%
-    mutate(sig = case_when(
-      p.value < 0.001 ~ "***",
-      p.value < 0.01  ~ "**",
-      p.value < 0.05  ~ "*",
-      TRUE            ~ "ns"
-    )) %>%
-    left_join(
-      data %>%
-        group_by(Season, Benthos) %>%
-        summarise(y_pos = max(.data[[var_name]], na.rm = TRUE),
-                  .groups = "drop"),
-      by = c("Season", "Benthos")
-    ) %>%
-    mutate(y_pos = y_pos * 1.05) %>% # a bit above top whisker
-    filter(sig != "ns")
-}
-
-plot_diel_with_sig <- function(var_name, var_label, 
-                               data = data_clean,
-                               free_y = FALSE) {
-  stopifnot(var_name %in% names(data))
-  
-  sig_df <- build_sig_df(var_name, data = data)
-  
-  facet_scales <- if (free_y) "free_y" else "fixed"
-  
-  ggplot(
-    data %>% filter(!is.na(.data[[var_name]])),
-    aes(x = Day_Night, y = .data[[var_name]], fill = Day_Night)
-  ) +
-    geom_boxplot(outlier.shape = NA) +
-    geom_jitter(width = 0.15, alpha = 0.5, size = 2) +
-    facet_grid(rows = vars(Season),cols = vars(Benthos),
-              scales = facet_scales,switch = "y"
-) +
-    scale_fill_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-    labs(
-      #title = paste("Diel Patterns in", var_label),
-      x = "Sampling Time",
-      y = var_label
-    ) +
-    theme(
-      legend.position = "none",
-      strip.background = element_rect(fill = "grey90"),
-      strip.placement = "outside",
-      axis.text.x = element_text(angle = 45, hjust = 1)
-    ) +
-    geom_text(
-      data = sig_df,
-      aes(x = 1.5, y = y_pos, label = sig),
-      inherit.aes = FALSE,
-      size = 4
-    )
-}
-
-```
-
-## Example plots
-
-```{r diel-boxplot-ex}
-(p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
-(p_TA   <- plot_diel_with_sig("TA",   expression(paste("Total Alkalinity (µmol kg"^-1,")")))
-  + theme(strip.text.y = element_blank(), strip.background.y = element_blank()))
-(p_nit  <- plot_diel_with_sig("NOx",  expression(paste("NO"[x], " (µmol L"^-1,")")), free_y = TRUE) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_nh4 <- plot_diel_with_sig("NH4",    expression(paste("NH"[4]," (µmol L"^-1,")" ))) + theme(strip.text = element_blank(), strip.background = element_blank()))
-(p_po4 <- plot_diel_with_sig("PO4",  expression(paste("Phosphate (µmol L"^-1,")"))) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_mc <- plot_diel_with_sig("M_to_C", "M:C")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
-(p_bix  <- plot_diel_with_sig("BIX",  "Biological Index (BIX)")
-  + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
-
-
-p_ph + p_TA + p_nit + p_nh4+ p_bix + p_hix + 
-  plot_layout(axes = "collect_x", ncol = 2)
-
-ggsave(here("Output","DielPlots.png"), width = 14, height = 14) 
-```
-
-# Diel plots with triangles 
-```{r}
-build_tri_df <- function(var_name,
-                         data = data_clean,
-                         control_label = "Open Ocean",
-                         y_pad = 1.07,          
-                         p_cut = 0.05,
-                         adjust = "holm") {
-
-  stopifnot(var_name %in% names(data))
-
-  # fit model
-  fml <- as.formula(paste(var_name, "~ Day_Night * Season * Benthos + (1|Quad_ID)"))
-  fit <- lmer(fml, data = data)
-
-  # emmeans for Benthos within each Season × Day_Night
-  emm_b <- emmeans(fit, ~ Benthos | Season * Day_Night)
-
-  # compare each benthos to control within each Season × Day_Night
-  ctrl_contr <- as.data.frame(
-    contrast(emm_b, method = "trt.vs.ctrl", ref = control_label, adjust = adjust)
-  )
-
-  tri_df <- ctrl_contr %>%
-    # pull the benthos name out of the contrast label
-    mutate(
-      Benthos = gsub(paste0(" - ", control_label, "$"), "", contrast),
-      direction = case_when(
-        p.value < p_cut & estimate > 0 ~ "up",
-        p.value < p_cut & estimate < 0 ~ "down",
-        TRUE                           ~ "ns"
-      ),
-      tri = case_when(
-        direction == "up"   ~ "\u25B2",  # ▲
-        direction == "down" ~ "\u25BC",  # ▼
-        TRUE                ~ ""
-      )
-    ) %>%
-    filter(Benthos != control_label) %>%
-    # y-position: just above max in that facet for that Day_Night
-    left_join(
-      data %>%
-        filter(!is.na(.data[[var_name]])) %>%
-        group_by(Season, Day_Night, Benthos) %>%
-        summarise(y_pos = max(.data[[var_name]], na.rm = TRUE), .groups = "drop"),
-      by = c("Season", "Day_Night", "Benthos")
-    ) %>%
-    mutate(y_pos = y_pos * y_pad)
-
-  tri_df
-}
-
-# create space for the triangles
-build_facet_tops <- function(var_name, data) {
-  data %>%
-    filter(!is.na(.data[[var_name]])) %>%
-    group_by(Season, Benthos) %>%
-    summarise(
-      y_max = max(.data[[var_name]], na.rm = TRUE),
-      y_min = min(.data[[var_name]], na.rm = TRUE),
-      y_rng = y_max - y_min,
-      .groups = "drop"
-    ) %>%
-    mutate(
-      y_rng = ifelse(y_rng == 0 | is.na(y_rng), abs(y_max) * 0.1 + 1e-6, y_rng),
-      tri_y  = y_max + 0.4 * y_rng,   # lower annotation row
-      star_y = y_max + 0.1 * y_rng    # upper annotation row
-    )
-}
-
-plot_diel_with_sig <- function(var_name, var_label,
-                               data = data_clean,
-                               control_label = "Open Ocean",
-                               free_y = FALSE) {
-
-  benthos_levels <- c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass")
-
-  data2 <- data %>%
-    mutate(Benthos = factor(Benthos, levels = benthos_levels))
-
-  tops <- build_facet_tops(var_name, data2) %>%
-    mutate(Benthos = factor(Benthos, levels = benthos_levels))
-
-  sig_df <- build_sig_df(var_name, data = data2) %>%
-    mutate(Benthos = factor(Benthos, levels = benthos_levels)) %>%
-    left_join(tops %>% select(Season, Benthos, star_y), by = c("Season","Benthos")) %>%
-    mutate(y_pos = star_y)
-
-  tri_df <- build_tri_df(var_name, data = data2, control_label = control_label) %>%
-    mutate(Benthos = factor(Benthos, levels = benthos_levels)) %>%
-    left_join(tops %>% select(Season, Benthos, tri_y), by = c("Season","Benthos")) %>%
-    mutate(y_pos = tri_y)
-
-  facet_scales <- if (free_y) "free_y" else "fixed"
-  y_expand <- expansion(mult = c(0.05, 0.25))
-
-  ggplot(
-    data2 %>% filter(!is.na(.data[[var_name]])),
-    aes(x = Day_Night, y = .data[[var_name]], fill = Day_Night)
-  ) +
-    geom_boxplot(outlier.shape = NA) +
-    geom_jitter(width = 0.15, alpha = 0.5, size = 2) +
-    facet_grid(rows = vars(Season), cols = vars(Benthos),
-               scales = facet_scales, switch = "y") +
-    scale_y_continuous(expand = y_expand) +
-    scale_fill_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-    labs(x = "Sampling Time", y = var_label) +
-    theme(
-      legend.position = "none",
-      strip.background = element_rect(fill = "grey90"),
-      strip.placement = "outside",
-      axis.text.x = element_text(angle = 45, hjust = 1)
-    ) +
-    geom_text(
-      data = tri_df,
-      aes(x = Day_Night, y = y_pos, label = tri),
-      inherit.aes = FALSE,
-      size = 4
-    ) +
-    geom_text(
-      data = sig_df,
-      aes(x = 1.5, y = y_pos, label = sig),
-      inherit.aes = FALSE,
-      size = 4
-    )
-}
-
-(p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
-(p_TA   <- plot_diel_with_sig("TA",   expression(paste("Total Alkalinity (µmol kg"^-1,")")))
-  + theme(strip.text.y = element_blank(), strip.background.y = element_blank()))
-(p_nit  <- plot_diel_with_sig("NOx",  expression(paste("NOx (µmol L"^-1,")")), free_y = TRUE) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_nh4 <- plot_diel_with_sig("NH4",    expression(paste("Ammonium (µmol L"^-1,")" ))) + theme(strip.text = element_blank(), strip.background = element_blank()))
-(p_po4 <- plot_diel_with_sig("PO4",  expression(paste("Phosphate (µmol L"^-1,")"))) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_mc <- plot_diel_with_sig("M_to_C", "M:C")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
-(p_bix  <- plot_diel_with_sig("BIX",  "Biological Index (BIX)")
-  + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
-
-
-p_ph + p_TA + p_nit + p_nh4 + p_po4 + p_mc + p_bix + p_hix + 
-  plot_layout(axes = "collect_x", ncol = 2)
-
-#ggsave(here("Output","DielPlotsTriangles.png"), width = 14, height = 16)
-```
-
-# Diel plots with colors
-```{r}
-build_relation_df <- function(var_name, data, control_label = "Open Ocean", p_cut = 0.05, adjust = "holm") {
-  stopifnot(var_name %in% names(data))
-  fml <- as.formula(paste(var_name, "~ Day_Night * Season * Benthos + (1|Quad_ID)"))
-  fit <- lmer(fml, data = data)
-  emm_b <- emmeans(fit, ~ Benthos | Season * Day_Night)
-  ctrl_contr <- as.data.frame(contrast(emm_b, method = "trt.vs.ctrl", ref = control_label, adjust = adjust))
-  rel_df <- ctrl_contr %>%
-    mutate(
-      Benthos = gsub(paste0(" - ", control_label, "$"), "", contrast),
-      relation = case_when(
-        p.value < p_cut & estimate > 0 ~ "Higher",
-        p.value < p_cut & estimate < 0 ~ "Lower",
-        TRUE                           ~ "Similar"
-      ),
-      sig_flag = if_else(!is.na(p.value) & p.value < p_cut, "sig", "ns")
-    ) %>%
-    select(Season, Day_Night, Benthos, estimate, p.value, relation, sig_flag)
-  # ensure control rows exist and tagged as "control"
-  seasons <- unique(rel_df$Season)
-  days <- unique(rel_df$Day_Night)
-  control_rows <- expand.grid(Season = seasons, Day_Night = days, Benthos = control_label, stringsAsFactors = FALSE) %>%
-    as_tibble() %>%
-    mutate(estimate = 0, p.value = NA_real_, relation = "control", sig_flag = "sig")
-  bind_rows(rel_df, control_rows) %>%
-  mutate(
-    relation = case_when(
-      relation %in% c("Similar", "control") ~ "Same",
-      TRUE                                  ~ as.character(relation)
-    ),
-    relation = factor(relation, levels = c("Higher", "Same", "Lower")),
-    sig_flag = factor(sig_flag, levels = c("sig", "ns"))
-  )
-}
-
-# Global ordering for legend (and for consistency across plots)
-time_rel_levels <- c(
-  "Dawn_Higher", "Dawn_Same", "Dawn_Lower",
-  "Dusk_Higher", "Dusk_Same", "Dusk_Lower"
-)
-
-# Your colors (edit as you like)
-time_rel_colors <- c(
-  "Dawn_Higher" = "#c77a00",
-  "Dawn_Same"   = "#FDB813",
-  "Dawn_Lower"  = "#FFD88C",
-  "Dusk_Higher" = "#001f40",
-  "Dusk_Same"   = "#003865",
-  "Dusk_Lower"  = "#5779a6"
-)
-
-common_fill_scale <- scale_fill_manual(
-  name   = "Time × Open Ocean Comparison",
-  values = time_rel_colors,
-  breaks = time_rel_levels,  # forces identical legend keys
-  drop   = FALSE             # keep keys even if absent in a plot
-)
-
-# function to create plot
-plot_diel_fill_intensity <- function(var_name, var_label, data = data_clean,
-                                     control_label = "Open Ocean",
-                                     free_y = FALSE) {
-  stopifnot(var_name %in% names(data))
-  
-  # create order benthos should appear in
-  benthos_levels <- c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass")
-  
-  # compute relation (per Season x Day_Night x Benthos)
-  rel_df <- build_relation_df(var_name, data, control_label = control_label)
-  
-  # existing stars from earlier in code (Dawn vs Dusk)
-  sig_df <- build_sig_df(var_name, data = data)
-  
-  # Prepare row-level data and enforce factor levels consistently
-  data2 <- data %>%
-    filter(!is.na(.data[[var_name]])) %>%
-    mutate(
-      Benthos   = factor(Benthos, levels = benthos_levels),
-      Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk"))
-    ) %>%
-    left_join(rel_df, by = c("Season", "Day_Night", "Benthos")) %>%
-    mutate(
-      relation   = factor(relation, levels = c("Higher", "Same", "Lower")),
-      fill_group = factor(
-        paste(Day_Night, relation, sep = "_"),
-        levels = time_rel_levels
-      )
-    )
-  
-  # enforce same factor levels for rel_df and sig_df so facets align
-  rel_df <- rel_df %>% mutate(Benthos = factor(Benthos, levels = benthos_levels))
-  sig_df <- sig_df %>% mutate(Benthos = factor(Benthos, levels = benthos_levels))
-  
-   # If some combinations are missing in your data, ensure they are present in the scale or provide na.value.
-  facet_scales <- if (free_y) "free_y" else "fixed"
-  
-  ggplot(data2 %>% mutate(Benthos = factor(Benthos, levels = benthos_levels)),
-         aes(x = Day_Night, y = .data[[var_name]])) +
-    # use fill_group as the box fill (intensity encodes relation)
-    geom_boxplot(aes(fill = fill_group), outlier.shape = NA, size = 0.5, position = position_dodge(width = 0.75)) +
-    # keep alpha constant for points and boxes
-    geom_jitter(aes(fill = fill_group), width = 0.15, alpha = 0.6, size = 1.8) +
-    facet_grid(rows = vars(Season), cols = vars(Benthos), scales = facet_scales, switch = "y", drop = FALSE) +
-    # map fill groups to our chosen color palette
-    common_fill_scale +
-    scale_x_discrete(drop = FALSE) +
-    # hide separate Day_Night legend since fill encodes both; if you want a simple Day_Night legend, create a manual guide below
-    labs(x = "Sampling Time", y = var_label) +
-    theme_minimal() +
-    theme(
-      legend.position = "none",
-      strip.background = element_rect(fill = "grey90"),
-      strip.placement = "outside",
-      axis.text.x = element_text(angle = 45, hjust = 1)
-    ) +
-    # add the stars for Dawn vs Dusk
-    geom_text(data = sig_df, aes(x = 1.5, y = y_pos, label = sig), inherit.aes = FALSE, size = 4)
-}
-
-
-# creating one patchworked plot
-(p_ph   <- plot_diel_fill_intensity("pH",   "pH (Total Scale)"))
-(p_TA   <- plot_diel_fill_intensity("TA",   expression(paste("Total Alkalinity (µmol kg"^-1,")")))
-  + theme(strip.text.y = element_blank(), strip.background.y = element_blank()))
-(p_nit  <- plot_diel_fill_intensity("NOx",  expression(paste("NOx (µmol L"^-1,")")), free_y = TRUE) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_nh4 <- plot_diel_fill_intensity("NH4",    expression(paste("Ammonium (µmol L"^-1,")" ))) + theme(strip.text = element_blank(), strip.background = element_blank()))
-(p_po4 <- plot_diel_fill_intensity("PO4",  expression(paste("Phosphate (µmol L"^-1,")"))) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_mc <- plot_diel_fill_intensity("M_to_C", "M:C")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
-(p_bix  <- plot_diel_fill_intensity("BIX",  "Biological Index (BIX)")
-  + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_hix  <- plot_diel_fill_intensity("HIX",  "Humification Index (HIX)")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
-
-p_ph + p_TA + p_nit + p_nh4 + p_po4 + p_mc + p_bix + p_hix + 
-  plot_layout(axes = "collect_x", guides = "collect", ncol = 2) &
-  theme(legend.position = "right")
-
-#ggsave(here("Output","DielPlotsColors.png"), width = 18, height = 16)
-```
-
-# Tidal exchange analysis
+# Tidal exchange
 Samples were all collected at "high tide," but does it matter if water is coming in (flood) or leaving (ebb)? 
 ```{r ebb-flood}
 # what is our spread of tidal exchange over dusk/dawn?
@@ -1527,406 +1688,7 @@ anovas_full_tidal_spring <- map_dfr(numeric_vars_normal, function(v){
 })
 
 ```
-# Regressions
 
-## pH and nitrogen
-In the fall, nitrification drives down pH (as NH4 -> NO3). In the spring, higher NOx indicates strong photosynthetic signals which increase pH
-```{r ph-nit}
-# pH and nitrates - which is driving which?
-ggplot(data_clean %>% 
-         filter(Benthos != "Open Ocean"), aes(x = log(NOx), y = pH)) +
-  geom_point(aes(color = Benthos)) +
-  geom_smooth(method = "lm", se = FALSE) +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  facet_wrap(~Season,
-    scales = "free_x"
-  ) # surfgrass 7.7 pH weird
-
-# pH and TA faceted by dawn/dusk
-ggplot(data_clean %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), aes(x = pH, y = TA)) +
-  geom_point(aes(color = Benthos)) +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE, aes(color = Benthos)) +
-  facet_grid2(
-    rows = vars(Season),
-    cols = vars(Day_Night),
-    switch = "y",
-    scale = "free",
-    independent = "all"
-  ) 
-
-# ph and ta by season only
-ggplot(data_clean %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), aes(x = pH, y = TA)) +
-  geom_point(aes(color = Benthos)) +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE, aes(color = Benthos)) +
-  facet_wrap(~Season) 
-
-# omega aragonite?
-ggplot(data_full %>%
-         filter(Season != "Summer", TA < 2400) %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), aes(x = OmegaAragonite, y = TA)) +
-  geom_point(aes(color = Benthos)) +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE, aes(color = Benthos)) +
-  facet_wrap(~Season) 
-
-# DIC?
-ggplot(data_full %>%
-         filter(Season != "Summer", TA < 2400) %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), aes(x = DIC, y = TA)) +
-  geom_point(aes(color = Benthos)) +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE, aes(color = Benthos)) +
-  facet_wrap(~Season)
-```
-
-## HIX and BIX
-```{r hix-bix}
-# HIX and BIX are correlated with each other, makes sense. There is either more fresh/labile DOM (BIX) or more complex DOM (HIX). 
-ggplot(data_clean %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
-       aes(x = BIX, y = HIX, color = Day_Night)) +
-  geom_point() +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid(
-    rows = vars(Season),
-    cols = vars(Benthos)
-  ) +
-  labs(
-    color = "Sampling Time"
-  )
-
-# relationships between nitrates and BIX
-## consumer dawn: as NOx decreases, BIX increases
-ggplot(data_clean  %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
-       aes(x = NOx, y = BIX, color = Day_Night)) +
-  geom_point() +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid2(
-    rows = vars(Season),
-    cols = vars(Benthos),
-    scales = "free_x"
-  ) +
-  labs(
-    color = "Sampling Time"
-  )
-
-## consumer dawn: as NOx increases, HIX increases
-ggplot(data_clean  %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
-       aes(x = NOx, y = HIX, color = Day_Night)) +
-  geom_point() +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid(
-    rows = vars(Season),
-    cols = vars(Benthos),
-    scales = "free_x"
-  ) +
-  labs(
-    color = "Sampling Time"
-  )
-
-# relationships between ammonium and HIX/BIX
-## consumer dawn: as NH4 increases, HIX increases
-#nh4hixplot<-
-ggplot(data_clean, aes(x = NH4, y = HIX, color = Day_Night)) +
-  geom_point() +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid2(
-    rows = vars(Season),
-    cols = vars(Benthos), 
-    scales = "free",
-    switch = "y")
-
-
-## consumer dawn: as NH4 increases, BIX decreases; rockweed increases at dawn
-#nh4bixplot <-
-ggplot(data_clean, aes(x = NH4, y = BIX, color = Day_Night)) +
-  geom_point() +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid2(
-    rows = vars(Season),
-    cols = vars(Benthos), 
-    scales = "free",
-    switch = "y")
-  
-nh4hixplot + nh4bixplot + plot_layout(guides = "collect", ncol = 1, 
-                                      axes = "collect")
-# combine benthos, facet by sampling time
-dielhixplot <-
-ggplot(data_clean  %>% filter(Season == "Spring") %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
-       aes(x = NOx, y = HIX, color = Benthos)) +
-  geom_point() +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_wrap(~Day_Night)+
-  labs(
-    color = "Benthos"
-  )
-
-dielbixplot <-
-ggplot(data_clean  %>% filter(Season == "Spring") %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
-       aes(x = NOx, y = BIX, color = Benthos)) +
-  geom_point() +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_wrap(~Day_Night)+
-  labs(
-    color = "Benthos"
-  )
-
-dielhixplot + dielbixplot + plot_layout(guides = "collect")
-
-ggsave(here("Output","HIXBIXPlot.png"), width = 12, height = 6)
-```
-
-## Consumer nutrient analysis
-```{r consumer-plot}
-# regression of nitrogens
-nitrogenmodel <- lm(log(NOx) ~ log(NH4) * Day_Night * Benthos * Season,
-  data = data_clean
-)
-Anova(nitrogenmodel, type = "III")
-
-# calculate slopes
-emm <- emtrends(nitrogenmodel,
-  ~ Day_Night | Benthos * Season,
-  var = "log(NH4)"
-)
-
-summary(emm)
-pairs(emm)
-
-# create slope df
-slopes_df <- summary(emm) %>%
-  mutate(
-    label = sprintf(
-      "β = %.2f [%.2f, %.2f]",
-      `log(NH4).trend`, lower.CL, upper.CL
-    )
-  )  %>%
-  select("Day_Night", "Benthos", "Season", "label")
-
-slopes_df
-
-# create plot with regression lines
-#nitrogenplot <- 
-  ggplot(data_clean %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))),
-       aes(x = NH4, y = NOx, color = Day_Night)) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE) +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  facet_grid2(Season~Benthos,
-    scales = "free",
-    switch = "y"
-    #strip = strip_themed(
-      #background_y = elem_list_rect(fill = c(
-       # "Fall"   = "#D95F02",
-       # "Spring" = "#1B9E77"))
-   # )
-  ) +
-  labs(
-    x = expression(paste("NH"[4]," (µmol L"^-1,")")),
-    y = expression(paste("NO"[x]," (µmol L"^-1,")")),
-    color = "Sampling Time"
-  )
-
-#NH4 and HIX
-# regression model
-nh4hixmodel <- lm(HIX ~ log(NH4) * Day_Night * Benthos * Season,
-  data = data_clean
-)
-Anova(nh4hixmodel, type = "III")
-
-# calculate slopes
-emm <- emtrends(nh4hixmodel,
-  ~ Day_Night | Benthos * Season,
-  var = "log(NH4)"
-)
-
-summary(emm)
-pairs(emm)
-
-# create slope df
-slopes_df <- summary(emm) %>%
-  mutate(
-    label = sprintf(
-      "β = %.2f [%.2f, %.2f]",
-      `log(NH4).trend`, lower.CL, upper.CL
-    )
-  )  %>%
-  select("Day_Night", "Benthos", "Season", "label")
-
-slopes_df
-
-# create plot with regression lines
-nh4hixplot <-
-ggplot(data_clean %>%
-         mutate(Benthos = factor(Benthos, levels = c("Open Ocean", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), 
-       aes(x = NH4, y = HIX, color = Day_Night)) +
-  geom_point() +
-  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid2(Season~Benthos,
-    scales = "free_x",
-    switch = "y"
-  ) +
-  labs(
-    x = expression(paste("NH"[4]," (µmol L"^-1,")")),
-    color = "Sampling Time"
-  ) +
-  theme(strip.text.x = element_blank(), strip.background.x = element_blank())
-
-nitrogenplot + nh4hixplot + 
-  plot_layout(axes = "collect", guides = "collect", ncol = 1)
-
-#ggsave(here("Output","ConsumerPlot.png"), width = 12, height = 10)
-
-
-## trying to visualize differently
-ggplot(data_clean, aes(x = NH4, y = NOx, color = Benthos)) +
-  geom_point() +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_grid2(Season~Day_Night,
-    scales = "free",
-    switch = "y"
-  ) +
-  labs(
-    x = expression(paste("NH"[4]," (µmol L"^-1,")")),
-    y = expression(paste("NO"[x]," (µmol L"^-1,")")),
-    color = "Benthos"
-  )
-
-## filter out specific trend
-ggplot(data_clean %>%
-         filter(Season == "Spring", Day_Night == "Dawn"), 
-       aes(x = NH4, y = NOx, color = Benthos)) +
-  geom_point() +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    x = expression(paste("NH"[4]," (µmol L"^-1,")")),
-    y = expression(paste("NO"[x]," (µmol L"^-1,")")),
-    color = "Benthos"
-  )
-
-# NOx and HIX
-ggplot(data_clean %>%
-         filter(Season == "Spring", Day_Night == "Dawn"), 
-       aes(x = NOx, y = HIX, color = Benthos)) +
-  geom_point() +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(
-    x = expression(paste("NO"[x]," (µmol L"^-1,")")),
-    y = expression(paste("HIX")),
-    color = "Benthos"
-  )
-
-
-# diel nox plot
-dielnoxplot <-
-ggplot(data_clean %>% filter(Season == "Spring") %>%
-        mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))),
-    aes(x = Day_Night, y = NOx, fill = Benthos)) +
-    geom_boxplot(outlier.shape = NA) +
-    geom_point(position = position_jitterdodge(), alpha = 0.2, 
-               aes(color = Benthos))+
-    #geom_jitter(width = 0.15, alpha = 0.5, size = 2, aes(color = Benthos)) +
-    scale_fill_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-    scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-    labs(
-      x = "Sampling Time",
-      y = expression(paste("NO"[x]," (µmol L"^-1,")"))
-    ) 
-
-# NH4 and NOx plot
-nh4noxplot <-
-ggplot(data_clean %>% filter(Season == "Spring") %>%
-        mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))), 
-       aes(x = NH4, y = NOx, color = Benthos)) +
-  geom_point() +
-  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
-                     "Surfgrass" = "#5BB360",
-                     "Rockweed" = "#5A8F5D",
-                     "Barnacle" = "#6E86C2",
-                     "Mussel" = "#233B75")) +
-  geom_smooth(method = "lm", se = FALSE) +
-  facet_wrap(~Day_Night,
-    scales = "free"
-  ) +
-  labs(
-    x = expression(paste("NH"[4]," (µmol L"^-1,")")),
-    y = expression(paste("NO"[x]," (µmol L"^-1,")")),
-    color = "Benthos"
-  )
-
-dielnoxplot + nh4noxplot + plot_layout(ncol = 1, guides = "collect", 
-                                       axes = "collect")
-
-ggsave(here("Output","NOxplot.png"), width = 10, height = 10)
-```
 
 # Community Composition
 
