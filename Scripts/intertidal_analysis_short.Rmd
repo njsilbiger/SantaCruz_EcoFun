@@ -107,6 +107,22 @@ mobile_function <-read_csv(here("Data","Community_Composition","MobileFunctional
 
 data_full <- read_csv(here("Data", "Biogeochemistry", "FullDataSet_raw.csv"))
 
+temperature <- bind_rows(
+  read_csv(here("Data","Temperature","Spring_2024", "detided", "TempLight_Spring.csv")) %>%
+    mutate(Season = "Spring"),
+  read_csv(here("Data","Temperature","Fall_2023", "detided", "TempLight_Fall.csv")) %>%
+    mutate(Season = "Fall")
+) %>%
+   mutate(
+      Benthos = case_when(
+      str_detect(plot, "^B")  ~ "Barnacle",
+      str_detect(plot, "^M")  ~ "Mussel",
+      str_detect(plot, "^P")  ~ "Surfgrass",
+      str_detect(plot, "^RW") ~ "Rockweed",
+      TRUE ~ NA_character_
+      )
+    )
+
 stopifnot(load_ok)
 ```
 
@@ -555,9 +571,144 @@ pca_miplot_separate(data_clean,
   shape_var = "Day_Night",
   ellipse_var = "Benthos")
 ```
+## Temperature plots
+```{r temp-light}
+# overall temperatures
+ggplot(temperature, 
+       aes(x = datetime, y = temperature_c, color = Benthos)) +
+  geom_line(alpha = 0.6, linewidth = 0.4) +
+  labs(y = "Temperature (°C)") +
+  scale_color_manual(values = c(
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  facet_wrap(Season~Benthos, 
+             scale = "free",
+             ncol = 4)+
+  theme_minimal()
 
-## Light
-```{r}
+# daily temperatures
+temperature_summary <- temperature %>%
+  mutate(Day = as.Date(datetime)) %>%
+  group_by(Season, Benthos, Day) %>%
+  summarise(
+    temp_mean = mean(temperature_c, na.rm = TRUE),
+    temp_sd   = sd(temperature_c, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(temperature_summary, 
+       aes(Day, temp_mean, color = Benthos, fill = Benthos)) +
+  geom_ribbon(aes(ymin = temp_mean - temp_sd,
+                  ymax = temp_mean + temp_sd),
+              alpha = 0.2, linewidth = 0) +
+  geom_line(linewidth = 0.9) +
+  scale_color_manual(values = c(
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  scale_fill_manual(values = c(
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  facet_wrap(Season~Benthos, 
+             scales = "free",
+             ncol = 4) +
+  labs(x = NULL, y = "Temperature (°C)") +
+  theme_minimal()
+
+# violin plot
+ggplot(temperature,
+       aes(x = Season, y = temperature_c, fill = Season)) +
+  geom_violin(trim = FALSE, adjust = 1.2, alpha = 0.6) +
+  scale_fill_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  facet_wrap(~ Benthos, scales = "free_y") +
+  labs(
+    y = "Temperature (°C)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold")
+  )
+
+
+```
+
+## Light plots
+```{r light}
+# overall light lux
+ggplot(temperature, 
+       aes(x = datetime, y = light_lux, color = Benthos)) +
+  geom_line(alpha = 0.6, linewidth = 0.4) +
+  labs(y = "Light (LUX)") +
+  scale_color_manual(values = c(
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  facet_wrap(Season~Benthos, 
+             scale = "free",
+             ncol = 4)+
+  theme_minimal()
+
+# daily light lux
+light_summary <- temperature %>%
+  mutate(Day = as.Date(datetime)) %>%
+  group_by(Season, Benthos, Day) %>%
+  summarise(
+    light_mean = mean(light_lux, na.rm = TRUE),
+    light_sd   = sd(light_lux, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ggplot(light_summary, 
+       aes(Day, light_mean, color = Benthos, fill = Benthos)) +
+  geom_ribbon(aes(ymin = light_mean - light_sd,
+                  ymax = light_mean + light_sd),
+              alpha = 0.2, linewidth = 0) +
+  geom_line(linewidth = 0.9) +
+  scale_color_manual(values = c(
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  scale_fill_manual(values = c(
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  facet_wrap(Season~Benthos, 
+             scales = "free",
+             ncol = 4) +
+  labs(x = NULL, y = "Light (LUX)") +
+  theme_minimal()
+
+# violin plot
+ggplot(temperature,
+       aes(x = Season, y = light_lux, fill = Season)) +
+  geom_violin(trim = FALSE, alpha = 0.6) +
+  scale_fill_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  facet_wrap(~ Benthos, scales = "free_y") +
+  scale_y_log10() +
+  labs(
+    y = "Light (lux, log scale)"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "none",
+    strip.text = element_text(face = "bold")
+  )
+
 
 ```
 
