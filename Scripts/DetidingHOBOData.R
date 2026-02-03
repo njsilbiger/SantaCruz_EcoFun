@@ -6,13 +6,17 @@
 library(data.table)
 library(lubridate)
 library(here)
+library(readr)
+library(dplyr)
+library(janitor)
+library(stringr)
 
 # --------- file paths ----------
 coops_file       <- here("Data","CO-OPS_Tidal_Height.csv")
 tidal_file       <- here("Data","tidal_height_2.csv")
 full_data_dir    <- here("Data", "Temperature", "Spring_2024", "full data")
 output_dir       <- file.path(full_data_dir, "detided")
-tz          <- "America/Los_Angeles"  # PDT / user's timezone
+tz          <- "America/Los_Angeles"
 match_tol_secs   <- 0
 # names 
 coops_date_col   <- "Date"          # CO-OPS date column name
@@ -100,3 +104,40 @@ for (f in files) {
 }
 
 message("Done. Detided files are in: ", output_dir)
+
+# ---- create larger dataset with all of this info ----
+
+folder <- here("Data", "Temperature", "Fall_2023", "detided")
+files <- list.files(folder, pattern = "\\.csv$", full.names = TRUE)
+
+read_one <- function(path) {
+  read_csv(path, show_col_types = FALSE) %>%
+    # remove weird encoding artifacts like Â
+    rename_with(~ str_replace_all(.x, "Â", "")) %>%
+    clean_names() %>%
+    mutate(
+      datetime = parse_date_time(
+        date_time_pdt,
+        orders = c("Ymd HMS", "Ymd HM",
+                   "mdY HMS", "mdY HM",
+                   "dmY HMS", "dmY HM"),
+        tz = "America/Los_Angeles"
+      ),
+      source_file = basename(path)
+    ) %>%
+    select(
+      datetime,
+      plot,
+      number,
+      temperature_c = ch_1_temperature_c,
+      light_lux     = ch_2_light_lux,
+      source_file
+    )
+}
+
+compiled <- files %>%
+  map(read_one) %>%
+  bind_rows() %>%
+  arrange(datetime)
+
+write_csv(compiled, file.path(folder, "TempLight_Fall.csv"))

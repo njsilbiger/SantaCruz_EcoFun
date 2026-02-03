@@ -556,6 +556,11 @@ pca_miplot_separate(data_clean,
   ellipse_var = "Benthos")
 ```
 
+## Light
+```{r}
+
+```
+
 # Regressions
 
 ## pH and nitrogen
@@ -720,7 +725,7 @@ ggplot(data_clean %>%
 ```
 
 ### Within each benthos x season x sampling time, is there a relationship?
-Strong mussel coupling in fall throughout the day = strong remineralization and nitrification. <br> Rockweeds at dawn = microbial processing at night, masked by NH4 uptake during the day. <br> Surfgrass at dusk =  help. <br> Barnacles only ones in Spring + only at dusk. 
+Strong mussel coupling in fall throughout the day = strong remineralization and nitrification. <br> Rockweeds at dawn = microbial processing at night, masked by NH4 uptake during the day. <br> Surfgrass at dusk <br> Barnacles only ones in Spring + only at dusk. 
 ```{r nh4-nox-sig}
 # ONLY KEEPING SIG LINES
 ## create log columns
