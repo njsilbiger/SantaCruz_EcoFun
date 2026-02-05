@@ -762,6 +762,33 @@ dat2 <- data_clean %>%
 pHNOxmodel <- lm(pH ~ logNOx * Day_Night * Season + Benthos, data = dat2)
 Anova(pHNOxmodel, type = "II")
 ```
+### Clear dawn/dusk separation in pH 
+```{r ph-nit-dawn-dusk, fig.height=5}
+# pH and nitrate relationship faceted by season, colored by dawn/dusk
+ggplot(data_clean %>%
+         filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
+  coord_trans(x = "log") +
+  geom_point(alpha = 0.5, aes(color = Day_Night, shape = Day_Night)) +
+  scale_color_manual(values = c(
+    "Dawn" = "#FDB813", "Dusk" = "#003865"
+  )) +
+  geom_smooth(method = "lm", se = TRUE, aes(color = "black")) +
+  facet_wrap(~Season, scale = "free")+
+  theme(strip.background = element_rect(fill = "white"))
+
+ggplot(data_clean %>%
+         filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH, color = Day_Night)) +
+  coord_trans(x = "log") +
+  geom_point(alpha = 0.5, aes(shape = Day_Night)) +
+  scale_color_manual(values = c(
+    "Dawn" = "#FDB813", "Dusk" = "#003865"
+  )) +
+  geom_smooth(method = "lm", se = TRUE) +
+  facet_wrap(~Season, scale = "free")+
+  theme(strip.background = element_rect(fill = "white"))
+```
+
+
 ```{r hix-bix, echo = FALSE, eval = FALSE}
 # HIX and BIX are correlated with each other, makes sense. There is either more fresh/labile DOM (BIX) or more complex DOM (HIX). 
 ggplot(data_clean %>%
@@ -897,6 +924,7 @@ ggplot(data_clean %>%
 Strong mussel coupling in fall throughout the day = strong remineralization and nitrification. <br> Rockweeds at dawn = microbial processing at night, masked by NH4 uptake during the day. <br> Surfgrass at dusk <br> Barnacles only ones in Spring + only at dusk. 
 ```{r nh4-nox-sig}
 # ONLY KEEPING SIG LINES
+
 ## create log columns
 data_logged <- data_clean %>%
   mutate(
