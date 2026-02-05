@@ -929,15 +929,16 @@ Strong mussel coupling in fall throughout the day = strong remineralization and 
 data_logged <- data_clean %>%
   mutate(
     logNH4 = log(NH4),
-    logNOx = log(NOx)
+    logNOx = log(NOx),
+    Season = as.factor(Season)
   )
-## regression of nitrogens
+## nitrogen model
 nitrogenmodel <- lm(logNOx ~ logNH4 * Day_Night * Season * Benthos,
   data = data_logged
 )
 Anova(nitrogenmodel, type = "III")
 
-## calculate slopes
+## calculate slopes for day and night separately within each benthos and season
 emm <- summary(emtrends(nitrogenmodel,
   ~ Day_Night | Benthos * Season,
   var = "logNH4"),
@@ -946,7 +947,7 @@ emm <- summary(emtrends(nitrogenmodel,
 
 print(emm)
 
-## differences between dawn and dusk?
+## differences between dawn and dusk? no
 pairs(
   emtrends(
     nitrogenmodel,
@@ -997,6 +998,114 @@ ggplot(data_logged %>%
     y = expression(paste("log(NO"[x], ") (", mu, "mol L"^-1, ")")),
     color = "Sampling Time"
   )
+```
+
+### Individual models for each species
+Not as sensitive as larger model?
+```{r nh4-nox-sep}
+## create log columns
+data_logged <- data_clean %>%
+  mutate(
+    logNH4 = log(NH4),
+    logNOx = log(NOx),
+    Season= as.factor(Season)
+  )
+
+## fit one model per benthos and store
+models <- set_names(levels(data_logged$Benthos)) %>%
+  map(function(b) {
+    dat_b <- filter(data_logged, Benthos == b)
+    tryCatch(
+      lm(logNOx ~ logNH4 * Day_Night * Season, data = dat_b),
+      error = function(e) {
+        warning(glue::glue("Model failed for Benthos = '{b}': {e$message}"))
+        NULL
+      }
+    )
+  })
+
+## extract emtrends for each model: Day_Night | Season 
+emm_all <- imap_dfr(models, function(mod, b) {
+  em <- tryCatch(
+    summary(emtrends(mod, ~ Day_Night | Season, var = "logNH4"), infer = c(TRUE, TRUE)) %>%
+      as.data.frame(),
+    error = function(e) {
+      warning(glue::glue("emtrends failed for '{b}': {e$message}"))
+      return(NULL)
+    }
+  )
+  if (is.null(em)) return(tibble())
+  em %>% mutate(Benthos = b) %>% select(Benthos, everything())
+})
+
+print(emm_all)
+
+## filter significant slopes
+alpha <- 0.05
+sig_slopes <- emm_all %>%
+  filter(p.value <= alpha) %>%
+  transmute(
+    Benthos,
+    Season,
+    Day_Night,
+    slope = `logNH4.trend`,
+    slope_se = SE,
+    slope_p = p.value
+  )
+
+## build intercepts for each distinct panel (logNH4 = 0)
+new0 <- data_logged %>%
+  distinct(Benthos, Day_Night, Season) %>%
+  mutate(logNH4 = 0)
+
+## predict intercepts using the correct Benthos model
+# pmap over the rows to call predict with the right model
+intercepts <- new0 %>%
+  rowwise() %>%
+  mutate(
+    intercept = {
+      mod <- models[[as.character(Benthos)]]
+      if (is.null(mod)) NA_real_ else {
+        # pull the data actually used to fit this model
+        mf <- model.frame(mod)
+
+        newd <- tibble(
+          logNH4 = 0,
+          Day_Night = factor(as.character(Day_Night), levels = levels(mf$Day_Night)),
+          Season    = factor(as.character(Season),    levels = levels(mf$Season))
+        )
+
+        as.numeric(predict(mod, newdata = newd))
+      }
+    }
+  ) %>%
+  ungroup()
+
+## join slopes -> only keep rows where slope is significant (non-NA)
+line_df <- intercepts %>%
+  left_join(sig_slopes, by = c("Benthos", "Season", "Day_Night")) %>%
+  filter(!is.na(slope))
+
+## plot: points + only-significant lines
+
+ggplot(data_logged,
+       aes(x = logNH4, y = logNOx, color = Day_Night)) +
+  geom_point() +
+  geom_abline(
+    data = line_df,
+    aes(intercept = intercept, slope = slope, color = Day_Night),
+    inherit.aes = FALSE,
+    linewidth = 1
+  ) +
+  scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) +
+  facet_grid2(Season ~ Benthos, scales = "free", switch = "y") +
+  labs(
+    x = expression(paste("log(NH"[4], ") (", mu, "mol L"^-1, ")")),
+    y = expression(paste("log(NO"[x], ") (", mu, "mol L"^-1, ")")),
+    color = "Sampling Time"
+  ) +
+  theme_minimal()
+
 ```
 
 ## pH and HIX - "Production drives DOM processing"
