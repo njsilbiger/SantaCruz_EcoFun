@@ -732,7 +732,7 @@ ggplot(temperature,
 
 # Regressions
 
-## pH and nitrogen
+## pH and Nitrogen - "Upwelling drives primary production"
 Note: removed two outliers
 ```{r ph-nit, fig.height=5}
 # pH and nitrate relationship
@@ -877,7 +877,7 @@ dielhixplot + dielbixplot + plot_layout(guides = "collect")
 ggsave(here("Output","HIXBIXPlot.png"), width = 12, height = 6)
 ```
 
-## NH4 and NOx
+## NH4 and NOx - "Microbial processes vary by benthos"
 
 ### Original plot
 ```{r nh4-nox}
@@ -971,11 +971,11 @@ ggplot(data_logged %>%
   )
 ```
 
-## pH and HIX
-```{r}
+## pH and HIX - "Production drives DOM processing"
+There is a strong relationship between pH and HIX that interacts with season, but not different across benthos.
+```{r pH-HIX}
 # pH and HIX plot
-ggplot(data_clean %>%
-        mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))), 
+ggplot(data_clean, 
        aes(x = pH, y = HIX, color = Benthos)) +
   geom_point() +
   scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
@@ -1001,12 +1001,12 @@ ggplot(data_clean %>%
 
 ```
 
-### only significant lines
-```{r}
+### Only significant lines.
+Only Open Ocean
+```{r pH-HIX-plot}
 # start by fitting the model to see significant trends
-pHHIXmodel <- lm(HIX~pH * Season * Benthos, data = data_clean)
-#plot(pHHIXmodel)
-summary(pHHIXmodel)
+pHHIXmodel <- lm(HIX ~ pH * Season * Benthos, data = data_clean)
+Anova(pHHIXmodel, type = "III")
 
 # only filter out significant slopes
 alpha <- 0.05
@@ -1015,7 +1015,7 @@ tr_SB <- summary(emtrends(pHHIXmodel,
                           specs = ~ Season * Benthos, 
                           var = "pH"),
                 infer = c(TRUE, TRUE)) %>% # get p values
-  as.data.frame()
+        as.data.frame()
 
 print(tr_SB)
 
@@ -1041,8 +1041,7 @@ line_df <- intercepts %>%
 
 # plot sig lines
 ggplot(
-  data_clean %>%
-    mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))),
+  data_clean,
   aes(x = pH, y = HIX, color = Benthos)
 ) +
   geom_point() +
@@ -1055,8 +1054,9 @@ ggplot(
   )) +
   geom_abline(
     data = line_df,
-    aes(intercept = intercept, slope = slope),
-    inherit.aes = FALSE
+    aes(intercept = intercept, slope = slope,
+        color = Benthos),
+    linewidth = 1
   ) +
   labs(
     x = expression(paste("pH")),
@@ -1069,6 +1069,140 @@ ggplot(
     switch = "y"
   )
 
+```
+
+### Drop benthos since it is not significantly different
+They do look more different from each other during Spring. With Barnacles and mussels more similar than OO/rockweed and surfgrass in the middle.
+```{r pH-hix-combined}
+# lines colored by benthos
+ggplot(data_clean, 
+       aes(x = pH, y = HIX, color = Benthos)) +
+  geom_point() +
+  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = expression(paste("pH")),
+    y = expression(paste("HIX")),
+    color = "Benthos"
+  )+ 
+  facet_wrap (~Season)
+
+# one trend line
+ggplot(data_clean, 
+       aes(x = pH, y = HIX)) +
+  geom_point(aes(color = Benthos)) +
+  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  labs(
+    x = expression(paste("pH")),
+    y = expression(paste("HIX")),
+    color = "Benthos"
+  )+ 
+  facet_wrap (~Season)
+```
+
+## pH and TA - "Production drives calcification"/Silbiger & Sorte 2018
+TA decreases as pH increases in spring in barnacle and mussel plots. Surfgrass plots in fall = CCA?
+```{r pH-TA}
+# original plot
+ggplot(data_clean %>%
+        mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))), 
+       aes(x = pH, y = TA, color = Benthos)) +
+  geom_point() +
+  scale_color_manual(values = c("Open Ocean" = "#8C8C8C", 
+                     "Surfgrass" = "#5BB360",
+                     "Rockweed" = "#5A8F5D",
+                     "Barnacle" = "#6E86C2",
+                     "Mussel" = "#233B75")) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    x = expression(paste("pH")),
+    y = expression(paste("TA")),
+    color = "Benthos"
+  )+ 
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos),
+    switch = "y"
+    #scale = "free",
+    #independent = "all"
+  )
+```
+
+### only significant lines
+```{r pH-TA-plot}
+# model
+TAmodel <- lm(TA ~ pH * Benthos * Season, data = data_clean)
+anova(TAmodel)
+
+# plot significant lines
+alpha <- 0.05
+
+TA_slopes <- summary(emtrends(TAmodel, 
+                          specs = ~ Season * Benthos, 
+                          var = "pH"),
+                infer = c(TRUE, TRUE)) %>% # get p values
+                as.data.frame()
+
+print(TA_slopes)
+
+sig_TA_slopes <- TA_slopes %>%
+  filter(p.value < alpha) %>%
+  transmute(
+    Season,
+    Benthos,
+    slope = pH.trend
+  )
+
+# get intercepts
+intercepts <- data_clean %>%
+  distinct(Season, Benthos) %>%
+  mutate(pH = 0)
+
+intercepts$intercept <- predict(TAmodel, newdata = intercepts)
+
+line_df <- intercepts %>%
+  left_join(sig_TA_slopes, by = c("Season", "Benthos")) %>%
+  filter(!is.na(slope))   # ONLY significant regressions
+
+# plot sig lines
+ggplot(
+  data_clean %>%
+    mutate(Day_Night = factor(Day_Night, levels = c("Dusk", "Dawn"))),
+  aes(x = pH, y = TA, color = Benthos)
+) +
+  geom_point() +
+  scale_color_manual(values = c(
+    "Open Ocean" = "#8C8C8C",
+    "Surfgrass"  = "#5BB360",
+    "Rockweed"   = "#5A8F5D",
+    "Barnacle"   = "#6E86C2",
+    "Mussel"     = "#233B75"
+  )) +
+  geom_abline(
+    data = line_df,
+    aes(intercept = intercept, slope = slope,
+        color = Benthos),
+    linewidth = 1
+  ) +
+  labs(
+    x = expression(paste("pH")),
+    y = expression(paste("TA")),
+    color = "Benthos"
+  ) +
+  facet_grid2(
+    rows = vars(Season),
+    cols = vars(Benthos),
+    switch = "y"
+  )
 ```
 
 # Dawn vs Dusk analyses across Benthos and Seasons
