@@ -107,10 +107,15 @@ mobile_function <-read_csv(here("Data","Community_Composition","MobileFunctional
 
 data_full <- read_csv(here("Data", "Biogeochemistry", "FullDataSet_raw.csv"))
 
+# bring in HOBO data, need to trim to experimental dates
 temperature <- bind_rows(
   read_csv(here("Data","Temperature","Spring_2024", "detided", "TempLight_Spring.csv")) %>%
+    filter(datetime >= as.Date("2024-04-03") & 
+            datetime <= as.Date("2024-05-04")) %>%
     mutate(Season = "Spring"),
   read_csv(here("Data","Temperature","Fall_2023", "detided", "TempLight_Fall.csv")) %>%
+    filter(datetime >= as.Date("2023-10-23") & 
+            datetime <= as.Date("2023-11-03")) %>%
     mutate(Season = "Fall")
 ) %>%
    mutate(
@@ -571,20 +576,22 @@ pca_miplot_separate(data_clean,
   shape_var = "Day_Night",
   ellipse_var = "Benthos")
 ```
+
 ## Temperature plots
-```{r temp-light}
+Lower mean temperatures in Spring, but higher extreme temperatures/max.
+```{r temp, fig.width=10}
 # overall temperatures
 ggplot(temperature, 
        aes(x = datetime, y = temperature_c, color = Benthos)) +
   geom_line(alpha = 0.6, linewidth = 0.4) +
-  labs(y = "Temperature (°C)") +
+  labs(x = "Date", y = "Temperature (°C)") +
   scale_color_manual(values = c(
                      "Surfgrass" = "#5BB360",
                      "Rockweed" = "#5A8F5D",
                      "Barnacle" = "#6E86C2",
                      "Mussel" = "#233B75")) +
   facet_wrap(Season~Benthos, 
-             scale = "free",
+             scale = "free_x",
              ncol = 4)+
   theme_minimal()
 
@@ -615,10 +622,15 @@ ggplot(temperature_summary,
                      "Barnacle" = "#6E86C2",
                      "Mussel" = "#233B75")) +
   facet_wrap(Season~Benthos, 
-             scales = "free",
+             scales = "free_x",
              ncol = 4) +
   labs(x = NULL, y = "Temperature (°C)") +
   theme_minimal()
+
+# statistical difference between seasons, but not benthos
+tempmodel <- aov(temp_mean ~ Season * Benthos, 
+                 data = temperature_summary)
+summary(tempmodel)
 
 # violin plot
 ggplot(temperature,
@@ -628,7 +640,7 @@ ggplot(temperature,
     "Fall"   = "#D95F02",
     "Spring" = "#1B9E77"
   )) +
-  facet_wrap(~ Benthos, scales = "free_y") +
+  facet_wrap(~ Benthos) +
   labs(
     y = "Temperature (°C)"
   ) +
@@ -642,7 +654,8 @@ ggplot(temperature,
 ```
 
 ## Light plots
-```{r light}
+More light in spring, and barnacle and mussels higher on average than rockweeds and surfgrass.
+```{r light, fig.width = 10}
 # overall light lux
 ggplot(temperature, 
        aes(x = datetime, y = light_lux, color = Benthos)) +
@@ -654,7 +667,7 @@ ggplot(temperature,
                      "Barnacle" = "#6E86C2",
                      "Mussel" = "#233B75")) +
   facet_wrap(Season~Benthos, 
-             scale = "free",
+             scale = "free_x",
              ncol = 4)+
   theme_minimal()
 
@@ -668,6 +681,7 @@ light_summary <- temperature %>%
     .groups = "drop"
   )
 
+# plot
 ggplot(light_summary, 
        aes(Day, light_mean, color = Benthos, fill = Benthos)) +
   geom_ribbon(aes(ymin = light_mean - light_sd,
@@ -685,10 +699,15 @@ ggplot(light_summary,
                      "Barnacle" = "#6E86C2",
                      "Mussel" = "#233B75")) +
   facet_wrap(Season~Benthos, 
-             scales = "free",
+             scales = "free_x",
              ncol = 4) +
   labs(x = NULL, y = "Light (LUX)") +
   theme_minimal()
+
+# difference between season and benthos
+lightmodel <- aov(light_mean ~ Season * Benthos, 
+                 data = light_summary)
+summary(lightmodel)
 
 # violin plot
 ggplot(temperature,
@@ -708,7 +727,6 @@ ggplot(temperature,
     legend.position = "none",
     strip.text = element_text(face = "bold")
   )
-
 
 ```
 
@@ -1305,7 +1323,7 @@ plot_diel_with_sig <- function(var_name, var_label,
 p_ph + p_TA + p_nit + p_nh4+ p_bix + p_hix + 
   plot_layout(axes = "collect_x", ncol = 2)
 
-ggsave(here("Output","DielPlots.png"), width = 14, height = 14) 
+#ggsave(here("Output","DielPlots.png"), width = 14, height = 14) 
 ```
 
 ## Effect size plots
