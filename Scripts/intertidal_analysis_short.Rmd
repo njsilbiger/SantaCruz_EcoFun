@@ -37,11 +37,11 @@ library(patchwork) # combine plots
 library(rstatix)
 library(ggcorrplot)
 library(ggrepel)
-library(here)
+library(here) # for collaboration across folders
 library(lubridate)
 library(kableExtra)
 library(car)
-library(emmeans)
+library(emmeans) # for pairwise comparisons
 library(agricolae)
 library(lme4) # random effects
 library(paletteer) # color palettes
@@ -53,6 +53,7 @@ library(rsample)
 library(yardstick)   
 library(gratia) 
 library(ggnewscale) # multiple color scales on one plot
+library(vegan) # for permanova
 
 # Global plot theme
 theme_set(theme_bw(base_size = 12))
@@ -470,7 +471,7 @@ pca_biplot(data_clean,
 
 ```
 
-### One PCA per season - shows pH decoupling from NOX, but I think the above one is better
+### One PCA per season
 ```{r PCA-separate, fig.height=6}
 pca_miplot_separate <- function(df,
                                 vars,
@@ -575,6 +576,204 @@ pca_miplot_separate(data_clean,
   color_var = "Day_Night",
   shape_var = "Day_Night",
   ellipse_var = "Benthos")
+```
+#### Adjusted PCA with OO vs benthos colors
+PERMANOVA: Significant interaction between season and sampling time. Greater variability in Spring than in Fall. 
+```{r adj-pca, fig.height = 6}
+pca_miplot_separate <- function(df,
+                                vars,
+                                season_var = "Season",
+                                color_var  = "Day_Night",
+                                shape_var  = "Day_Night",
+                                ellipse_var = "Benthos",
+                                control_label = "Open Ocean") {
+
+  # select data 
+  df_sub <- df %>%
+    select(all_of(unique(c(vars, season_var, color_var, shape_var, ellipse_var)))) %>%
+    drop_na(all_of(vars))
+
+  scores_list <- list()
+  loadings_list <- list()
+
+  for (season in unique(df_sub[[season_var]])) {
+
+    df_season <- df_sub %>% filter(.data[[season_var]] == season)
+
+    pca <- prcomp(df_season[, vars], scale. = TRUE)
+
+    sco <- as.data.frame(pca$x[, 1:2])
+    colnames(sco) <- c("PC1", "PC2")
+
+    meta_cols <- unique(c(season_var, color_var, shape_var, ellipse_var))
+    sco <- bind_cols(sco, df_season[, meta_cols, drop = FALSE])
+
+    # Open Ocean vs Foundation Species
+    sco <- sco %>%
+      mutate(sample_type = if_else(.data[[ellipse_var]] == control_label,
+                                   "Open Ocean", "Foundation Species"))
+
+    loadings <- as.data.frame(pca$rotation[, 1:2])
+    colnames(loadings) <- c("PC1", "PC2")
+    loadings$var <- rownames(loadings)
+
+    mult <- min(
+      diff(range(sco$PC1)) / diff(range(loadings$PC1)),
+      diff(range(sco$PC2)) / diff(range(loadings$PC2))
+    ) * 0.7
+    loadings$PC1 <- loadings$PC1 * mult
+    loadings$PC2 <- loadings$PC2 * mult
+    loadings[[season_var]] <- season
+
+    var_expl <- round(pca$sdev^2 / sum(pca$sdev^2) * 100, 1)
+    sco$PC1_label <- paste0("PC1 (", var_expl[1], "%)")
+    sco$PC2_label <- paste0("PC2 (", var_expl[2], "%)")
+
+    scores_list[[season]] <- sco
+    loadings_list[[season]] <- loadings
+  }
+
+  scores_all   <- bind_rows(scores_list)
+  loadings_all <- bind_rows(loadings_list)
+
+  # medians: include shape_var so medians can use the same shape mapping
+  med_all <- scores_all %>%
+    group_by_at(vars(one_of(c(season_var, color_var, shape_var)), "sample_type")) %>%
+    summarise(
+      PC1 = median(PC1, na.rm = TRUE),
+      PC2 = median(PC2, na.rm = TRUE),
+      .groups = "drop"
+    )
+  
+  # get only foundation species scores
+  pca_scores <- scores_all %>%
+    filter(sample_type == "Foundation Species") %>%
+    select(PC1, PC2, Day_Night, Season)
+  
+  # run PERMANOVA
+    permanova_res <- adonis2(
+      cbind(pca_scores$PC1, pca_scores$PC2) ~ Day_Night * Season,
+      data = pca_scores,
+      method = "euclidean",
+      permutations = 999,
+      by = "margin"
+    )
+
+    # distance matrix (Euclidean)
+  dist_mat <- dist(pca_scores[, c("PC1", "PC2")])
+
+  # dispersion tests (Day_Night and Season separately)
+  disp_daynight <- betadisper(dist_mat, group = pca_scores$Day_Night)
+  disp_daynight_anova <- anova(disp_daynight)
+  disp_daynight_permutest <- permutest(disp_daynight, permutations = 999)
+
+  disp_season <- betadisper(dist_mat, group = pca_scores$Season)
+  disp_season_anova <- anova(disp_season)
+  disp_season_permutest <- permutest(disp_season, permutations = 999)
+
+  dispersion_tests <- list(
+    day_night = list(betadisper = disp_daynight,
+                     anova = disp_daynight_anova,
+                     permutest = disp_daynight_permutest),
+    season = list(betadisper = disp_season,
+                  anova = disp_season_anova,
+                  permutest = disp_season_permutest)
+  )
+
+  # plot
+  p <-
+  ggplot() +
+
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+
+    # foundation species dots
+    geom_point(
+      data = scores_all %>% filter(sample_type == "Foundation Species"),
+      aes_string(x = "PC1", y = "PC2", color = color_var, shape = shape_var),
+      size = 3,
+      alpha = 0.35
+    ) +
+
+    # median darker dot
+    geom_point(
+      data = med_all %>% filter(sample_type == "Foundation Species"),
+      aes_string(x = "PC1", y = "PC2", color = color_var, shape = shape_var),
+      size = 4.8,
+      alpha = 1
+    ) +
+
+    # ellipses
+    stat_ellipse(
+      data = scores_all %>% filter(sample_type == "Foundation Species"),
+      aes_string(x = "PC1", y = "PC2", group = color_var, color = color_var),
+      linewidth = 1,
+      alpha = 0.45,
+      level = 0.95
+    ) +
+
+    # shape and color
+    scale_color_manual(
+      values = c("Dawn" = "#FDB813", "Dusk" = "#003865"),
+      name = "Sampling Time"
+    ) +
+    scale_shape_manual(values = c(16, 17), name = "Sampling Time") +
+
+    # start a new color scale for controls
+    ggnewscale::new_scale_color() +
+
+    # control points
+    geom_point(
+      data = scores_all %>% filter(sample_type == "Open Ocean"),
+      aes_string(
+        x = "PC1",
+        y = "PC2",
+        shape = shape_var
+       ),
+        color = "grey20",
+        size = 3,
+        alpha = 0.5,
+      show.legend = FALSE
+    ) +
+
+    # loadings
+    geom_segment(
+      data = loadings_all,
+      aes(x = 0, y = 0, xend = PC1, yend = PC2),
+      arrow = arrow(length = unit(0.2, "cm")),
+      inherit.aes = FALSE
+    ) +
+    geom_text_repel(
+      data = loadings_all,
+      aes(x = PC1, y = PC2, label = var),
+      size = 4,
+      segment.color = "grey50",
+      inherit.aes = FALSE
+    ) +
+
+    facet_wrap(as.formula(paste("~", season_var))) +
+
+    labs(
+      x = unique(scores_all$PC1_label),
+      y = unique(scores_all$PC2_label)
+    ) +
+    
+    theme_bw()
+  
+  return(list(
+    plot = p,
+    permanova = permanova_res,
+    dispersion_tests = dispersion_tests
+  ))
+}
+
+pca_miplot_separate(data_clean,
+  vars      = ratio_vars,
+  season_var = "Season",
+  color_var = "Day_Night",
+  shape_var = "Day_Night",
+  ellipse_var = "Benthos")
+
 ```
 
 ## Temperature plots
@@ -1038,7 +1237,8 @@ emm_all <- imap_dfr(models, function(mod, b) {
   em %>% mutate(Benthos = b) %>% select(Benthos, everything())
 })
 
-print(emm_all)
+emm_all %>% 
+  kable()
 
 ## filter significant slopes
 alpha <- 0.05
@@ -1052,6 +1252,9 @@ sig_slopes <- emm_all %>%
     slope_se = SE,
     slope_p = p.value
   )
+
+sig_slopes %>%
+  kable()
 
 ## build intercepts for each distinct panel (logNH4 = 0)
 new0 <- data_logged %>%
@@ -1138,7 +1341,7 @@ ggplot(data_clean,
 
 ```
 
-### Only significant lines.
+### Only significant lines
 Only Open Ocean
 ```{r pH-HIX-plot}
 # start by fitting the model to see significant trends
@@ -1274,7 +1477,7 @@ ggplot(data_clean %>%
   )
 ```
 
-### only significant lines
+### Only significant lines
 ```{r pH-TA-plot}
 # model
 TAmodel <- lm(TA ~ pH * Benthos * Season, data = data_clean)
