@@ -1367,7 +1367,7 @@ map_dfr(transformed_vars, function(v){
 ## ANOVA results
 ```{r ANOVA-table}
 testing_df_norm <- bind_rows(testing_df, transformed_var) 
-numeric_vars_normal <- c("pH", "TA", "NOx_transformed", "NH4", "BIX", "HIX_transformed")
+numeric_vars_normal <- c("pH", "NOx_transformed", "NH4", "HIX_transformed")
 
 # individual models depending on whether they have random effect
 
@@ -1656,13 +1656,31 @@ ggplot(effects_all,
     strip.background = element_rect(fill = "grey90"),
     axis.text.y = element_text(size = 9)
   )
+```
 
+### Patchworked plots
+```{r effect-box, fig.height = 8}
 (p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
 (p_nit  <- plot_diel_with_sig("NOx",  expression(paste("NO"[x], " (", mu, "mol L"^-1,")")), free_y = TRUE) + theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
-(p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)")
-  + theme(strip.text = element_blank(), strip.background = element_blank()))
+(p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)")+
+  theme(strip.text.x = element_blank(), strip.background.x = element_blank()))
 
-effectsizeplot + p_ph + p_nit + p_hix 
+effectsizeplot | free(p_ph / p_nit / p_hix + plot_layout(axes = "collect"))
+
+design <- "###BBB
+           AAABBB
+           AAABBB
+           AAABBB
+           AAABBB
+           ###BBB"
+
+effectsizeplot + (p_ph / p_nit / p_hix + plot_layout(axes = "collect")) + plot_layout(design = design)
+
+(p_ph   <- plot_diel_with_sig("pH",   "pH (Total Scale)"))
+(p_nit  <- plot_diel_with_sig("NOx",  expression(paste("NO"[x], " (", mu, "mol L"^-1,")")), free_y = TRUE))
+(p_hix  <- plot_diel_with_sig("HIX",  "Humification Index (HIX)"))
+
+effectsizeplot + free(p_ph) + p_nit + p_hix + plot_layout(axes = "collect")
 ```
 
 # Heatmap colored in comparison to OO
@@ -1697,10 +1715,10 @@ fdom_diff <- fdom_diff %>%
          Diff_Scaled_Nocenter = as.numeric(scale(Diff_from_OO, center = FALSE))) %>%  # scales without centering
   ungroup() %>%
   mutate(Benthos = factor(Benthos, 
-    levels = c("Barnacle", "Mussel", "Rockweed", "Surfgrass"))) # order benthos by assigning levels
+    levels = c("Mussel", "Barnacle", "Surfgrass", "Rockweed"))) # order benthos by assigning levels
 
 # assign var labels
-var_levels <- c("pH", "TA", "NOx", "NH4", "BIX", "HIX")
+var_levels <- c("pH", "NOx", "NH4", "HIX")
 
 plot_df <- fdom_diff %>%
   mutate(
@@ -1925,7 +1943,8 @@ plot_df_ttest <- fdom_diff %>%
             by = c("Season","Day_Night","Benthos","variable")) %>%
   mutate(variable   = factor(variable, levels = var_levels),
          Day_Night  = factor(Day_Night, levels = c("Dawn", "Dusk")),
-         x_id       = as.numeric(variable) * 2 + as.numeric(Day_Night) - 2)
+         x_id       = as.numeric(variable) * 2 + as.numeric(Day_Night) - 2,
+         Benthos    = factor(Benthos, levels = c("Mussel","Barnacle", "Surfgrass", "Rockweed")))
 
 # updated plot
 ggplot(plot_df_ttest, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
@@ -1946,7 +1965,6 @@ ggplot(plot_df_ttest, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
     )
   ) +
   labs(
-    title = "Dusk vs Dawn fDOM + Nutrients (one sample t-test)",
     x = NULL,
     y = NULL
   ) +
