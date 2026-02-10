@@ -484,7 +484,7 @@ pca_biplot <- function(df,
 }
 
 pca_biplot(data_clean,
-  vars      = ratio_vars,
+  vars      = less_vars,
   season_var = "Season",
   color_var = "Day_Night",
   shape_var = "Day_Night",
@@ -652,12 +652,11 @@ ggplot(data_clean %>%
          filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
   coord_trans(x = "log") +
   geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
-  #scale_color_manual(values = c(
-  #  "Fall"   = "#D95F02",
-  #  "Spring" = "#1B9E77"
-  #)) +
+  scale_color_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
   geom_smooth(method = "lm", se = TRUE, aes(color = "black")) +
-  #facet_wrap(~Season, scale = "free")+
   theme(strip.background = element_rect(fill = "white"))
 
 ## with benthos
@@ -684,10 +683,15 @@ dat2 <- data_clean %>%
   ) %>%
   filter(is.finite(pH), is.finite(NOx), NOx > 0)
 
-## We expect the relationship between pH and NOx to change with Day_Night (shown in the plot) and Season. pH changes with benthos
+## We expect the relationship between pH and NOx to change with Day_Night. pH changes with season and benthos
 
 pHNOxmodel <- lmer(pH ~ logNOx * Day_Night + (1|Season) + (1|Benthos), data = dat2)
 anova(pHNOxmodel)
+
+emm_slopes <- emmeans(pHNOxmodel, ~ Day_Night, var = "logNOx", 
+                      infer = c(TRUE, TRUE)) # get p vals
+emm_slopes
+contrast(emm_slopes, method = "pairwise")
 ```
 
 ### Clear dawn/dusk separation in pH 
