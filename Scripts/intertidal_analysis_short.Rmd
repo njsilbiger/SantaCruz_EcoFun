@@ -55,6 +55,7 @@ library(gratia)
 library(ggnewscale) # multiple color scales on one plot
 library(vegan) # for permanova
 library(lmerTest)
+library(gamm4)
 
 # Global plot theme
 theme_set(theme_bw(base_size = 12))
@@ -129,6 +130,21 @@ temperature <- bind_rows(
       TRUE ~ NA_character_
       )
     )
+
+cuti <- bind_rows(read_csv(here("Data","CUTI_daily.csv")) %>%
+  mutate(Date = make_date(year, month, day)) %>%
+  filter(Date >= as.Date("2024-04-03") & 
+            Date <= as.Date("2024-05-04")) %>%
+  mutate(Season = "Spring") %>%
+  select("Date","33N", "Season"),
+  read_csv(here("Data","CUTI_daily.csv")) %>%
+  mutate(Date = make_date(year, month, day)) %>%
+  filter(Date >= as.Date("2023-10-23") & 
+            Date <= as.Date("2023-11-03")) %>%
+  mutate(Season = "Fall")%>%
+  select("Date","33N", "Season")) %>%
+  rename("index" = "33N")
+  
 
 stopifnot(load_ok)
 ```
@@ -493,7 +509,7 @@ pca_biplot(data_clean,
 
 ## Temperature plots
 Lower mean temperatures in Spring, but higher extreme temperatures/max.
-```{r temp, fig.width=10}
+```{r temp, fig.width = 7, fig.height = 5}
 # overall temperatures
 ggplot(temperature, 
        aes(x = datetime, y = temperature_c, color = Benthos)) +
@@ -508,6 +524,23 @@ ggplot(temperature,
              scale = "free_x",
              ncol = 4)+
   theme_minimal()
+
+# not faceted
+ggplot(temperature, aes(x = datetime, y = temperature_c, color = Season)) +
+  geom_line(alpha = 0.6, linewidth = 0.4) +
+  labs(x = NULL, y = "Temperature (°C)") +
+  scale_color_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  facet_wrap(~Season, 
+             scale = "free_x",
+             ncol = 1)+
+  theme_classic()+
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        text = element_text(size = 20),
+        plot.margin = unit(c(0,1,0.5,0.5), "cm"))
 
 # daily temperatures
 temperature_summary <- temperature %>%
@@ -565,6 +598,25 @@ ggplot(temperature,
   )
 
 
+```
+## CUTI plot
+```{r cuti, fig.width = 7, fig.height = 5}
+ggplot(cuti, aes(x = Date, y = index, color = Season)) +
+  geom_line(alpha = 1, linewidth = 1) +
+  geom_point()+
+  labs(x = NULL, y = "CUTI") +
+  scale_color_manual(values = c(
+    "Fall"   = "#D95F02",
+    "Spring" = "#1B9E77"
+  )) +
+  facet_wrap(~Season, 
+             scale = "free_x",
+             ncol = 1)+
+  theme_classic()+
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        text = element_text(size = 20),
+        plot.margin = unit(c(0,1,0.5,0.5), "cm"))
 ```
 
 ## Light plots
@@ -646,7 +698,7 @@ ggplot(temperature,
 
 # pH and Nitrogen - "Upwelling drives primary production"
 Note: removed two outliers
-```{r ph-nit, fig.height=5}
+```{r ph-nit}
 # pH and nitrate relationship
 ggplot(data_clean %>%
          filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
@@ -656,7 +708,9 @@ ggplot(data_clean %>%
     "Fall"   = "#D95F02",
     "Spring" = "#1B9E77"
   )) +
-  geom_smooth(method = "lm", se = TRUE, aes(color = "black")) +
+  facet_wrap(~Day_Night, scale = "free")+
+  geom_smooth(method = "lm",
+              se = TRUE, aes(color = "black")) +
   theme(strip.background = element_rect(fill = "white"))
 
 ## with benthos
@@ -672,8 +726,9 @@ ggplot(data_clean %>%
   facet_wrap(Benthos~Day_Night, scale = "free", ncol = 5)+
   theme(strip.background = element_rect(fill = "white"))
 
-## do emmeans and get rid of dawn potentially
-
+```
+### Model and plot
+```{r ph-nit-model, fig.height=5}
 dat2 <- data_clean %>%
   mutate(
     Day_Night = factor(Day_Night),
@@ -681,17 +736,79 @@ dat2 <- data_clean %>%
     Benthos   = factor(Benthos),
     logNOx    = log(NOx)
   ) %>%
-  filter(is.finite(pH), is.finite(NOx), NOx > 0)
+  filter(is.finite(NOx), NOx > 0, NOx > 0.07, pH >7.71) # remove outliers
 
 ## We expect the relationship between pH and NOx to change with Day_Night. pH changes with season and benthos
 
 pHNOxmodel <- lmer(pH ~ logNOx * Day_Night + (1|Season) + (1|Benthos), data = dat2)
-anova(pHNOxmodel)
+Anova(pHNOxmodel, type = "III")
 
-emm_slopes <- emmeans(pHNOxmodel, ~ Day_Night, var = "logNOx", 
-                      infer = c(TRUE, TRUE)) # get p vals
-emm_slopes
+emm_slopes <- emtrends(pHNOxmodel, ~ Day_Night, var = "logNOx", 
+                      infer = c(TRUE, TRUE)) 
+emm_slopes # dawn significant, dusk is not
+
 contrast(emm_slopes, method = "pairwise")
+
+# only get significant slope
+slopes <- emtrends(pHNOxmodel, ~ Day_Night, var = "logNOx", 
+                   infer = c(TRUE,TRUE)) %>%
+  as.data.frame() %>%
+  mutate(sig = (p.value < 0.05)) %>%
+  select(Day_Night, sig)
+
+# prediction grid
+grid <- expand_grid(
+  NOx       = dat2$NOx,
+  Day_Night = levels(dat2$Day_Night),
+  Season    = levels(dat2$Season),
+  Benthos   = levels(dat2$Benthos)
+) %>%
+  mutate(logNOx = log(NOx))
+
+pred <- predict(pHNOxmodel, newdata = grid, se.fit = TRUE)
+
+grid <- grid %>%
+  mutate(
+    fit = pred$fit,
+    se  = pred$se.fit,
+    lo  = fit - 1.96 * se,
+    hi  = fit + 1.96 * se
+  )
+
+# average over season & benthos
+grid_avg <- grid %>%
+  group_by(Day_Night, NOx) %>%
+  summarise(
+    fit = mean(fit),
+    lo  = mean(lo),
+    hi  = mean(hi),
+    .groups = "drop"
+  ) %>%
+  left_join(slopes, by = "Day_Night") %>%
+  filter(sig)   # keep sig line
+
+# make plot
+ggplot(dat2, aes(x = NOx, y = pH)) +
+  coord_trans(x = "log") +
+  geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
+  scale_color_manual(values = c("Fall" = "#D95F02", "Spring" = "#1B9E77")) +
+  facet_wrap(~ Day_Night, scales = "free") +
+  geom_ribbon(
+    data = grid_avg,
+    aes(x = NOx, ymin = lo, ymax = hi),
+    inherit.aes = FALSE,
+    alpha = 0.2,
+    fill = "grey50"
+  ) +
+  geom_line(
+    data = grid_avg,
+    aes(x = NOx, y = fit),
+    inherit.aes = FALSE,
+    color = "black",
+    linewidth = 1
+  ) +
+  theme(strip.background = element_rect(fill = "white"))
+
 ```
 
 ### Clear dawn/dusk separation in pH 
@@ -2277,23 +2394,5 @@ mobile_density %>%
   facet_wrap(~Benthos, scale = "free")
 
 #ggsave(here("Output","MobileComp.png"), width = 10, height = 6)
-
-
-## rename the foundation species data to match the chemistry
-sessile_clean<-sessile_total %>%
-  rename(Quad_ID = BenthicID) %>%
-  mutate(Season = case_when(Season  == "fall2023"~"Fall",
-                            Season == "spring2024"~"Spring",
-                            Season == "summer2023"~"Summer",
-                            Season == "winter2024"~"Winter")) %>%
-  mutate(FoundationSp = case_when(Benthos == "Barnacles"~ `Balanus/Cthamalus_sp`,
-                                   Benthos == "Rockweed"~Silvetia_compressa,
-                                   Benthos == "Surfgrass"~Phyllospadix_sp,
-                                   Benthos == "Mussels"~Mytilus_californianus)) %>%  # add a column that is the cover of the foundation species for the right benthos
-  select(!Total_hairs) %>%
-  mutate(Benthos = ifelse(Benthos == "Mussels","Mussel",Benthos))%>%
-  mutate(Benthos = ifelse(Benthos == "Barnacles","Barnacle",Benthos))
-
-#write_csv(x = sessile_clean, here("Data","Community_Composition","Sessile_clean.csv"))
 
 ```
