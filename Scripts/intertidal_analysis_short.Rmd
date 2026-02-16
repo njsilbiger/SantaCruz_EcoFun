@@ -900,7 +900,7 @@ ggplot(dat2, aes(x = NOx, y = pH)) +
 ```
 
 ### density plot
-```{r ph-nit-plot, fig.height=5}
+```{r ph-nit-plot, fig.height=6, fig.width=12}
 ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), 
        aes(x = NOx, y = pH)) +
   geom_point(aes(color = Season), alpha = 0.4) +
@@ -927,24 +927,16 @@ ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71),
                                 "Spring" = "#1B9E77")) +
   stat_density_2d(aes(fill = Season, group = Season),
     geom = "polygon",
+    bins = 6,
+    n = 200,
     alpha = 0.3) +
     scale_fill_manual(values = c("Fall" = "#D95F02", 
                                 "Spring" = "#1B9E77")) +
-  coord_trans("log")+
-  facet_wrap(~Day_Night)
-
-ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), 
-       aes(x = NOx, y = pH)) +
-  geom_point(aes(color = Season), alpha = 0.4) +
-    scale_color_manual(values = c("Fall" = "#D95F02", 
-                                "Spring" = "#1B9E77")) +
-  stat_density_2d(aes(fill = Season, group = Season),
-    geom = "polygon",
-    alpha = 0.3) +
-    scale_fill_manual(values = c("Fall" = "#D95F02", 
-                                "Spring" = "#1B9E77")) +
-  coord_trans("log")+
-  facet_wrap(Season~Day_Night)
+  scale_x_log10(limits = c(0.07, 10))+
+  facet_wrap(~Day_Night)+
+  labs(x = expression(paste("log(NO"[x],")")))+
+  theme(strip.background = element_rect(fill = "white"),
+        text = element_text(size = 20))
 
 ```
 
