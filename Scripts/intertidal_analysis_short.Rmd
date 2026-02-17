@@ -35,28 +35,26 @@ knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 library(tidyverse)
 library(patchwork) # combine plots
 library(rstatix)
-library(ggcorrplot)
-library(ggrepel)
-library(here) # for collaboration across folders
-library(lubridate)
-library(kableExtra)
 library(car)
+library(ggrepel) # prevent overlapping text
+library(here) # for collaboration across folders
+library(lubridate) # for date/time
+library(kableExtra) # create tables
 library(emmeans) # for pairwise comparisons
-library(agricolae)
+library(agricolae) # HSD test
 library(lme4) # random effects
 library(paletteer) # color palettes
-library(ggh4x)
-library(mgcv)
-library(performance) 
-library(MuMIn)       
-library(rsample)     
-library(yardstick)   
-library(gratia) 
+library(ggh4x) # adds facet_grid2
+#library(performance) 
+#library(MuMIn)       
+#library(rsample)     
+#library(yardstick)   
 library(ggnewscale) # multiple color scales on one plot
 library(vegan) # for permanova
 library(lmerTest) # random effects
-library(gamm4)
 library(maps) # for CA map
+library(gt) # table
+library(heplots) # boxM manova test
 
 # Global plot theme
 theme_set(theme_bw(base_size = 12))
@@ -80,7 +78,7 @@ tryCatch({
     #mutate(Sampling_Date = lubridate::mdy(Sampling_Date))
   data_fdom <- read_csv(here::here("Data","Biogeochemistry","fDOM_clean.csv"), na = c("NA", ""), show_col_types = FALSE) %>%
     mutate(Sampling_Date = lubridate::mdy(Sampling_Date))
-  data_tidal <- read.csv(here::here("Data","tidal_exchange.csv")) %>%
+  data_tidal <- read_csv(here::here("Data","tidal_exchange.csv")) %>%
     mutate(Sampling_Date = lubridate::mdy(Sampling_Date))
 
   data_merged <- full_join(
@@ -103,13 +101,13 @@ tryCatch({
   message(e)
 })
 
+stopifnot(load_ok)
+
 sessile <- read_csv(here("Data","Community_Composition","sessile_data.csv"))
 sessile_function <-read_csv(here("Data","Community_Composition","SessileFunctional.csv"))
 
 mobile <- read_csv(here("Data","Community_Composition","mobile_data.csv"))
 mobile_function <-read_csv(here("Data","Community_Composition","MobileFunctional.csv"))
-
-data_full <- read_csv(here("Data", "Biogeochemistry", "FullDataSet_raw.csv"))
 
 # bring in HOBO data, need to trim to experimental dates
 temperature <- bind_rows(
@@ -156,8 +154,6 @@ temp <- bind_rows(read_csv(here("Data","wave_height_2024.csv")) %>%
             filter(Date >= as.Date("2023-10-21") & 
             Date <= as.Date("2023-11-03")) %>%
             mutate(Season = "Fall"))
-
-stopifnot(load_ok)
 ```
 
 # Cleaning & Pre-processing
@@ -207,12 +203,12 @@ data_clean <- data_merged %>%
   select(all_of(id_vars), any_of(all_numeric_vars)) %>%
   mutate(across(all_of(all_numeric_vars), as.numeric)) %>%
   mutate(
-    Benthos   = factor(Benthos, levels = c(control_label, "Rockweed", "Surfgrass", "Barnacle", "Mussel")),
+    Benthos  = factor(Benthos, levels = c("Open Ocean", "Rockweed", "Surfgrass", "Barnacle", "Mussel")),
     Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk"))
   ) %>%
   drop_na(Benthos, Day_Night) %>%
   mutate(across(all_of(all_numeric_vars), iqr_filter)) %>% #iqr filter
-  mutate(sample_type = if_else(Benthos == control_label,
+  mutate(sample_type = if_else(Benthos == "Open Ocean",
                                    "Surface Water", "Foundation Species"))
 
 levels(data_clean$Benthos) <- c("Surface Water", "Rockweed", "Surfgrass", "Barnacle", "Mussel") # change OO label
@@ -297,13 +293,11 @@ pca_biplot <- function(df,
                        color_var = "Day_Night",
                        shape_var = "Day_Night",
                        ellipse_var = "Benthos",
-                       control_label = "Surface Water",
-                       permanova_permutations = 999,
-                       seed = 123) {
+                       control_label = "Surface Water") {
 
   # select vars of interest
   df_sub <- df %>%
-    select(all_of(c(vars, season_var, color_var, ellipse_var))) %>%
+    select(all_of(c(vars, season_var, color_var, ellipse_var)), sample_type) %>%
     drop_na(all_of(vars))
 
   # standardize within season
@@ -326,7 +320,7 @@ pca_biplot <- function(df,
   scores <- scores %>%
     bind_cols(
       df_scaled %>%
-        select(all_of(c(season_var, color_var, ellipse_var)))
+        select(all_of(c(season_var, color_var, ellipse_var)), sample_type)
     ) %>%
     mutate(Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk")))
 
@@ -358,8 +352,8 @@ pca_biplot <- function(df,
       PC2 = median(PC2, na.rm = TRUE),
       .groups = "drop"
     )
-    
-  # permanova and dispersions
+
+# manova    
   pca_scores <- scores %>%
     filter(sample_type == "Foundation Species") %>%
     select(
@@ -369,52 +363,39 @@ pca_biplot <- function(df,
       Season   = all_of(season_var)
     )
 
-  set.seed(seed)
+  manova_res <- manova(cbind(PC1, PC2) ~ Day_Night * Season, 
+                       data = pca_scores)
+  manova_summary <- summary(manova_res)
+
+  # post-hoc: univariate ANOVAs 
+  univariate_anovas <- summary.aov(manova_res)
+
+  # splitting by season
+  within_season_manova <- pca_scores %>%
+    group_split(Season) %>%
+    map_dfr(function(d) {
+      m_res <- manova(cbind(PC1, PC2) ~ Day_Night, data = d)
+      s_res <- summary(m_res, test = "Pillai")$stats
+      data.frame(
+        Season = unique(d$Season),
+        Pillai = s_res[1, "Pillai"],
+        Approx_F = s_res[1, "approx F"],
+        p_val = s_res[1, "Pr(>F)"]
+      )
+    })
   
-  permanova_res <- adonis2(
-    pca_scores[, c("PC1","PC2")] ~ Day_Night * Season,
-    data = pca_scores,
-    method = "euclidean",
-    permutations = permanova_permutations,
-    by = "margin"
-  )
-
-  dist_mat <- dist(pca_scores[, c("PC1", "PC2")])
-
-  disp_daynight <- betadisper(dist_mat, group = pca_scores$Day_Night)
-  disp_season   <- betadisper(dist_mat, group = pca_scores$Season)
-
-  dispersion_tests <- list(
-    day_night = list(
-      betadisper = disp_daynight,
-      anova = anova(disp_daynight),
-      permutest = permutest(disp_daynight, permutations = permanova_permutations)
-    ),
-    season = list(
-      betadisper = disp_season,
-      anova = anova(disp_season),
-      permutest = permutest(disp_season, permutations = permanova_permutations)
-    )
-  )
+  # check normality
+  qq1 <- ggplot(pca_scores, aes(sample = PC1)) +
+    stat_qq() +
+    stat_qq_line() +
+    facet_grid(Day_Night ~ Season)
+  qq2 <- ggplot(pca_scores, aes(sample = PC2)) +
+    stat_qq() +
+    stat_qq_line() +
+    facet_grid(Day_Night ~ Season)  
   
-  within_season <- pca_scores %>%
-  group_split(Season) %>%
-  lapply(function(d) {
-    if (n_distinct(d$Day_Night) < 2) return(NULL)
-    ad <- adonis2(
-      d[, c("PC1","PC2")] ~ Day_Night,
-      data = d,
-      method = "euclidean",
-      permutations = 999
-    )
-    data.frame(
-      Season = unique(d$Season),
-      R2 = ad$R2[1],
-      F = ad$F[1],
-      p = ad$`Pr(>F)`[1]
-    )
-  }) %>%
-  bind_rows()
+  # check covariance
+  boxbox <- boxM(cbind(PC1, PC2) ~ Day_Night * Season, data = pca_scores)
 
   # plot
     p <-
@@ -518,10 +499,12 @@ pca_biplot <- function(df,
     theme(strip.background = element_rect(fill = "white"))
     
   return(list(
-    plot = p,
-    permanova = permanova_res,
-    within_season = within_season,
-    dispersion_tests = dispersion_tests
+    p,
+    qq1,
+    qq2,
+    boxbox,
+    manova = manova_summary,
+    season_manova = within_season_manova
   ))
 }
 
@@ -532,7 +515,6 @@ pca_biplot(data_normal,
   shape_var = "Day_Night",
   ellipse_var = "Benthos")
 
-# run PCA on transformed variables ~
 ```
 ## Map
 ```{r}
@@ -1835,7 +1817,10 @@ ggplot(plot_df, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
     sec.axis = sec_axis(
       ~ .,
       breaks = top_breaks,
-      labels = var_levels,
+      labels = c(expression(paste("pH"[T])), 
+                 expression(paste("NO"[x])), 
+                 expression(paste("NH"[4])), 
+                 "HIX"),
       name = NULL
     )
   ) +
@@ -1961,67 +1946,48 @@ ggplot(plot_df_anova, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
 
 ## One-sample t-test
 ```{r heatmap-ttest, fig.width = 8}
+#-----compute t test-----#
+
 compute_sig_to_ctrl_ttest <- function(testing_df_norm, 
                                       vars = numeric_vars_normal,
                                       control_label) {
   
-  res_tbl <- map(vars, function(v) { # loop for each variable
-    df_var <- testing_df_norm %>%
-      filter(variable == v)
-    
-    res_by_sd <- df_var %>%
-      group_nest(Season, Day_Night) %>% # group by season and dawn/dusk
-      mutate(
-        res = map(data, function(df_sd) {
-          ctrl_vals <- df_sd %>%
-            filter(Benthos == control_label) %>%
-            pull(Value)
-          ctrl_mean <- mean(ctrl_vals, na.rm = TRUE) # get OO mean
-
-          df_sd %>%
-            group_by(Benthos) %>%
-            summarise(
-              n       = sum(!is.na(Value)),
-              mean    = mean(Value, na.rm = TRUE),
-              .groups = "drop"
-            ) %>%
-            mutate(
-              # one-sample test vs control mean for each benthos
-              p.value = map_dbl(Benthos, function(b) {
-                x <- df_sd %>% filter(Benthos == b) %>% pull(Value)
-                t.test(x, mu = ctrl_mean)$p.value
-              }),
-              estimate = mean - ctrl_mean,
-              variable = v
-            )
-        })
-      ) %>%
-      select(-data) %>%
-      unnest(res)
-    
-    # add sig stars
-    res_by_sd %>%
-      mutate(
-        sig = case_when(
-          is.na(p.value)  ~ NA_character_,
-          p.value < 0.001 ~ "***",
-          p.value < 0.01  ~ "**",
-          p.value < 0.05  ~ "*",
-          TRUE            ~ ""
+  # Filter each variable
+  res_tbl <- testing_df_norm %>%
+    filter(variable %in% vars) %>%
+    group_by(variable, Season, Day_Night) %>%
+    group_split() %>%
+    map_dfr(function(df_sd) {
+      
+      # Calculate control means
+      ctrl_mean <- df_sd %>%
+        filter(Benthos == control_label) %>%
+        pull(Value) %>%
+        mean(na.rm = TRUE)
+      
+      # Perform one-sample t-test for each benthos against that mean
+      df_sd %>%
+        group_by(Benthos) %>%
+        t_test(Value ~ 1, mu = ctrl_mean) %>%
+        add_significance("p", cutpoints = c(0,0.001, 0.01, 0.05, 1),
+                         symbols = c("***", "**", "*", "")) %>%
+        mutate(
+          variable = unique(df_sd$variable),
+          Season = unique(df_sd$Season),
+          Day_Night = unique(df_sd$Day_Night),
+          estimate = statistic 
         )
-      )
-  }) %>% 
-    compact() %>% 
-    list_rbind()
+    })
   
-  res_tbl
+  return(res_tbl)
 }
 
 sig_to_ctrl_ttest <- compute_sig_to_ctrl_ttest(testing_df_norm,
                                                vars = numeric_vars_normal,
-                                               control_label = "Surface Water")%>%
+                                               control_label = "Surface Water") %>%
   mutate(variable = sub("_transformed$", "", variable))
 
+# combine t test results with data
 plot_df_ttest <- fdom_diff %>%
   left_join(sig_to_ctrl_ttest, 
             by = c("Season","Day_Night","Benthos","variable")) %>%
@@ -2030,7 +1996,7 @@ plot_df_ttest <- fdom_diff %>%
          x_id       = as.numeric(variable) * 2 + as.numeric(Day_Night) - 2,
          Benthos    = factor(Benthos, levels = c("Mussel","Barnacle", "Surfgrass", "Rockweed")))
 
-# updated plot
+#-----plot-----#
 ggplot(plot_df_ttest, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
   geom_tile(color = "white") +
   geom_vline(xintercept = sep_positions, color = "white", linewidth = 1.5) +
@@ -2044,7 +2010,10 @@ ggplot(plot_df_ttest, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
     sec.axis = sec_axis(
       ~ .,
       breaks = top_breaks,
-      labels = var_levels,
+      labels = c(expression(paste("pH"[T])), 
+                 expression(paste("NO"[x])), 
+                 expression(paste("NH"[4])), 
+                 "HIX"),,
       name = NULL
     )
   ) +
@@ -2053,7 +2022,7 @@ ggplot(plot_df_ttest, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
     y = NULL
   ) +
   facet_grid(Season ~ .) +
-  geom_text(aes(label = ifelse(is.na(sig),"", paste0(sig))), color = "black", size = 3) +
+  geom_text(aes(label = ifelse(is.na(p.signif),"", paste0(p.signif))), color = "black", size = 3) +
   theme_minimal() +
   theme(
     panel.grid = element_blank(),
@@ -2063,101 +2032,37 @@ ggplot(plot_df_ttest, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
     strip.text = element_text(size = 10)
   )
 
-```
+#-----creating table-----#
 
-```{r heatmap-dunn, eval=FALSE}
-compute_sig_to_ctrl_dunn <- function(testing_df_norm, 
-                                     vars = numeric_vars,
-                                     control_label) {
-  
-  res_tbl <- map(vars, function(v) { # loop for each variable
-    df_var <- testing_df_norm %>%
-      filter(variable == v)
-    
-    df_var %>%
-      group_by(Season, Day_Night) %>% # group by season and dawn/dusk
-      group_modify(~ {
-        df_sd <- .x
-  
-        dunn_res <- df_sd %>%
-          rstatix::dunn_test(Value ~ Benthos, p.adjust.method = "none")
-        
-        # keep only comparisons involving OO
-        dunn_ctrl <- dunn_res %>%
-          filter(group1 == control_label | group2 == control_label) %>%
-          mutate(
-            Benthos  = if_else(group1 == control_label, group2, group1),
-            variable = v,
-            p.value  = p.adj
-          )
-        
-        dunn_ctrl
-      }) %>%
-      ungroup()
-  }) %>%
-    compact() %>%
-    list_rbind() %>%
+# calculate means on non-transformed data
+means_df <- testing_df_norm %>%
+  filter(variable != "NOx_transformed",
+         variable != "HIX_transformed") %>%
+  group_by(variable, Season, Day_Night, Benthos) %>%
+  summarise(mean_val = mean(Value, na.rm = TRUE), .groups = "drop")
+
+# join means with t test
+ttest_table <- means_df %>%
+  left_join(
+    sig_to_ctrl_ttest %>% select(variable, Season, Day_Night, Benthos, p.signif),
+    by = c("variable", "Season", "Day_Night", "Benthos")) %>%
     mutate(
-      sig = case_when(
-        is.na(p.value)  ~ NA_character_,
-        p.value < 0.001 ~ "***",
-        p.value < 0.01  ~ "**",
-        p.value < 0.05  ~ "*",
-        TRUE            ~ ""
-      )
-    )
-  
-  res_tbl
-}
+    # format mean with significance
+    stars = ifelse(p.signif == "ns" | is.na(p.signif), "", p.signif),
+    formatted_value = paste0(sprintf("%.2f", mean_val), stars)) %>%
+  # remove unformatted cols
+  select(variable, Season, Day_Night, Benthos, formatted_value) %>%
+  # pivot benthos
+  pivot_wider(names_from = Benthos, values_from = formatted_value) %>%
+  group_by(Season) %>%
+  gt() %>%
+  tab_header(title = "Benthic Ecosystem Response to Upwelling") %>%
+  cols_label(Day_Night = " Sampling Time") %>%
+  tab_options(table.font.size = px(14))
 
-sig_to_ctrl_dunn <- compute_sig_to_ctrl_dunn(testing_df_norm,
-                                             vars = numeric_vars,
-                                             control_label = control_label) %>%
-  mutate(variable = sub("_transformed$", "", variable))
+ttest_table
 
-plot_df_dunn <- fdom_diff %>%
-  left_join(sig_to_ctrl_dunn, 
-            by = c("Season","Day_Night","Benthos","variable")) %>%
-  left_join(n_table, 
-            by = c("Season","Day_Night","Benthos","variable")) %>%
-  mutate(variable   = factor(variable, levels = var_levels),
-         Day_Night  = factor(Day_Night, levels = c("Dawn", "Dusk")),
-         x_id       = as.numeric(variable) * 2 + as.numeric(Day_Night) - 2)
-
-# create plot
-ggplot(plot_df_dunn, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
-  geom_tile(color = "white") +
-  geom_vline(xintercept = sep_positions, color = "white", linewidth = 1.5) +
-  scale_fill_gradient2(
-    low = "#075AFF", mid = "white", high = "#FF4500",
-    midpoint = 0, name = "Scaled difference\nfrom surface water"
-  ) +
-  scale_x_continuous(
-    breaks = bottom_breaks,
-    labels = rep(c("Dawn", "Dusk"), times = length(var_levels)),
-    sec.axis = sec_axis(
-      ~ .,
-      breaks = top_breaks,
-      labels = var_levels,
-      name = NULL
-    )
-  ) +
-  labs(
-    title = "Dusk vs Dawn fDOM + Nutrients (Dunn's test)",
-    x = NULL,
-    y = NULL
-  ) +
-  facet_grid(Season ~ .) +
-  geom_text(aes(label = ifelse(is.na(sig),"", paste0(sig))), color = "black", size = 3) +
-  theme_minimal() +
-  theme(
-    panel.grid = element_blank(),
-    axis.text.x = element_text(angle = 0),
-    axis.text.x.top = element_text(size = 10),
-    axis.ticks.x.top = element_blank(),
-    strip.text = element_text(size = 10)
-  )
-
+#gtsave(ttest_table, "Supplemental_Table.docx")
 ```
 
 # Tidal exchange
