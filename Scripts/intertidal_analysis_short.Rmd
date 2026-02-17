@@ -211,8 +211,9 @@ data_clean <- data_merged %>%
     Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk"))
   ) %>%
   drop_na(Benthos, Day_Night) %>%
-  
-  mutate(across(all_of(all_numeric_vars), iqr_filter))
+  mutate(across(all_of(all_numeric_vars), iqr_filter)) %>% #iqr filter
+  mutate(sample_type = if_else(Benthos == control_label,
+                                   "Surface Water", "Foundation Species"))
 
 levels(data_clean$Benthos) <- c("Surface Water", "Rockweed", "Surfgrass", "Barnacle", "Mussel") # change OO label
 ```
@@ -222,8 +223,8 @@ Start by assessing assumptions of normality and homogeneity of variance.
 ```{r normality, fig.keep = "none"}
 #-----short format df-----#
 data_normal <- data_clean %>%
-  mutate(HIX_transformed = log(HIX),
-         NOx_transformed = log(NOx)) %>%
+  mutate(HIX_transformed = log10(HIX),
+         NOx_transformed = log10(NOx)) %>%
   select(-NOx, -HIX) %>%
   rename(NOx = NOx_transformed,
          HIX = HIX_transformed)
@@ -268,11 +269,9 @@ numeric_vars_normal <- c("pH", "NOx_transformed", "NH4", "HIX_transformed")
 ```
 
 # Summary Statistics
-
 Per habitat × diel period (and Season), we compute mean, SD, and sample size for all numeric variables.
 
 ```{r summary-stats}
-
 data_summary <- data_clean %>%
   group_by(Benthos, Day_Night, Season) %>%
   summarise(
@@ -329,10 +328,7 @@ pca_biplot <- function(df,
       df_scaled %>%
         select(all_of(c(season_var, color_var, ellipse_var)))
     ) %>%
-    mutate(
-      Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk")),
-      sample_type = if_else(.data[[ellipse_var]] == control_label,
-                                   "Surface Water", "Foundation Species"))
+    mutate(Day_Night = factor(Day_Night, levels = c("Dawn", "Dusk")))
 
   # get loadings
   loadings <- as.data.frame(pca_res$rotation[, 1:2])
@@ -787,7 +783,7 @@ Note: removed two outliers
 # pH and nitrate relationship
 ggplot(data_clean %>%
          filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
-  coord_trans(x = "log") +
+  coord_trans(x = "log10") +
   geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
   scale_color_manual(values = c(
     "Fall"   = "#D95F02",
@@ -801,7 +797,7 @@ ggplot(data_clean %>%
 ## with benthos
 ggplot(data_clean %>%
          filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
-  coord_trans(x = "log") +
+  coord_trans(x = "log10") +
   geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
   scale_color_manual(values = c(
     "Fall"   = "#D95F02",
@@ -813,14 +809,14 @@ ggplot(data_clean %>%
 
 ```
 
-### Model and plot
+### Model
 ```{r ph-nit-model, fig.height=5}
 dat2 <- data_clean %>%
   mutate(
     Day_Night = factor(Day_Night),
     Season    = factor(Season),
     Benthos   = factor(Benthos),
-    logNOx    = log(NOx)
+    logNOx    = log10(NOx)
   ) %>%
   filter(is.finite(NOx), NOx > 0, NOx > 0.07, pH >7.71) # remove outliers
 
@@ -835,96 +831,27 @@ emm_slopes <- emmeans(pHNOxmodel, ~ Day_Night, var = "logNOx",
 emm_slopes # dawn significant, dusk is not
 
 contrast(emm_slopes, method = "pairwise")
-
-# only get significant slope
-slopes <- emtrends(pHNOxmodel, ~ Day_Night, var = "logNOx", 
-                   infer = c(TRUE,TRUE)) %>%
-  as.data.frame() %>%
-  mutate(sig = (p.value < 0.05)) %>%
-  select(Day_Night, sig)
-
-# prediction grid
-grid <- expand_grid(
-  NOx       = dat2$NOx,
-  Day_Night = levels(dat2$Day_Night),
-  Season    = levels(dat2$Season),
-  Benthos   = levels(dat2$Benthos)
-) %>%
-  mutate(logNOx = log(NOx))
-
-pred <- predict(pHNOxmodel, newdata = grid, se.fit = TRUE)
-
-grid <- grid %>%
-  mutate(
-    fit = pred$fit,
-    se  = pred$se.fit,
-    lo  = fit - 1.96 * se,
-    hi  = fit + 1.96 * se
-  )
-
-# average over season & benthos
-grid_avg <- grid %>%
-  group_by(Day_Night, NOx) %>%
-  summarise(
-    fit = mean(fit),
-    lo  = mean(lo),
-    hi  = mean(hi),
-    .groups = "drop"
-  ) %>%
-  left_join(slopes, by = "Day_Night") %>%
-  filter(sig)   # keep sig line
-
-# make plot
-ggplot(dat2, aes(x = NOx, y = pH)) +
-  coord_trans(x = "log") +
-  geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
-  scale_color_manual(values = c("Fall" = "#D95F02", "Spring" = "#1B9E77")) +
-  facet_wrap(~ Day_Night, scales = "free") +
-  geom_ribbon(
-    data = grid_avg,
-    aes(x = NOx, ymin = lo, ymax = hi),
-    inherit.aes = FALSE,
-    alpha = 0.2,
-    fill = "grey50"
-  ) +
-  geom_line(
-    data = grid_avg,
-    aes(x = NOx, y = fit),
-    inherit.aes = FALSE,
-    color = "black",
-    linewidth = 1
-  ) +
-  theme(strip.background = element_rect(fill = "white"))
-
-## add random intercepts
 ```
 
-### density plot
+### Density plot
 ```{r ph-nit-plot, fig.height=6, fig.width=12}
-ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), 
+ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), # remove outliers
        aes(x = NOx, y = pH)) +
-  geom_point(aes(color = Season), alpha = 0.4) +
-    scale_color_manual(values = c("Fall" = "#D95F02", 
+  # create open circles for ctrl
+  geom_point(data = data_clean %>% 
+               filter(sample_type == "Surface Water"),
+            aes(color = Season, shape = Season), stroke = 1.2, alpha = 0.4) + scale_shape_manual(values = c(21, 24)) +
+  # new shape scale
+  ggnewscale::new_scale("shape") +
+  # filled in circles for benthos
+  geom_point(data = data_clean %>% 
+               filter(sample_type == "Foundation Species"),
+            aes(color = Season, shape = Season), alpha = 0.4) +
+  scale_shape_manual(values = c(16, 17)) +
+  # color by season
+  scale_color_manual(values = c("Fall" = "#D95F02", 
                                 "Spring" = "#1B9E77")) +
-  stat_density_2d(aes(fill = Season, group = Season),
-    geom = "polygon",
-    alpha = 0.3) +
-    scale_fill_manual(values = c("Fall" = "#D95F02", 
-                                "Spring" = "#1B9E77")) +
-  coord_trans("log")
-
-# spring has one peak, more spread out than fall
-ggplot(data_clean, aes(NOx, fill = Season)) +
-  geom_density(alpha = 0.4) +
-  scale_fill_manual(values = c("Fall" = "#D95F02", 
-                                "Spring" = "#1B9E77")) 
-
-# if we look at day/night
-ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), 
-       aes(x = NOx, y = pH)) +
-  geom_point(aes(color = Season), alpha = 0.4) +
-    scale_color_manual(values = c("Fall" = "#D95F02", 
-                                "Spring" = "#1B9E77")) +
+  # density contours filled by season
   stat_density_2d(aes(fill = Season, group = Season),
     geom = "polygon",
     bins = 6,
@@ -932,9 +859,11 @@ ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71),
     alpha = 0.3) +
     scale_fill_manual(values = c("Fall" = "#D95F02", 
                                 "Spring" = "#1B9E77")) +
+  # log transform x axis
   scale_x_log10(limits = c(0.07, 10))+
   facet_wrap(~Day_Night)+
-  labs(x = expression(paste("log(NO"[x],")")))+
+  labs(y = expression(paste("pH"[T])),
+       x = expression(paste("log"[10],"(NO"[x],")")))+
   theme(strip.background = element_rect(fill = "white"),
         text = element_text(size = 20))
 
@@ -1060,7 +989,7 @@ ggsave(here("Output","HIXBIXPlot.png"), width = 12, height = 6)
 ggplot(data_clean %>% 
          mutate(Benthos = factor(Benthos, levels = c("Surface Water", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), 
        aes(x = NH4, y = NOx)) +
-  coord_trans(x = "log", y = "log")+
+  coord_trans(x = "log10", y = "log10")+
   geom_point() + 
   geom_smooth(method = "lm", se = FALSE) +   
   #scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) + 
@@ -1073,7 +1002,7 @@ ggplot(data_clean %>%
 ggplot(data_bench %>% 
          mutate(Benthos = factor(Benthos, levels = c("Surface Water", "Barnacle", "Mussel", "Rockweed", "Surfgrass"))), 
        aes(x = NH4, y = NOx, color = Sample_type)) +
-  coord_trans(x = "log", y = "log")+
+  coord_trans(x = "log10", y = "log10")+
   geom_point() + 
   geom_smooth(method = "lm", se = FALSE) +   
   #scale_color_manual(values = c("Dawn" = "#FDB813", "Dusk" = "#003865")) + 
@@ -1108,8 +1037,8 @@ ranef(nitmodelspring)
 ## create log columns
 data_logged <- data_clean %>%
   mutate(
-    logNH4 = log(NH4),
-    logNOx = log(NOx),
+    logNH4 = log10(NH4),
+    logNOx = log10(NOx),
     Season = as.factor(Season)
   )
 
@@ -1176,8 +1105,8 @@ ggplot(data_logged %>%
 ## create log columns
 data_logged <- data_clean %>%
   mutate(
-    logNH4 = log(NH4),
-    logNOx = log(NOx),
+    logNH4 = log10(NH4),
+    logNOx = log10(NOx),
     Season= as.factor(Season)
   )
 
@@ -2031,7 +1960,7 @@ ggplot(plot_df_anova, aes(x = x_id, y = Benthos, fill = Diff_Scaled_Nocenter)) +
 ```
 
 ## One-sample t-test
-```{r heatmap-ttest, eval = FALSE, fig.width = 8}
+```{r heatmap-ttest, fig.width = 8}
 compute_sig_to_ctrl_ttest <- function(testing_df_norm, 
                                       vars = numeric_vars_normal,
                                       control_label) {
