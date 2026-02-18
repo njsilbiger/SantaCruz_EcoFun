@@ -761,37 +761,7 @@ ggplot(temperature,
 
 # pH and Nitrogen - "Upwelling drives primary production"
 Note: removed two outliers
-```{r ph-nit}
-# pH and nitrate relationship
-ggplot(data_clean %>%
-         filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
-  coord_trans(x = "log10") +
-  geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
-  scale_color_manual(values = c(
-    "Fall"   = "#D95F02",
-    "Spring" = "#1B9E77"
-  )) +
-  facet_wrap(~Day_Night, scale = "free")+
-  geom_smooth(method = "lm",
-              se = TRUE, aes(color = "black")) +
-  theme(strip.background = element_rect(fill = "white"))
-
-## with benthos
-ggplot(data_clean %>%
-         filter(NOx > 0.07, pH >7.71), aes(x = NOx, y = pH)) +
-  coord_trans(x = "log10") +
-  geom_point(alpha = 0.5, aes(color = Season, shape = Season)) +
-  scale_color_manual(values = c(
-    "Fall"   = "#D95F02",
-    "Spring" = "#1B9E77"
-  )) +
-  geom_smooth(method = "lm", se = TRUE, aes(color = "black")) +
-  facet_wrap(Benthos~Day_Night, scale = "free", ncol = 5)+
-  theme(strip.background = element_rect(fill = "white"))
-
-```
-
-### Model
+## Model
 ```{r ph-nit-model, fig.height=5}
 dat2 <- data_clean %>%
   mutate(
@@ -815,7 +785,7 @@ emm_slopes # dawn significant, dusk is not
 contrast(emm_slopes, method = "pairwise")
 ```
 
-### Density plot
+## Density plot
 ```{r ph-nit-plot, fig.height=6, fig.width=12}
 ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), # remove outliers
        aes(x = NOx, y = pH)) +
@@ -848,6 +818,24 @@ ggplot(data_clean %>% filter(NOx > 0.07, pH >7.71), # remove outliers
        x = expression(paste("log"[10],"(NO"[x],")")))+
   theme(strip.background = element_rect(fill = "white"),
         text = element_text(size = 20))
+
+```
+
+## OO nutrients and CUTI
+```{r}
+# rename date column so they match
+cuti <- cuti %>% rename(Sampling_Date = Date,
+                        CUTI = index)
+
+data_OO <- data_clean %>% filter(Benthos == "Surface Water") %>%
+  left_join(cuti)
+
+data_OO %>%
+  ggplot(aes(x=CUTI, y=NOx, color = Season)) +
+  geom_point() +
+  geom_smooth() +
+  scale_color_manual(values = c("Fall" = "#D95F02", 
+                                "Spring" = "#1B9E77"))
 
 ```
 
