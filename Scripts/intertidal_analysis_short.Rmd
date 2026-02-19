@@ -1504,16 +1504,19 @@ pct_change_df <- testing_df %>%
     n_total = n_Dawn + n_Dusk
   )
 
+pct_change_df %>% kable()
+
 # not including dawn vs dusk
 seasonal_diff_df <- testing_df %>%
   filter(variable == "NOx") %>%
-  group_by(Season, Benthos) %>%
+  group_by(Season, Day_Night, sample_type) %>%
   summarize(
     mean_val = mean(Value, na.rm = TRUE),
     n = dplyr::n(),
     .groups = "drop"
   )
 
+seasonal_diff_df %>% kable()
 ```
 
 Let's look at differences across benthos in their dawn/dusk values over the two seasons
@@ -2032,7 +2035,7 @@ means_df <- testing_df_norm %>%
 # join means with t test
 ttest_table <- means_df %>%
   left_join(
-    sig_to_ctrl_ttest %>% select(variable, Season, Day_Night, Benthos, p.signif),
+    sig_to_ctrl_ttest %>% select(variable, Season, Day_Night, Benthos, p.signif, p),
     by = c("variable", "Season", "Day_Night", "Benthos")) %>%
     mutate(
     # format mean with significance
